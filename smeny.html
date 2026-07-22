@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Смены">
+<meta name="theme-color" content="#0B0C0E" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F2F1EE" media="(prefers-color-scheme: light)">
+<link rel="apple-touch-icon" href="data:image/png;base64,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">
+<link rel="icon" href="data:image/png;base64,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">
+<title>Смены</title>
+<style>
+:root{
+  color-scheme:light dark;
+  --bg:#0B0C0E;
+  --glow:rgba(28,30,35,1);
+  --glow0:rgba(11,12,14,0);
+  --surf:#141518;
+  --line:rgba(255,255,255,.065);
+  --line2:rgba(255,255,255,.11);
+  --tint:rgba(255,255,255,.045);
+  --tint2:rgba(255,255,255,.10);
+  --tint-soft:rgba(255,255,255,.022);
+  --ink:#F3F2EF;
+  --ink2:#93959B;
+  --ink3:#5C5E64;
+  --gold:#D6B278;
+  --gold-d:#8C7245;
+  --gold-soft:rgba(214,178,120,.13);
+  --gold-line:rgba(214,178,120,.40);
+  --rust:#BE7168;
+  --rust-line:rgba(190,113,104,.35);
+  --sheet:#0F1013;
+  --tabs:rgba(26,27,31,.82);
+  --veil:rgba(0,0,0,.6);
+  --toast-bg:rgba(240,239,236,.96);
+  --toast-ink:#111214;
+  --hdr:11,12,14;
+  --shadow:0 10px 34px rgba(0,0,0,.5);
+  --glow-op:1;
+  --r:18px;
+}
+@media (prefers-color-scheme: light){
+  :root{
+    --bg:#F2F1EE;
+    --glow:rgba(255,255,255,1);
+    --glow0:rgba(242,241,238,0);
+    --surf:#FFFFFF;
+    --line:rgba(0,0,0,.075);
+    --line2:rgba(0,0,0,.13);
+    --tint:rgba(0,0,0,.04);
+    --tint2:rgba(0,0,0,.075);
+    --tint-soft:rgba(0,0,0,.018);
+    --ink:#16171A;
+    --ink2:#6C6E74;
+    --ink3:#9B9DA3;
+    --gold:#8F6A31;
+    --gold-d:#B79A66;
+    --gold-soft:rgba(143,106,49,.09);
+    --gold-line:rgba(143,106,49,.32);
+    --rust:#A4534A;
+    --rust-line:rgba(164,83,74,.3);
+    --sheet:#F7F6F3;
+    --tabs:rgba(255,255,255,.86);
+    --veil:rgba(0,0,0,.26);
+    --toast-bg:rgba(22,23,26,.95);
+    --toast-ink:#F5F4F1;
+    --hdr:242,241,238;
+    --shadow:0 8px 26px rgba(0,0,0,.13);
+    --glow-op:.5;
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:var(--bg)}
+body{
+  margin:0;color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;
+  font-size:16px;line-height:1.35;font-variant-numeric:tabular-nums;
+  -webkit-font-smoothing:antialiased;
+  background:radial-gradient(130% 55% at 50% -10%, var(--glow) 0%, var(--glow0) 60%), var(--bg);
+  background-attachment:fixed;
+  padding-bottom:calc(120px + env(safe-area-inset-bottom));
+  min-height:100vh;
+}
+button,input,select{font-family:inherit}
+
+/* шапка */
+header{
+  position:sticky;top:0;z-index:20;
+  padding:calc(14px + env(safe-area-inset-top)) 20px 12px;
+  background:linear-gradient(180deg,rgba(var(--hdr),.94) 62%,rgba(var(--hdr),0));
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+}
+.nav{display:flex;align-items:center;justify-content:center;gap:6px}
+.nav button{
+  width:34px;height:34px;border-radius:17px;border:1px solid var(--line);
+  background:var(--tint);color:var(--ink2);font-size:15px;line-height:1;cursor:pointer
+}
+.nav button:active{background:var(--tint2)}
+.period{flex:1;text-align:center;font-size:12px;font-weight:600;letter-spacing:.19em;text-transform:uppercase;color:var(--ink)}
+main{padding:6px 16px 0;max-width:620px;margin:0 auto}
+
+/* типографика */
+.ml{font-size:10px;font-weight:700;letter-spacing:.19em;text-transform:uppercase;color:var(--ink3);margin:22px 4px 9px}
+.ml:first-child{margin-top:6px}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.card + .card{margin-top:10px}
+
+/* герой */
+.hero{padding:22px 20px 20px;position:relative;overflow:hidden}
+.hero:before{
+  content:"";position:absolute;inset:-40% -30% auto auto;width:220px;height:220px;border-radius:50%;
+  background:radial-gradient(circle,rgba(214,178,120,.16),rgba(214,178,120,0) 68%);
+  opacity:var(--glow-op);pointer-events:none
+}
+.hero .k{font-size:10px;font-weight:700;letter-spacing:.19em;text-transform:uppercase;color:var(--ink3)}
+.hero .n{font-size:44px;font-weight:500;letter-spacing:-1.6px;color:var(--gold);margin-top:8px;line-height:1.05}
+.hero .n small{font-size:24px;letter-spacing:-.5px;margin-left:3px;color:var(--gold-d)}
+.hero .sub{margin-top:9px;font-size:13px;color:var(--ink2)}
+
+/* строки */
+.row{display:flex;align-items:center;gap:14px;padding:13px 16px;border-top:1px solid var(--line)}
+.row:first-child{border-top:none}
+.row .l{flex:1;min-width:0}
+.row .t{font-size:15px;letter-spacing:-.15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .s{font-size:12px;color:var(--ink2);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .v{font-size:15px;font-weight:500;letter-spacing:-.2px;white-space:nowrap}
+.muted{color:var(--ink2)}.pos{color:var(--gold)}.neg{color:var(--rust)}
+.total{background:var(--tint-soft)}
+.total .t{font-weight:600}.total .v{font-weight:600;font-size:16px}
+
+/* смена */
+.sh{display:flex;align-items:center;gap:14px;padding:12px 16px;border-top:1px solid var(--line);cursor:pointer}
+.sh:first-child{border-top:none}
+.sh:active{background:var(--tint)}
+.sh .day{width:34px;flex:none;text-align:center}
+.sh .day .d{font-size:19px;font-weight:500;letter-spacing:-.6px;line-height:1}
+.sh .day .w{font-size:9px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--ink3);margin-top:3px}
+.sh .mid{flex:1;min-width:0}
+.sh .p{font-size:14.5px;letter-spacing:-.15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sh .meta{font-size:11.5px;color:var(--ink2);margin-top:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.sh .amt{font-size:15px;font-weight:500;letter-spacing:-.2px;white-space:nowrap;text-align:right}
+.tag{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--line2);color:var(--ink2);padding:2px 5px;border-radius:4px;line-height:1.15}
+.tag.g{border-color:var(--gold-line);color:var(--gold)}
+.tag.r{border-color:var(--rust-line);color:var(--rust)}
+
+/* прогресс */
+.prog{padding:14px 16px;border-top:1px solid var(--line)}
+.prog .top{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink2);margin-bottom:8px}
+.prog .track{height:4px;border-radius:2px;background:var(--tint2);overflow:hidden}
+.prog .fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--gold-d),var(--gold))}
+
+.empty{padding:46px 24px;text-align:center;color:var(--ink3);font-size:14px;line-height:1.55}
+
+/* таббар */
+nav.tabs{
+  position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);
+  z-index:30;display:flex;gap:2px;padding:4px;border-radius:24px;
+  background:var(--tabs);border:1px solid var(--line2);
+  backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);
+  box-shadow:var(--shadow)
+}
+nav.tabs a{padding:8px 17px;border-radius:20px;font-size:12.5px;font-weight:500;color:var(--ink2);cursor:pointer;white-space:nowrap}
+nav.tabs a.on{background:var(--tint2);color:var(--ink)}
+.fab{
+  position:fixed;right:18px;bottom:calc(76px + env(safe-area-inset-bottom));z-index:31;
+  width:50px;height:50px;border-radius:25px;cursor:pointer;
+  border:1px solid var(--gold-line);background:var(--gold-soft);color:var(--gold);
+  font-size:26px;font-weight:300;line-height:46px;padding:0;
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:var(--shadow)
+}
+.fab:active{filter:brightness(1.25)}
+
+/* шторка */
+.veil{position:fixed;inset:0;background:var(--veil);z-index:40;opacity:0;pointer-events:none;transition:.24s}
+.veil.on{opacity:1;pointer-events:auto}
+.sheet{
+  position:fixed;left:0;right:0;bottom:0;z-index:41;max-height:93vh;overflow-y:auto;
+  -webkit-overflow-scrolling:touch;background:var(--sheet);border-top:1px solid var(--line2);
+  border-radius:22px 22px 0 0;transform:translateY(101%);
+  transition:transform .32s cubic-bezier(.32,.72,0,1);
+  padding-bottom:calc(28px + env(safe-area-inset-bottom))
+}
+.sheet.on{transform:translateY(0)}
+.grab{width:34px;height:4px;border-radius:2px;background:var(--line2);margin:9px auto 0}
+.shead{position:sticky;top:0;z-index:2;display:flex;align-items:center;padding:12px 18px;background:var(--sheet);border-bottom:1px solid var(--line)}
+.shead .ttl{flex:1;text-align:center;font-size:11px;font-weight:700;letter-spacing:.19em;text-transform:uppercase}
+.lnk{background:none;border:none;padding:0;font-size:14.5px;color:var(--ink2);cursor:pointer}
+.lnk.b{color:var(--gold);font-weight:600}
+.sbody{padding:4px 16px 0;max-width:620px;margin:0 auto}
+
+/* поля */
+label.row{display:flex;cursor:text}
+label.row .t{flex:none;width:112px;color:var(--ink2);font-size:14.5px}
+input,select{width:100%;padding:0;border:none;outline:none;background:transparent;color:var(--ink);font-size:15.5px;text-align:right;font-variant-numeric:tabular-nums}
+input::placeholder{color:var(--ink3)}
+select{appearance:none;text-align-last:right;direction:rtl}
+select option{direction:ltr;background:var(--surf);color:var(--ink)}
+.seg{display:flex;gap:3px;padding:3px;background:var(--tint);border-radius:13px}
+.seg button{flex:1;border:none;background:transparent;border-radius:11px;padding:9px 4px;cursor:pointer;color:var(--ink2);font-size:13px;letter-spacing:-.1px}
+.seg button.on{background:var(--surf);color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.14)}
+.segbox{padding:5px}
+
+/* расчёт */
+.calc{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:15px 17px}
+.calc .ln{display:flex;justify-content:space-between;font-size:13px;color:var(--ink2);padding:3px 0}
+.calc .ln b{font-weight:500;color:var(--ink)}
+.calc .tot{display:flex;justify-content:space-between;align-items:baseline;margin-top:11px;padding-top:12px;border-top:1px solid var(--line)}
+.calc .tot span:first-child{font-size:10px;font-weight:700;letter-spacing:.19em;text-transform:uppercase;color:var(--ink3)}
+.calc .tot span:last-child{font-size:24px;font-weight:500;letter-spacing:-.7px;color:var(--gold)}
+
+.btn{width:100%;padding:14px;border-radius:14px;border:1px solid var(--line2);cursor:pointer;background:var(--tint);color:var(--ink);font-size:15px;font-weight:500;margin-top:10px}
+.btn:active{background:var(--tint2)}
+.btn.gold{background:var(--gold-soft);border-color:var(--gold-line);color:var(--gold)}
+.btn.warn{color:var(--rust);border-color:var(--rust-line)}
+textarea{width:100%;margin-top:10px;min-height:118px;padding:12px;border-radius:14px;background:var(--surf);border:1px solid var(--line);color:var(--ink);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;outline:none;resize:vertical}
+textarea::placeholder{color:var(--ink3)}
+.note{font-size:12px;color:var(--ink3);padding:9px 4px 0;line-height:1.5}
+.toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(10px);background:var(--toast-bg);color:var(--toast-ink);font-size:13px;font-weight:500;padding:10px 17px;border-radius:22px;z-index:60;opacity:0;pointer-events:none;transition:.22s;box-shadow:var(--shadow)}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.dot{width:7px;height:7px;border-radius:4px;background:var(--gold);flex:none;box-shadow:0 0 0 3px var(--gold-soft)}
+.dot.off{background:var(--rust);box-shadow:0 0 0 3px var(--rust-line)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <button id="prevM" aria-label="Назад">‹</button>
+    <div class="period" id="period">—</div>
+    <button id="nextM" aria-label="Вперёд">›</button>
+  </div>
+</header>
+
+<main id="app"></main>
+
+<button class="fab" id="fab" aria-label="Добавить смену">+</button>
+
+<nav class="tabs">
+  <a id="tab-shifts" class="on">Смены</a>
+  <a id="tab-stats">Итоги</a>
+  <a id="tab-data">Данные</a>
+</nav>
+
+<div class="veil" id="veil"></div>
+<div class="sheet" id="sheet">
+  <div class="grab"></div>
+  <div class="shead">
+    <button class="lnk" id="sheetCancel">Отмена</button>
+    <div class="ttl" id="sheetTitle">Новая смена</div>
+    <button class="lnk b" id="sheetSave">Готово</button>
+  </div>
+  <div class="sbody" id="sheetBody"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ========== константы ========== */
+const POINTS = [
+  "Коммунальная Улица 10","6-Я Радиальная 3к11","Новоясеневский Проспект 22к1","Кузьминская 5",
+  "Корабельная 1","Нагатинская Набережная 56а","Волгоградский Проспект 73с1","Ярцевская 6",
+  "Ярцевская 25а","Пятницкий Переулок 2","Мустая Карима 12","Дыбенко 44","Крузенштерна 9",
+  "Большой Овчинниковский Переулок 16","Кировоградская 11к1","Прокатная 2"
+];
+const TIERS = [{lim:350,rate:3000},{lim:450,rate:3500},{lim:550,rate:4500},{lim:650,rate:5500},{lim:Infinity,rate:6500}];
+const FULL_HOURS = 12;
+const ADVANCE_CAP = 20000;
+const MONTHS   = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+const MONTHS_G = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
+const WD = ["вс","пн","вт","ср","чт","пт","сб"];
+const KEY = "wb-shifts-v1";
+
+let shifts = [], tab = "shifts", cursor = ymOf(new Date()), draft = null, storageOk = true;
+
+/* ========== утилиты ========== */
+function ymOf(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"); }
+function ymLabel(ym){ const [y,m]=ym.split("-"); return MONTHS[+m-1]+" "+y; }
+function monthNom(ym){ return MONTHS[+ym.split("-")[1]-1].toLowerCase(); }
+function monthGen(ym){ return MONTHS_G[+ym.split("-")[1]-1]; }
+function shiftMonth(ym,d){ const [y,m]=ym.split("-").map(Number); return ymOf(new Date(y,m-1+d,1)); }
+function nf(n){ return Math.round(n).toLocaleString("ru-RU"); }
+function money(n){ return nf(n)+" ₽"; }
+function esc(s){ return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function toast(m){ const t=document.getElementById("toast"); t.textContent=m; t.classList.add("on"); setTimeout(()=>t.classList.remove("on"),1700); }
+function hoursWord(h){
+  const n=Math.floor(h), l=n%10, s=n%100;
+  if(h!==n) return h+" ч";
+  if(l===1&&s!==11) return n+" час";
+  if(l>=2&&l<=4&&(s<10||s>=20)) return n+" часа";
+  return n+" часов";
+}
+function shiftsWord(n){
+  const l=n%10, s=n%100;
+  if(l===1&&s!==11) return n+" смена";
+  if(l>=2&&l<=4&&(s<10||s>=20)) return n+" смены";
+  return n+" смен";
+}
+
+/* ========== расчёт ========== */
+function rateFor(shk){ for(const t of TIERS) if(shk < t.lim) return t.rate; return 6500; }
+function calc(s){
+  const rate = rateFor(Number(s.shk)||0);
+  const hours = s.partial ? (Number(s.hours)||0) : FULL_HOURS;
+  const perHour = rate/FULL_HOURS;
+  const base = s.partial ? Math.round(perHour*hours) : rate;
+  const bonus = Number(s.bonus)||0;
+  const fine = Number(s.fine)||0;
+  return { rate, hours, perHour, base, bonus, fine, total: base+bonus-fine };
+}
+function inMonth(ym){ return shifts.filter(s=>s.date.slice(0,7)===ym).sort((a,b)=>a.date<b.date?1:-1); }
+function sumUp(list){
+  const a={n:list.length,shk:0,base:0,bonus:0,fine:0,total:0,extra:0,part:0,hours:0};
+  list.forEach(s=>{
+    const c=calc(s);
+    a.shk+=Number(s.shk)||0; a.base+=c.base; a.bonus+=c.bonus; a.fine+=c.fine; a.total+=c.total; a.hours+=c.hours;
+    if(s.type==="extra") a.extra++;
+    if(s.partial) a.part++;
+  });
+  return a;
+}
+function payouts(ym){
+  const list=inMonth(ym);
+  const baseFirst=list.filter(s=>+s.date.slice(8,10)<=15).reduce((n,s)=>n+calc(s).base,0);
+  const advance=Math.min(baseFirst,ADVANCE_CAP);
+  const all=sumUp(list);
+  return { advance, baseFirst, all, rest: all.base+all.bonus-all.fine-advance, nextYm: shiftMonth(ym,1) };
+}
+
+/* ========== хранилище ========== */
+function migrate(s){
+  if(s && s.v===2) return s;
+  const share = Number(s.share);
+  const partial = !isNaN(share) && share>0 && share<100;
+  return {
+    v:2, id:s.id, date:s.date, point:s.point, type:s.type==="extra"?"extra":"main",
+    shk:s.shk, partial,
+    hours: partial ? Math.round(FULL_HOURS*share/100*10)/10 : FULL_HOURS,
+    bonus: (Number(s.bonus)||0) + Math.round((Number(s.trainees)||0)*1000*(isNaN(share)?100:share)/100),
+    fine: Number(s.fine)||0
+  };
+}
+const store = (function(){
+  const cloud = typeof window.storage === "object" && window.storage && typeof window.storage.get === "function";
+  let local=false;
+  try{ localStorage.setItem("__t","1"); localStorage.removeItem("__t"); local=true; }catch(e){ local=false; }
+  return {
+    mode: cloud?"cloud":local?"local":"none",
+    async get(){
+      if(cloud){ try{ const r=await window.storage.get(KEY); if(r&&r.value) return r.value; }catch(e){} }
+      if(local) return localStorage.getItem(KEY);
+      return null;
+    },
+    async set(v){
+      if(local){ try{ localStorage.setItem(KEY,v); }catch(e){} }
+      if(cloud){ await window.storage.set(KEY,v); return; }
+      if(!local) throw new Error("no storage");
+    }
+  };
+})();
+async function load(){
+  try{ const raw=await store.get(); shifts = raw ? JSON.parse(raw) : []; }catch(e){ shifts=[]; }
+  if(!Array.isArray(shifts)) shifts=[];
+  shifts = shifts.map(migrate).filter(s=>s && s.date);
+  storageOk = store.mode!=="none";
+  render();
+}
+async function save(){
+  try{ await store.set(JSON.stringify(shifts)); storageOk = store.mode!=="none"; }
+  catch(e){ storageOk=false; toast("Не удалось сохранить"); }
+}
+
+/* ========== экраны ========== */
+const app = document.getElementById("app");
+function render(){
+  document.getElementById("period").textContent = tab==="data" ? "Данные" : ymLabel(cursor);
+  document.querySelectorAll("#prevM,#nextM").forEach(b=>b.style.visibility = tab==="data" ? "hidden" : "visible");
+  document.getElementById("fab").style.display = tab==="shifts" ? "block" : "none";
+  ["shifts","stats","data"].forEach(t=>document.getElementById("tab-"+t).classList.toggle("on",t===tab));
+  app.innerHTML = tab==="shifts" ? viewShifts() : tab==="stats" ? viewStats() : viewData();
+}
+
+function viewShifts(){
+  const list = inMonth(cursor);
+  if(!list.length)
+    return `<div class="card"><div class="empty">В этом месяце смен пока нет.<br>Нажмите «+», чтобы добавить.</div></div>`;
+  let h = `<div class="ml">${shiftsWord(list.length)}</div><div class="card">`;
+  list.forEach(s=>{
+    const c=calc(s), d=s.date.split("-");
+    const tags=[];
+    if(s.type==="extra") tags.push(`<span class="tag g">Доп</span>`);
+    if(s.partial) tags.push(`<span class="tag">${hoursWord(c.hours)}</span>`);
+    if(c.bonus>0) tags.push(`<span class="tag g">+${nf(c.bonus)}</span>`);
+    if(c.fine>0) tags.push(`<span class="tag r">−${nf(c.fine)}</span>`);
+    h += `<div class="sh" data-edit="${s.id}">
+      <div class="day"><div class="d">${+d[2]}</div><div class="w">${WD[new Date(s.date+"T12:00:00").getDay()]}</div></div>
+      <div class="mid">
+        <div class="p">${esc(s.point||"Без пункта")}</div>
+        <div class="meta"><span>${nf(s.shk||0)} ШК · ${nf(c.rate)} ₽</span>${tags.join("")}</div>
+      </div>
+      <div class="amt">${money(c.total)}</div>
+    </div>`;
+  });
+  return h+`</div>`;
+}
+
+function viewStats(){
+  const p=payouts(cursor), a=p.all;
+  const pct=Math.min(100,p.baseFirst/ADVANCE_CAP*100);
+  const parts=[shiftsWord(a.n)];
+  if(a.extra) parts.push("доп. "+a.extra);
+  if(a.part) parts.push("неполных "+a.part);
+  parts.push(nf(a.shk)+" ШК");
+
+  let h = `<div class="card">
+    <div class="hero">
+      <div class="k">Начислено за ${esc(monthNom(cursor))}</div>
+      <div class="n">${nf(a.total)}<small> ₽</small></div>
+      <div class="sub">${parts.join(" · ")}</div>
+    </div>
+    <div class="prog">
+      <div class="top"><span>База за 1–15 число</span><span>${nf(p.baseFirst)} / ${nf(ADVANCE_CAP)} ₽</span></div>
+      <div class="track"><div class="fill" style="width:${Math.max(1.5,pct)}%"></div></div>
+    </div>
+  </div>`;
+
+  h += `<div class="ml">Выплаты</div><div class="card">
+    <div class="row"><div class="l"><div class="t">Аванс · 25 ${esc(monthGen(cursor))}</div>
+      <div class="s">база за первую половину, максимум ${nf(ADVANCE_CAP)} ₽</div></div>
+      <div class="v">${money(p.advance)}</div></div>
+    <div class="row"><div class="l"><div class="t">Расчёт · 10 ${esc(monthGen(p.nextYm))}</div>
+      <div class="s">остаток за месяц с премиями и штрафами</div></div>
+      <div class="v">${money(p.rest)}</div></div>
+  </div>`;
+
+  h += `<div class="ml">Из чего сложилось</div><div class="card">
+    <div class="row"><div class="l"><div class="t">Ставки за смены</div>
+      <div class="s">${shiftsWord(a.n)}${a.part?" · неполных "+a.part:""}</div></div>
+      <div class="v">${money(a.base)}</div></div>
+    <div class="row"><div class="l"><div class="t">Премии</div></div>
+      <div class="v pos">${a.bonus?"+ ":""}${money(a.bonus)}</div></div>
+    <div class="row"><div class="l"><div class="t">Штрафы</div></div>
+      <div class="v neg">${a.fine?"− ":""}${money(a.fine)}</div></div>
+    <div class="row total"><div class="l"><div class="t">Итого начислено</div></div>
+      <div class="v">${money(a.total)}</div></div>
+  </div>`;
+  return h;
+}
+
+function viewData(){
+  const st={
+    cloud:["Данные сохраняются","Записей: "+shifts.length+". Хранятся в учётной записи Claude и доступны с другого устройства."],
+    local:["Сохранено на этом устройстве","Записей: "+shifts.length+". На другом телефоне их не будет — переносите через JSON."],
+    none:["Хранилище недоступно","Изменения не сохранятся. Скопируйте JSON вручную."]
+  }[store.mode];
+  return `<div class="ml">Состояние</div>
+  <div class="card"><div class="row">
+    <div class="dot ${storageOk?"":"off"}"></div>
+    <div class="l"><div class="t">${st[0]}</div><div class="s" style="white-space:normal">${st[1]}</div></div>
+  </div></div>
+  <div class="ml">Резервная копия</div>
+  <button class="btn" id="doExport">Показать JSON</button>
+  <button class="btn" id="doCsv">Показать CSV для Excel</button>
+  <textarea id="io" placeholder="Вставьте сюда сохранённый JSON и нажмите «Загрузить»"></textarea>
+  <button class="btn gold" id="doImport">Загрузить из JSON</button>
+  <div class="note">Загрузка заменяет все текущие смены содержимым поля.</div>
+  <div class="ml">Опасная зона</div>
+  <button class="btn warn" id="doWipe">Удалить все смены</button>`;
+}
+
+/* ========== форма ========== */
+function openSheet(id){
+  const s = shifts.find(x=>x.id===id);
+  draft = s ? {...s} : {
+    v:2, id:"s"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+    date:new Date().toISOString().slice(0,10), point:POINTS[0], type:"main",
+    shk:"", partial:false, hours:6, bonus:"", fine:""
+  };
+  document.getElementById("sheetTitle").textContent = s ? "Смена" : "Новая смена";
+  drawSheet(!!s);
+  document.getElementById("veil").classList.add("on");
+  document.getElementById("sheet").classList.add("on");
+}
+function closeSheet(){
+  document.getElementById("veil").classList.remove("on");
+  document.getElementById("sheet").classList.remove("on");
+  draft=null;
+}
+function calcHTML(){
+  const c=calc(draft);
+  return `
+    <div class="ln"><span>Ставка по объёму</span><b>${money(c.rate)}</b></div>
+    ${draft.partial?`<div class="ln"><span>${nf(c.perHour)} ₽/час × ${hoursWord(c.hours)}</span><b>${money(c.base)}</b></div>`:""}
+    ${c.bonus?`<div class="ln"><span>Премии</span><b class="pos">+ ${money(c.bonus)}</b></div>`:""}
+    ${c.fine?`<div class="ln"><span>Штрафы</span><b class="neg">− ${money(c.fine)}</b></div>`:""}
+    <div class="tot"><span>За смену</span><span>${money(c.total)}</span></div>`;
+}
+function drawSheet(isEdit){
+  document.getElementById("sheetBody").innerHTML = `
+    <div class="ml">Смена</div>
+    <div class="card">
+      <label class="row"><div class="t">Дата</div><input type="date" id="f-date" value="${draft.date}"></label>
+      <label class="row"><div class="t">Пункт</div><select id="f-point">${POINTS.map(p=>`<option ${p===draft.point?"selected":""}>${esc(p)}</option>`).join("")}</select></label>
+      <label class="row"><div class="t">ШК</div><input type="number" inputmode="numeric" id="f-shk" value="${draft.shk}" placeholder="0"></label>
+    </div>
+
+    <div class="ml">Тип</div>
+    <div class="card segbox"><div class="seg">
+      <button data-type="main" class="${draft.type==="main"?"on":""}">Основная</button>
+      <button data-type="extra" class="${draft.type==="extra"?"on":""}">Дополнительная</button>
+    </div></div>
+
+    <div class="ml">Отработано</div>
+    <div class="card">
+      <div class="segbox"><div class="seg">
+        <button data-part="0" class="${!draft.partial?"on":""}">Полная смена</button>
+        <button data-part="1" class="${draft.partial?"on":""}">Неполная смена</button>
+      </div></div>
+      ${draft.partial?`<label class="row"><div class="t">Часов</div><input type="number" inputmode="decimal" step="0.5" id="f-hours" value="${draft.hours}" placeholder="0"></label>`:""}
+    </div>
+
+    <div class="ml">Премии и штрафы</div>
+    <div class="card">
+      <label class="row"><div class="t">Премии</div><input type="number" inputmode="numeric" id="f-bonus" value="${draft.bonus}" placeholder="0"></label>
+      <label class="row"><div class="t">Штрафы</div><input type="number" inputmode="numeric" id="f-fine" value="${draft.fine}" placeholder="0"></label>
+    </div>
+
+    <div class="ml">Расчёт</div>
+    <div class="calc" id="calcBox">${calcHTML()}</div>
+    ${isEdit?`<button class="btn warn" id="f-del">Удалить смену</button>`:""}
+    <div style="height:8px"></div>`;
+}
+function readForm(){
+  const g=id=>document.getElementById(id);
+  if(g("f-date")) draft.date = g("f-date").value || draft.date;
+  if(g("f-point")) draft.point = g("f-point").value;
+  if(g("f-shk")) draft.shk = g("f-shk").value;
+  if(g("f-hours")) draft.hours = g("f-hours").value===""?0:Number(g("f-hours").value);
+  if(g("f-bonus")) draft.bonus = g("f-bonus").value;
+  if(g("f-fine")) draft.fine = g("f-fine").value;
+}
+
+/* ========== события ========== */
+document.getElementById("prevM").onclick=()=>{cursor=shiftMonth(cursor,-1);render();};
+document.getElementById("nextM").onclick=()=>{cursor=shiftMonth(cursor,1);render();};
+["shifts","stats","data"].forEach(t=>document.getElementById("tab-"+t).onclick=()=>{tab=t;render();});
+document.getElementById("fab").onclick=()=>openSheet(null);
+document.getElementById("veil").onclick=closeSheet;
+document.getElementById("sheetCancel").onclick=closeSheet;
+document.getElementById("sheetSave").onclick=async()=>{
+  readForm();
+  const i=shifts.findIndex(x=>x.id===draft.id);
+  if(i>=0) shifts[i]=draft; else shifts.push(draft);
+  cursor=draft.date.slice(0,7);
+  closeSheet(); render(); await save(); toast("Смена сохранена");
+};
+document.getElementById("sheetBody").addEventListener("click",async e=>{
+  const t=e.target.closest("button"); if(!t||!draft) return;
+  const isEdit=shifts.some(x=>x.id===draft.id);
+  if(t.dataset.type){ readForm(); draft.type=t.dataset.type; drawSheet(isEdit); }
+  else if(t.dataset.part){ readForm(); draft.partial=t.dataset.part==="1"; drawSheet(isEdit); }
+  else if(t.id==="f-del"){
+    if(!confirm("Удалить эту смену?")) return;
+    shifts=shifts.filter(x=>x.id!==draft.id);
+    closeSheet(); render(); await save(); toast("Смена удалена");
+  }
+});
+document.getElementById("sheetBody").addEventListener("input",e=>{
+  if(["f-shk","f-hours","f-bonus","f-fine"].includes(e.target.id)){
+    readForm();
+    const box=document.getElementById("calcBox");
+    if(box) box.innerHTML=calcHTML();
+  }
+});
+app.addEventListener("click",async e=>{
+  const row=e.target.closest("[data-edit]");
+  if(row){ openSheet(row.dataset.edit); return; }
+  const b=e.target.closest("button"); if(!b) return;
+  const io=document.getElementById("io");
+  if(b.id==="doExport"){ io.value=JSON.stringify(shifts); io.select(); toast("Скопируйте текст"); }
+  if(b.id==="doCsv"){
+    const head="Дата;Пункт;Тип;ШК;Часов;Ставка;База;Премии;Штрафы;Итого";
+    const rows=[...shifts].sort((a,c)=>a.date<c.date?-1:1).map(s=>{
+      const c=calc(s);
+      return [s.date,s.point,s.type==="extra"?"доп.":"основная",s.shk||0,c.hours,c.rate,c.base,c.bonus,c.fine,c.total].join(";");
+    });
+    io.value=[head,...rows].join("\n"); io.select(); toast("Скопируйте и вставьте в Excel");
+  }
+  if(b.id==="doImport"){
+    try{
+      const parsed=JSON.parse(io.value);
+      if(!Array.isArray(parsed)) throw 0;
+      if(!confirm("Заменить все смены данными из поля?")) return;
+      shifts=parsed.map(migrate).filter(s=>s&&s.date); render(); await save(); toast("Загружено: "+shifts.length);
+    }catch(err){ toast("Не похоже на сохранённый JSON"); }
+  }
+  if(b.id==="doWipe"){
+    if(!confirm("Удалить все смены без возможности вернуть?")) return;
+    shifts=[]; render(); await save(); toast("Всё удалено");
+  }
+});
+
+load();
+</script>
+</body>
+</html>
