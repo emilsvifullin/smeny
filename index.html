@@ -4,7 +4,28 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta id="ios-status-bar-style"
+      name="apple-mobile-web-app-status-bar-style"
+      content="default">
+
+<script>
+  const darkTheme = window.matchMedia("(prefers-color-scheme: dark)");
+  const statusBar = document.getElementById("ios-status-bar-style");
+
+  function updateStatusBar() {
+    statusBar.setAttribute(
+      "content",
+      darkTheme.matches ? "black-translucent" : "default"
+    );
+  }
+
+  updateStatusBar();
+
+  darkTheme.addEventListener("change", () => {
+    updateStatusBar();
+    location.reload();
+  });
+</script>
 <meta name="apple-mobile-web-app-title" content="Смены">
 <meta name="theme-color" content="#0B0C0E" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#F2F1EE" media="(prefers-color-scheme: light)">
