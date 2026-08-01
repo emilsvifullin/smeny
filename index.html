@@ -150,9 +150,6 @@ header{
   stroke-linejoin:round;
 }
 
-.nav button:active{
-  background:var(--tint2);
-}
 .period{
   flex:1;
   position:relative;
@@ -183,13 +180,6 @@ header{
   opacity:.8;
 }
 
-.period.clickable:active{
-  opacity:.55;
-}
-
-.period:active{
-  opacity:.55;
-}
 main{
   padding:6px 16px 0;
   max-width:620px;
@@ -241,11 +231,6 @@ main{
   border-top:none;
 }
 
-@media (hover:hover) and (pointer:fine){
-  .sh:active{
-    background:var(--tint);
-  }
-}
 .sh .day{width:34px;flex:none;text-align:center}
 .sh .day .d{font-size:19px;font-weight:500;letter-spacing:-.6px;line-height:1}
 .sh .day .w{font-size:9px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--ink3);margin-top:3px}
@@ -311,9 +296,6 @@ nav.tabs a.on{background:var(--tint2);color:var(--ink)}
 
 .fab::after{
   transform:translate(-50%,-50%) rotate(90deg);
-}
-.fab:active{
-  filter:brightness(1.25);
 }
 
 /* шторка */
@@ -518,10 +500,6 @@ body.point-picker-open .sheet{
   border-top:0;
 }
 
-.point-option:active{
-  background:var(--tint2);
-}
-
 .point-option.on{
   color:var(--gold);
   background:var(--gold-soft);
@@ -660,10 +638,6 @@ body.date-picker-open .sheet{
   transform:translateY(-65%) rotate(45deg);
 }
 
-.date-calendar-title:active{
-  background:var(--tint);
-}
-
 .date-jump{
   display:none;
   position:absolute;
@@ -730,10 +704,6 @@ body.date-picker-open .sheet{
   cursor:pointer;
 }
 
-.date-jump-year-btn:active{
-  background:var(--tint2);
-}
-
 .date-jump-months{
   display:grid;
   grid-template-columns:repeat(3,minmax(0,1fr));
@@ -752,10 +722,6 @@ body.date-picker-open .sheet{
 
   font-size:11px;
   cursor:pointer;
-}
-
-.date-jump-month:active{
-  background:var(--tint2);
 }
 
 .date-jump-month.on{
@@ -785,10 +751,6 @@ body.date-picker-open .sheet{
   background:var(--tint);
   color:var(--ink2);
   cursor:pointer;
-}
-
-.date-calendar-nav:active{
-  background:var(--tint2);
 }
 
 .date-calendar-nav svg{
@@ -842,18 +804,21 @@ body.date-picker-open .sheet{
   cursor:pointer;
 }
 
-@media (hover:hover) and (pointer:fine){
-  .date-day:active{
-    background:var(--tint2);
-  }
+button.touch-active,
+nav.tabs a.touch-active{
+  box-shadow:
+    inset 0 0 0 999px var(--tint2) !important;
 }
 
 .sh.touch-active{
-  background:var(--tint);
+  box-shadow:
+    inset 0 0 0 999px var(--tint) !important;
 }
 
-.date-day.touch-active{
-  background:var(--tint2);
+.period.touch-active,
+.lnk.touch-active{
+  opacity:.55;
+  box-shadow:none !important;
 }
 
 .date-day.outside{
@@ -885,10 +850,6 @@ body.date-picker-open .sheet{
 
   font-size:13px;
   cursor:pointer;
-}
-
-.date-today:active{
-  background:var(--tint2);
 }
 
 /* выбор месяца */
@@ -982,10 +943,6 @@ body.month-picker-open{
   cursor:pointer;
 }
 
-.month-year-btn:active{
-  background:var(--tint2);
-}
-
 .month-grid{
   display:grid;
   grid-template-columns:repeat(3,1fr);
@@ -1001,10 +958,6 @@ body.month-picker-open{
   color:var(--ink2);
   font-size:12px;
   cursor:pointer;
-}
-
-.month-option:active{
-  background:var(--tint2);
 }
 
 .month-option.on{
@@ -1026,9 +979,6 @@ body.month-picker-open{
   cursor:pointer;
 }
 
-.month-today:active{
-  background:var(--tint2);
-}
 .seg{display:flex;gap:3px;padding:3px;background:var(--tint);border-radius:13px}
 .seg button{flex:1;border:none;background:transparent;border-radius:11px;padding:9px 4px;cursor:pointer;color:var(--ink2);font-size:13px;letter-spacing:-.1px}
 .seg button.on{background:var(--surf);color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.14)}
@@ -1043,7 +993,6 @@ body.month-picker-open{
 .calc .tot span:last-child{font-size:24px;font-weight:500;letter-spacing:-.7px;color:var(--gold)}
 
 .btn{width:100%;padding:14px;border-radius:14px;border:1px solid var(--line2);cursor:pointer;background:var(--tint);color:var(--ink);font-size:15px;font-weight:500;margin-top:10px}
-.btn:active{background:var(--tint2)}
 .btn.gold{background:var(--gold-soft);border-color:var(--gold-line);color:var(--gold)}
 .btn.warn{color:var(--rust);border-color:var(--rust-line)}
 textarea{width:100%;margin-top:10px;min-height:118px;padding:12px;border-radius:14px;background:var(--surf);border:1px solid var(--line);color:var(--ink);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;outline:none;resize:vertical}
@@ -1060,6 +1009,34 @@ textarea::placeholder{color:var(--ink3)}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 .dot{width:7px;height:7px;border-radius:4px;background:var(--gold);flex:none;box-shadow:0 0 0 3px var(--gold-soft)}
 .dot.off{background:var(--rust);box-shadow:0 0 0 3px var(--rust-line)}
+@media (hover:hover) and (pointer:fine){
+  .nav button:active,
+  .point-option:active,
+  .date-jump-year-btn:active,
+  .date-jump-month:active,
+  .date-calendar-nav:active,
+  .date-day:active,
+  .date-today:active,
+  .month-year-btn:active,
+  .month-option:active,
+  .month-today:active,
+  .btn:active{
+    background:var(--tint2);
+  }
+
+  .sh:active,
+  .date-calendar-title:active{
+    background:var(--tint);
+  }
+
+  .period:active{
+    opacity:.55;
+  }
+
+  .fab:active{
+    filter:brightness(1.25);
+  }
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -2789,6 +2766,28 @@ if ("serviceWorker" in navigator) {
 }
 
 let touchActiveState=null;
+let touchActiveReleaseTimer=null;
+
+function clearTouchActive(){
+  if(touchActiveState){
+    clearTimeout(touchActiveState.timer);
+
+    touchActiveState.element.classList.remove(
+      "touch-active"
+    );
+
+    touchActiveState=null;
+  }
+
+  clearTimeout(touchActiveReleaseTimer);
+  touchActiveReleaseTimer=null;
+
+  document
+    .querySelectorAll(".touch-active")
+    .forEach(element=>{
+      element.classList.remove("touch-active");
+    });
+}
 
 document.addEventListener("pointerdown",e=>{
   if(
@@ -2799,10 +2798,15 @@ document.addEventListener("pointerdown",e=>{
   }
 
   const element=e.target.closest(
-    ".sh,.date-day"
+    "button:not(:disabled)," +
+    "nav.tabs a," +
+    ".period.clickable," +
+    ".sh"
   );
 
   if(!element) return;
+
+  clearTouchActive();
 
   const state={
     id:e.pointerId,
@@ -2836,12 +2840,10 @@ document.addEventListener("pointermove",e=>{
 
   if(Math.hypot(dx,dy)<8) return;
 
-  clearTimeout(state.timer);
-  state.element.classList.remove("touch-active");
-  touchActiveState=null;
+  clearTouchActive();
 });
 
-function finishTouchActive(e){
+document.addEventListener("pointerup",e=>{
   const state=touchActiveState;
 
   if(
@@ -2858,36 +2860,47 @@ function finishTouchActive(e){
   const dy=e.clientY-state.y;
 
   if(Math.hypot(dx,dy)>=8){
-    state.element.classList.remove("touch-active");
+    state.element.classList.remove(
+      "touch-active"
+    );
+
     return;
   }
 
   state.element.classList.add("touch-active");
 
-  setTimeout(()=>{
-    state.element.classList.remove("touch-active");
-  },110);
-}
+  clearTimeout(touchActiveReleaseTimer);
 
-document.addEventListener(
-  "pointerup",
-  finishTouchActive
-);
+  touchActiveReleaseTimer=setTimeout(()=>{
+    state.element.classList.remove(
+      "touch-active"
+    );
+
+    touchActiveReleaseTimer=null;
+  },110);
+});
 
 document.addEventListener("pointercancel",e=>{
-  const state=touchActiveState;
-
   if(
-    !state ||
-    e.pointerId!==state.id
+    !touchActiveState ||
+    e.pointerId!==touchActiveState.id
   ){
     return;
   }
 
-  clearTimeout(state.timer);
-  state.element.classList.remove("touch-active");
-  touchActiveState=null;
+  clearTouchActive();
 });
+
+document.addEventListener(
+  "scroll",
+  clearTouchActive,
+  true
+);
+
+window.addEventListener(
+  "blur",
+  clearTouchActive
+);
   
 load();
 </script>
