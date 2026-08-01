@@ -313,6 +313,16 @@ const POINTS = [
   "Большой Овчинниковский Переулок 16","Кировоградская 11к1","Прокатная 2"
 ];
 const TIERS = [{lim:350,rate:3000},{lim:450,rate:3500},{lim:550,rate:4500},{lim:650,rate:5500},{lim:Infinity,rate:6500}];
+const FIXED_RATE = 3000;
+
+const FIXED_POINTS = new Set([
+  "6-Я Радиальная 3к11",
+  "Корабельная 1",
+  "Нагатинская Набережная 56а",
+  "Мустая Карима 12",
+  "Крузенштерна 9"
+]);
+
 const FULL_HOURS = 12;
 const ADVANCE_CAP = 20000;
 const MONTHS   = ["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
@@ -376,22 +386,56 @@ function shiftsWord(n){
 }
 
 /* ========== расчёт ========== */
-function rateFor(shk){ for(const t of TIERS) if(shk < t.lim) return t.rate; return 6500; }
+function rateForShk(shk){
+  for(const t of TIERS){
+    if(shk < t.lim) return t.rate;
+  }
+
+  return 6500;
+}
+
 function calc(s){
-  const rate = rateFor(Number(s.shk)||0);
-  const hours = s.partial ? (Number(s.hours)||0) : FULL_HOURS;
-  const perHour = rate/FULL_HOURS;
-  const base = s.partial ? Math.round(perHour*hours) : rate;
-  const bonus = Number(s.bonus)||0;
-  const fine = Number(s.fine)||0;
-  return { rate, hours, perHour, base, bonus, fine, total: base+bonus-fine };
+  const fixed = FIXED_POINTS.has(s.point);
+
+  const rate = fixed
+    ? FIXED_RATE
+    : rateForShk(Number(s.shk) || 0);
+
+  const hours = s.partial
+    ? (Number(s.hours) || 0)
+    : FULL_HOURS;
+
+  const perHour = rate / FULL_HOURS;
+
+  const base = s.partial
+    ? Math.round(perHour * hours)
+    : rate;
+
+  const bonus = Number(s.bonus) || 0;
+  const fine = Number(s.fine) || 0;
+
+  return {
+    fixed,
+    rate,
+    hours,
+    perHour,
+    base,
+    bonus,
+    fine,
+    total: base + bonus - fine
+  };
 }
 function inMonth(ym){ return shifts.filter(s=>s.date.slice(0,7)===ym).sort((a,b)=>a.date<b.date?1:-1); }
 function sumUp(list){
   const a={n:list.length,shk:0,base:0,bonus:0,fine:0,total:0,extra:0,part:0,hours:0};
   list.forEach(s=>{
     const c=calc(s);
-    a.shk+=Number(s.shk)||0; a.base+=c.base; a.bonus+=c.bonus; a.fine+=c.fine; a.total+=c.total; a.hours+=c.hours;
+    a.shk += c.fixed ? 0 : (Number(s.shk) || 0);
+    a.base += c.base;
+    a.bonus += c.bonus;
+    a.fine += c.fine;
+    a.total += c.total;
+    a.hours += c.hours;
     if(s.type==="extra") a.extra++;
     if(s.partial) a.part++;
   });
@@ -475,7 +519,10 @@ function viewShifts(){
       <div class="day"><div class="d">${+d[2]}</div><div class="w">${WD[new Date(s.date+"T12:00:00").getDay()]}</div></div>
       <div class="mid">
         <div class="p">${esc(s.point||"Без пункта")}</div>
-        <div class="meta"><span>${nf(s.shk||0)} ШК · ${nf(c.rate)} ₽</span>${tags.join("")}</div>
+        <div class="meta">
+          <span>${c.fixed ? "Оклад" : nf(s.shk || 0) + " ШК"} · ${nf(c.rate)} ₽</span>
+          ${tags.join("")}
+        </div>
       </div>
       <div class="amt">${money(c.total)}</div>
     </div>`;
@@ -568,19 +615,35 @@ function closeSheet(){
 function calcHTML(){
   const c=calc(draft);
   return `
-    <div class="ln"><span>Ставка по объёму</span><b>${money(c.rate)}</b></div>
+    <div class="ln">
+      <span>${c.fixed ? "Оклад смены" : "Ставка по объёму"}</span>
+      <b>${money(c.rate)}</b>
+    </div>
     ${draft.partial?`<div class="ln"><span>${nf(c.perHour)} ₽/час × ${hoursWord(c.hours)}</span><b>${money(c.base)}</b></div>`:""}
     ${c.bonus?`<div class="ln"><span>Премии</span><b class="pos">+ ${money(c.bonus)}</b></div>`:""}
     ${c.fine?`<div class="ln"><span>Штрафы</span><b class="neg">− ${money(c.fine)}</b></div>`:""}
     <div class="tot"><span>За смену</span><span>${money(c.total)}</span></div>`;
 }
 function drawSheet(isEdit){
+  const fixed = FIXED_POINTS.has(draft.point);
+
   document.getElementById("sheetBody").innerHTML = `
     <div class="ml">Смена</div>
     <div class="card">
       <label class="row"><div class="t">Дата</div><input type="date" id="f-date" value="${draft.date}"></label>
       <label class="row"><div class="t">Пункт</div><select id="f-point">${POINTS.map(p=>`<option ${p===draft.point?"selected":""}>${esc(p)}</option>`).join("")}</select></label>
-      <label class="row"><div class="t">ШК</div><input type="number" inputmode="numeric" id="f-shk" value="${draft.shk}" placeholder="0"></label>
+      ${fixed ? "" : `
+        <label class="row">
+          <div class="t">ШК</div>
+          <input
+            type="number"
+            inputmode="numeric"
+            id="f-shk"
+            value="${draft.shk}"
+            placeholder="0"
+          >
+        </label>
+      `}
     </div>
 
     <div class="ml">Тип</div>
@@ -628,6 +691,11 @@ document.getElementById("veil").onclick=closeSheet;
 document.getElementById("sheetCancel").onclick=closeSheet;
 document.getElementById("sheetSave").onclick=async()=>{
   readForm();
+
+  if(FIXED_POINTS.has(draft.point)){
+    draft.shk=0;
+  }
+
   const i=shifts.findIndex(x=>x.id===draft.id);
   if(i>=0) shifts[i]=draft; else shifts.push(draft);
   cursor=draft.date.slice(0,7);
@@ -636,19 +704,63 @@ document.getElementById("sheetSave").onclick=async()=>{
 document.getElementById("sheetBody").addEventListener("click",async e=>{
   const t=e.target.closest("button"); if(!t||!draft) return;
   const isEdit=shifts.some(x=>x.id===draft.id);
-  if(t.dataset.type){ readForm(); draft.type=t.dataset.type; drawSheet(isEdit); }
-  else if(t.dataset.part){ readForm(); draft.partial=t.dataset.part==="1"; drawSheet(isEdit); }
+
+  if(t.dataset.type){
+    readForm();
+    draft.type=t.dataset.type;
+    drawSheet(isEdit);
+  }
+
+  else if(t.dataset.part){
+    readForm();
+    draft.partial=t.dataset.part==="1";
+    drawSheet(isEdit);
+  }
+
   else if(t.id==="f-del"){
     if(!confirm("Удалить эту смену?")) return;
+
     shifts=shifts.filter(x=>x.id!==draft.id);
-    closeSheet(); render(); await save(); toast("Смена удалена");
+    closeSheet();
+    render();
+    await save();
+    toast("Смена удалена");
   }
 });
+
+
+document.getElementById("sheetBody").addEventListener("change",e=>{
+  if(e.target.id!=="f-point" || !draft) return;
+
+  const wasFixed=FIXED_POINTS.has(draft.point);
+
+  readForm();
+
+  const nowFixed=FIXED_POINTS.has(draft.point);
+
+  if(nowFixed){
+    draft.shk=0;
+  }
+
+  else if(wasFixed){
+    draft.shk="";
+  }
+
+  const isEdit=shifts.some(x=>x.id===draft.id);
+
+  drawSheet(isEdit);
+});
+
+
 document.getElementById("sheetBody").addEventListener("input",e=>{
   if(["f-shk","f-hours","f-bonus","f-fine"].includes(e.target.id)){
     readForm();
+
     const box=document.getElementById("calcBox");
-    if(box) box.innerHTML=calcHTML();
+
+    if(box){
+      box.innerHTML=calcHTML();
+    }
   }
 });
 app.addEventListener("click",async e=>{
@@ -688,7 +800,7 @@ window.addEventListener("scroll", ()=>{
 window.addEventListener("pagehide", saveUIState);
 
 window.addEventListener("pageshow", ()=>{
-  const ui = loadUIState();
+  const ui = sameUISession ? loadUIState() : {};
   window.scrollTo(0, ui.scrollY || 0);
 });
 
