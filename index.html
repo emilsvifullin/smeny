@@ -195,27 +195,38 @@ nav.tabs a.on{background:var(--tint2);color:var(--ink)}
 
   width:50px;
   height:50px;
-  border-radius:25px;
+  border-radius:50%;
+  padding:0;
   cursor:pointer;
 
   border:1px solid var(--gold-line);
   background:var(--gold-soft);
   color:var(--gold);
 
-  font-size:26px;
-  font-weight:300;
-  line-height:1;
-  padding:0 0 2px;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
   backdrop-filter:blur(18px);
   -webkit-backdrop-filter:blur(18px);
   box-shadow:var(--shadow);
 }
-.fab:active{filter:brightness(1.25)}
+
+.fab::before,
+.fab::after{
+  content:"";
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:18px;
+  height:2px;
+  border-radius:2px;
+  background:currentColor;
+  transform:translate(-50%,-50%);
+}
+
+.fab::after{
+  transform:translate(-50%,-50%) rotate(90deg);
+}
+.fab:active{
+  filter:brightness(1.25);
+}
 
 /* шторка */
 .veil{position:fixed;inset:0;background:var(--veil);z-index:40;opacity:0;pointer-events:none;transition:.24s}
@@ -281,7 +292,7 @@ textarea::placeholder{color:var(--ink3)}
 
 <main id="app"></main>
 
-<button class="fab" id="fab" aria-label="Добавить смену">+</button>
+<button class="fab" id="fab" aria-label="Добавить смену"></button>
 
 <nav class="tabs">
   <a id="tab-shifts" class="on">Смены</a>
