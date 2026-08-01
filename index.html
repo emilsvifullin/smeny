@@ -279,6 +279,7 @@ select option{direction:ltr;background:var(--surf);color:var(--ink)}
   opacity:0;
   pointer-events:none;
   transition:.22s;
+  touch-action:none;
 }
 
 .point-veil.on{
@@ -307,7 +308,26 @@ select option{direction:ltr;background:var(--surf);color:var(--ink)}
 }
 
 .point-picker.on{
-  transform:translateY(0);
+  transform:translateY(var(--point-drag, 0px));
+}
+
+body.point-picker-open{
+  overflow:hidden;
+}
+
+body.point-picker-open .sheet{
+  overflow:hidden;
+}
+
+.point-picker-head{
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+  cursor:grab;
+}
+
+.point-picker-head:active{
+  cursor:grabbing;
 }
 
 .point-picker-grab{
@@ -333,6 +353,7 @@ select option{direction:ltr;background:var(--surf);color:var(--ink)}
   max-height:calc(78vh - 53px);
   overflow-y:auto;
   -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
   border-top:1px solid var(--line);
 }
 
@@ -442,8 +463,11 @@ textarea::placeholder{color:var(--ink3)}
 <div class="point-veil" id="pointVeil"></div>
 
 <div class="point-picker" id="pointPicker">
-  <div class="point-picker-grab"></div>
-  <div class="point-picker-title">Выберите пункт</div>
+  <div class="point-picker-head" id="pointPickerHead">
+    <div class="point-picker-grab"></div>
+    <div class="point-picker-title">Выберите пункт</div>
+  </div>
+
   <div class="point-list" id="pointList"></div>
 </div>
 
@@ -764,6 +788,10 @@ function openPointPicker(){
   if(!draft) return;
 
   const list=document.getElementById("pointList");
+  const picker=document.getElementById("pointPicker");
+
+  picker.style.removeProperty("transition");
+  picker.style.removeProperty("--point-drag");
 
   list.innerHTML=POINTS.map(p=>`
     <button
@@ -776,8 +804,9 @@ function openPointPicker(){
     </button>
   `).join("");
 
+  document.body.classList.add("point-picker-open");
   document.getElementById("pointVeil").classList.add("on");
-  document.getElementById("pointPicker").classList.add("on");
+  picker.classList.add("on");
 
   requestAnimationFrame(()=>{
     const selected=list.querySelector(".point-option.on");
@@ -791,8 +820,17 @@ function openPointPicker(){
 }
 
 function closePointPicker(){
+  const picker=document.getElementById("pointPicker");
+
+  picker.style.removeProperty("transition");
+  picker.classList.remove("on");
+
   document.getElementById("pointVeil").classList.remove("on");
-  document.getElementById("pointPicker").classList.remove("on");
+  document.body.classList.remove("point-picker-open");
+
+  setTimeout(()=>{
+    picker.style.removeProperty("--point-drag");
+  }, 320);
 }
 function calcHTML(){
   const c=calc(draft);
@@ -875,6 +913,65 @@ document.getElementById("fab").onclick=()=>openSheet(null);
 document.getElementById("veil").onclick=closeSheet;
 document.getElementById("sheetCancel").onclick=closeSheet;
 document.getElementById("pointVeil").onclick=closePointPicker;
+const pointPicker=document.getElementById("pointPicker");
+const pointPickerHead=document.getElementById("pointPickerHead");
+
+let pointDragging=false;
+let pointDragStartY=0;
+let pointDragY=0;
+
+pointPickerHead.addEventListener("pointerdown",e=>{
+  if(!pointPicker.classList.contains("on")) return;
+
+  pointDragging=true;
+  pointDragStartY=e.clientY;
+  pointDragY=0;
+
+  pointPicker.style.transition="none";
+  pointPickerHead.setPointerCapture(e.pointerId);
+
+  e.preventDefault();
+});
+
+pointPickerHead.addEventListener("pointermove",e=>{
+  if(!pointDragging) return;
+
+  pointDragY=Math.max(0,e.clientY-pointDragStartY);
+
+  pointPicker.style.setProperty(
+    "--point-drag",
+    pointDragY+"px"
+  );
+
+  e.preventDefault();
+});
+
+function finishPointDrag(e){
+  if(!pointDragging) return;
+
+  pointDragging=false;
+
+  if(pointPickerHead.hasPointerCapture(e.pointerId)){
+    pointPickerHead.releasePointerCapture(e.pointerId);
+  }
+
+  pointPicker.style.removeProperty("transition");
+
+  if(pointDragY>=80){
+    closePointPicker();
+  } else {
+    pointPicker.style.setProperty("--point-drag","0px");
+
+    setTimeout(()=>{
+      pointPicker.style.removeProperty("--point-drag");
+    },300);
+  }
+
+  pointDragY=0;
+}
+
+pointPickerHead.addEventListener("pointerup",finishPointDrag);
+pointPickerHead.addEventListener("pointercancel",finishPointDrag);
 document.getElementById("sheetSave").onclick=async()=>{
   readForm();
 
