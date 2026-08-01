@@ -535,7 +535,9 @@ body.point-picker-open .sheet{
   border-radius:22px;
   box-shadow:var(--shadow);
 
-  transform:translateY(calc(100% + 30px));
+  transform:translateY(
+    calc(100% + 24px + env(safe-area-inset-bottom))
+  );
   transition:transform .3s cubic-bezier(.32,.72,0,1);
 
   padding:0 12px 14px;
