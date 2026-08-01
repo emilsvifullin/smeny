@@ -326,6 +326,7 @@ select option{direction:ltr;background:var(--surf);color:var(--ink)}
 }
 
 .point-picker{
+  display:none;
   position:fixed;
   left:8px;
   right:8px;
@@ -853,12 +854,18 @@ function closeSheet(){
   },320);
 }
 
+let pointPickerHideTimer;
+
 function openPointPicker(){
   if(!draft) return;
 
   const list=document.getElementById("pointList");
   const picker=document.getElementById("pointPicker");
 
+  clearTimeout(pointPickerHideTimer);
+
+  picker.style.display="block";
+  picker.classList.remove("on");
   picker.style.removeProperty("transition");
   picker.style.removeProperty("--point-drag");
 
@@ -875,6 +882,9 @@ function openPointPicker(){
 
   document.body.classList.add("point-picker-open");
   document.getElementById("pointVeil").classList.add("on");
+
+  void picker.offsetHeight;
+
   picker.classList.add("on");
 
   requestAnimationFrame(()=>{
@@ -897,9 +907,15 @@ function closePointPicker(){
   document.getElementById("pointVeil").classList.remove("on");
   document.body.classList.remove("point-picker-open");
 
-  setTimeout(()=>{
+  clearTimeout(pointPickerHideTimer);
+
+  pointPickerHideTimer=setTimeout(()=>{
+    if(!picker.classList.contains("on")){
+      picker.style.display="none";
+    }
+
     picker.style.removeProperty("--point-drag");
-  }, 320);
+  },320);
 }
 function calcHTML(){
   const c=calc(draft);
