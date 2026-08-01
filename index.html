@@ -90,6 +90,7 @@
 html{
   background:var(--bg);
   overscroll-behavior-y:none;
+  touch-action:pan-y;
 }
 body{
   margin:0;color:var(--ink);
@@ -101,6 +102,7 @@ body{
   padding-bottom:calc(120px + env(safe-area-inset-bottom));
   min-height:100vh;
   overscroll-behavior-y:none;
+  touch-action:pan-y;
 }
 button,input,select{font-family:inherit}
 
@@ -1003,14 +1005,19 @@ function readForm(){
 document.getElementById("prevM").onclick=()=>{cursor=shiftMonth(cursor,-1);render();};
 document.getElementById("nextM").onclick=()=>{cursor=shiftMonth(cursor,1);render();};
 let monthSwipe=null;
-let blockMonthClick=false;
+let suppressMonthClick=false;
 
-app.addEventListener("pointerdown",e=>{
+document.addEventListener("pointerdown",e=>{
   if(
     tab!=="shifts" ||
     !e.isPrimary ||
-    e.pointerType==="mouse"
-  ) return;
+    e.pointerType==="mouse" ||
+    document.body.classList.contains("sheet-open") ||
+    document.body.classList.contains("point-picker-open") ||
+    e.target.closest("button,input,select,textarea,a")
+  ){
+    return;
+  }
 
   monthSwipe={
     id:e.pointerId,
@@ -1018,58 +1025,46 @@ app.addEventListener("pointerdown",e=>{
     y:e.clientY,
     time:performance.now()
   };
-
-  app.setPointerCapture(e.pointerId);
 });
 
-app.addEventListener("pointerup",e=>{
+document.addEventListener("pointerup",e=>{
   if(!monthSwipe || e.pointerId!==monthSwipe.id) return;
 
   const dx=e.clientX-monthSwipe.x;
   const dy=e.clientY-monthSwipe.y;
-  const duration=Math.max(
-    1,
-    performance.now()-monthSwipe.time
-  );
-
-  const distance=Math.abs(dx);
-  const speed=distance/duration;
-
-  const horizontal=
-    distance>Math.abs(dy)*1.15;
-
-  const accepted=
-    horizontal &&
-    (
-      distance>=40 ||
-      (distance>=24 && speed>=0.25)
-    );
+  const duration=performance.now()-monthSwipe.time;
 
   monthSwipe=null;
 
-  if(!accepted) return;
+  const horizontal=
+    Math.abs(dx)>Math.abs(dy)*1.2;
 
-  blockMonthClick=true;
+  const enoughDistance=
+    Math.abs(dx)>=35;
 
-  cursor=shiftMonth(
-    cursor,
-    dx<0 ? 1 : -1
-  );
+  const fastSwipe=
+    Math.abs(dx)>=20 &&
+    duration<=220;
 
+  if(!horizontal || (!enoughDistance && !fastSwipe)) return;
+
+  suppressMonthClick=true;
+
+  cursor=shiftMonth(cursor,dx<0 ? 1 : -1);
   render();
   window.scrollTo(0,0);
 
   setTimeout(()=>{
-    blockMonthClick=false;
-  },100);
+    suppressMonthClick=false;
+  },300);
 });
 
-app.addEventListener("pointercancel",()=>{
+document.addEventListener("pointercancel",()=>{
   monthSwipe=null;
 });
 
-app.addEventListener("click",e=>{
-  if(!blockMonthClick) return;
+document.addEventListener("click",e=>{
+  if(!suppressMonthClick) return;
 
   e.preventDefault();
   e.stopImmediatePropagation();
