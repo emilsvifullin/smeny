@@ -140,16 +140,36 @@ header{
 }
 .period{
   flex:1;
+  position:relative;
   text-align:center;
   font-size:12px;
   font-weight:600;
   letter-spacing:.19em;
   text-transform:uppercase;
   color:var(--ink);
-  cursor:pointer;
   user-select:none;
   -webkit-user-select:none;
-  touch-action:manipulation;
+}
+
+.period.clickable{
+  cursor:pointer;
+}
+
+.period.clickable::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:calc(50% + 11px);
+  width:5px;
+  height:5px;
+  border-right:1.5px solid var(--ink3);
+  border-bottom:1.5px solid var(--ink3);
+  transform:translateX(-50%) rotate(45deg);
+  opacity:.8;
+}
+
+.period.clickable:active{
+  opacity:.55;
 }
 
 .period:active{
@@ -938,7 +958,17 @@ async function save(){
 const app = document.getElementById("app");
 function render(){
   saveUIState();
-  document.getElementById("period").textContent = tab==="data" ? "Данные" : ymLabel(cursor);
+  const period=document.getElementById("period");
+
+  period.textContent=
+  tab==="data"
+    ? "Данные"
+    : ymLabel(cursor);
+
+  period.classList.toggle(
+  "clickable",
+  tab!=="data"
+  );
   document.querySelectorAll("#prevM,#nextM").forEach(b=>b.style.visibility = tab==="data" ? "hidden" : "visible");
   document.getElementById("fab").style.display = tab==="shifts" ? "block" : "none";
   ["shifts","stats","data"].forEach(t=>document.getElementById("tab-"+t).classList.toggle("on",t===tab));
