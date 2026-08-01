@@ -118,7 +118,12 @@ header{
 }
 .nav button:active{background:var(--tint2)}
 .period{flex:1;text-align:center;font-size:12px;font-weight:600;letter-spacing:.19em;text-transform:uppercase;color:var(--ink)}
-main{padding:6px 16px 0;max-width:620px;margin:0 auto}
+main{
+  padding:6px 16px 0;
+  max-width:620px;
+  margin:0 auto;
+  touch-action:pan-y;
+}
 
 /* типографика */
 .ml{font-size:10px;font-weight:700;letter-spacing:.19em;text-transform:uppercase;color:var(--ink3);margin:22px 4px 9px}
@@ -997,43 +1002,78 @@ function readForm(){
 /* ========== события ========== */
 document.getElementById("prevM").onclick=()=>{cursor=shiftMonth(cursor,-1);render();};
 document.getElementById("nextM").onclick=()=>{cursor=shiftMonth(cursor,1);render();};
-let monthSwipeStartX=0;
-let monthSwipeStartY=0;
-let monthSwipeActive=false;
+let monthSwipe=null;
+let blockMonthClick=false;
 
-app.addEventListener("touchstart",e=>{
-  if(tab!=="shifts" || e.touches.length!==1) return;
+app.addEventListener("pointerdown",e=>{
+  if(
+    tab!=="shifts" ||
+    !e.isPrimary ||
+    e.pointerType==="mouse"
+  ) return;
 
-  monthSwipeActive=true;
-  monthSwipeStartX=e.touches[0].clientX;
-  monthSwipeStartY=e.touches[0].clientY;
-},{passive:true});
+  monthSwipe={
+    id:e.pointerId,
+    x:e.clientX,
+    y:e.clientY,
+    time:performance.now()
+  };
 
-app.addEventListener("touchmove",e=>{
-  if(!monthSwipeActive || e.touches.length!==1) return;
+  app.setPointerCapture(e.pointerId);
+});
 
-  const dx=e.touches[0].clientX-monthSwipeStartX;
-  const dy=e.touches[0].clientY-monthSwipeStartY;
+app.addEventListener("pointerup",e=>{
+  if(!monthSwipe || e.pointerId!==monthSwipe.id) return;
 
-  if(Math.abs(dx)>12 && Math.abs(dx)>Math.abs(dy)){
-    e.preventDefault();
-  }
-},{passive:false});
+  const dx=e.clientX-monthSwipe.x;
+  const dy=e.clientY-monthSwipe.y;
+  const duration=Math.max(
+    1,
+    performance.now()-monthSwipe.time
+  );
 
-app.addEventListener("touchend",e=>{
-  if(!monthSwipeActive || !e.changedTouches.length) return;
+  const distance=Math.abs(dx);
+  const speed=distance/duration;
 
-  monthSwipeActive=false;
+  const horizontal=
+    distance>Math.abs(dy)*1.15;
 
-  const dx=e.changedTouches[0].clientX-monthSwipeStartX;
-  const dy=e.changedTouches[0].clientY-monthSwipeStartY;
+  const accepted=
+    horizontal &&
+    (
+      distance>=40 ||
+      (distance>=24 && speed>=0.25)
+    );
 
-  if(Math.abs(dx)<60 || Math.abs(dx)<=Math.abs(dy)) return;
+  monthSwipe=null;
 
-  cursor=shiftMonth(cursor,dx<0 ? 1 : -1);
+  if(!accepted) return;
+
+  blockMonthClick=true;
+
+  cursor=shiftMonth(
+    cursor,
+    dx<0 ? 1 : -1
+  );
+
   render();
   window.scrollTo(0,0);
-},{passive:true});
+
+  setTimeout(()=>{
+    blockMonthClick=false;
+  },100);
+});
+
+app.addEventListener("pointercancel",()=>{
+  monthSwipe=null;
+});
+
+app.addEventListener("click",e=>{
+  if(!blockMonthClick) return;
+
+  e.preventDefault();
+  e.stopImmediatePropagation();
+},true);
 
 app.addEventListener("touchcancel",()=>{
   monthSwipeActive=false;
