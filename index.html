@@ -320,9 +320,15 @@ const MONTHS_G = ["января","февраля","марта","апреля","�
 const WD = ["вс","пн","вт","ср","чт","пт","сб"];
 const KEY = "wb-shifts-v1";
 const UI_KEY = "wb-shifts-ui-v1";
+const UI_SESSION_KEY = "wb-shifts-ui-session-v1";
+
+const sameUISession =
+  sessionStorage.getItem(UI_SESSION_KEY) === "1";
+
+sessionStorage.setItem(UI_SESSION_KEY, "1");
 
 function saveUIState(){
-  sessionStorage.setItem(UI_KEY, JSON.stringify({
+  localStorage.setItem(UI_KEY, JSON.stringify({
     tab,
     cursor,
     scrollY: window.scrollY
@@ -331,13 +337,13 @@ function saveUIState(){
 
 function loadUIState(){
   try {
-    return JSON.parse(sessionStorage.getItem(UI_KEY)) || {};
+    return JSON.parse(localStorage.getItem(UI_KEY)) || {};
   } catch(e){
     return {};
   }
 }
 
-const savedUI = loadUIState();
+const savedUI = sameUISession ? loadUIState() : {};
 
 let shifts = [],
     tab = savedUI.tab || "shifts",
