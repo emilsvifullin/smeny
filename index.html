@@ -296,8 +296,31 @@ const MONTHS   = ["Январь","Февраль","Март","Апрель","М�
 const MONTHS_G = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
 const WD = ["вс","пн","вт","ср","чт","пт","сб"];
 const KEY = "wb-shifts-v1";
+const UI_KEY = "wb-shifts-ui-v1";
 
-let shifts = [], tab = "shifts", cursor = ymOf(new Date()), draft = null, storageOk = true;
+function saveUIState(){
+  localStorage.setItem(UI_KEY, JSON.stringify({
+    tab,
+    cursor,
+    scrollY: window.scrollY
+  }));
+}
+
+function loadUIState(){
+  try {
+    return JSON.parse(localStorage.getItem(UI_KEY)) || {};
+  } catch(e){
+    return {};
+  }
+}
+
+const savedUI = loadUIState();
+
+let shifts = [],
+    tab = savedUI.tab || "shifts",
+    cursor = savedUI.cursor || ymOf(new Date()),
+    draft = null,
+    storageOk = true;
 
 /* ========== утилиты ========== */
 function ymOf(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"); }
@@ -399,6 +422,7 @@ async function save(){
 /* ========== экраны ========== */
 const app = document.getElementById("app");
 function render(){
+  saveUIState();
   document.getElementById("period").textContent = tab==="data" ? "Данные" : ymLabel(cursor);
   document.querySelectorAll("#prevM,#nextM").forEach(b=>b.style.visibility = tab==="data" ? "hidden" : "visible");
   document.getElementById("fab").style.display = tab==="shifts" ? "block" : "none";
@@ -624,6 +648,19 @@ app.addEventListener("click",async e=>{
     if(!confirm("Удалить все смены без возможности вернуть?")) return;
     shifts=[]; render(); await save(); toast("Всё удалено");
   }
+});
+
+let scrollTimer;
+window.addEventListener("scroll", ()=>{
+  clearTimeout(scrollTimer);
+  scrollTimer = setTimeout(saveUIState, 150);
+}, {passive:true});
+
+window.addEventListener("pagehide", saveUIState);
+
+window.addEventListener("pageshow", ()=>{
+  const ui = loadUIState();
+  window.scrollTo(0, ui.scrollY || 0);
 });
 
 load();
