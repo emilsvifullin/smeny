@@ -87,7 +87,10 @@
   }
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html{background:var(--bg)}
+html{
+  background:var(--bg);
+  overscroll-behavior-y:none;
+}
 body{
   margin:0;color:var(--ink);
   font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;
@@ -97,6 +100,7 @@ body{
   background-attachment:fixed;
   padding-bottom:calc(120px + env(safe-area-inset-bottom));
   min-height:100vh;
+  overscroll-behavior-y:none;
 }
 button,input,select{font-family:inherit}
 
