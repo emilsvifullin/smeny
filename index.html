@@ -1994,9 +1994,6 @@ document.addEventListener("click",e=>{
   e.stopImmediatePropagation();
 },true);
 
-app.addEventListener("touchcancel",()=>{
-  monthSwipeActive=false;
-},{passive:true});
 ["shifts","stats","data"].forEach(t=>document.getElementById("tab-"+t).onclick=()=>{tab=t;render();});
 document.getElementById("fab").onclick=()=>openSheet(null);
 document.getElementById("veil").onclick=closeSheet;
