@@ -1670,6 +1670,24 @@ function partialShiftsWord(n){
   return n+" неполных смен";
 }
 
+function partialShortWord(n){
+  const l=n%10, s=n%100;
+
+  if(l===1&&s!==11){
+    return n+" неполная";
+  }
+
+  if(
+    l>=2 &&
+    l<=4 &&
+    (s<10 || s>=20)
+  ){
+    return n+" неполные";
+  }
+
+  return n+" неполных";
+}
+
 /* ========== расчёт ========== */
 function rateForShk(shk){
   for(const t of TIERS){
@@ -1729,29 +1747,58 @@ function sumUp(list){
 function payouts(ym){
   const list=inMonth(ym);
 
+  const dayOf=s=>
+    Number(s.date.slice(8,10));
+
+  const netWithoutBonus=items=>
+    items.reduce(
+      (sum,s)=>{
+        const c=calc(s);
+
+        return sum+c.base-c.fine;
+      },
+      0
+    );
+
   const firstHalf=list.filter(
-    s=>+s.date.slice(8,10)<=15
+    s=>dayOf(s)<=15
   );
 
-  const firstHalfTotal=firstHalf.reduce(
-    (sum,s)=>{
-      const c=calc(s);
-
-      return sum+c.base-c.fine;
-    },
-    0
+  const secondHalf=list.filter(
+    s=>dayOf(s)>=16
   );
+
+  const byAdvanceDate=list.filter(
+    s=>dayOf(s)<=25
+  );
+
+  const firstHalfTotal=
+    netWithoutBonus(firstHalf);
+
+  const secondHalfTotal=
+    netWithoutBonus(secondHalf);
+
+  const accruedBy25=
+    netWithoutBonus(byAdvanceDate);
 
   const advance=Math.min(
-    Math.max(firstHalfTotal,0),
+    Math.max(accruedBy25,0),
     ADVANCE_CAP
+  );
+
+  const carryToFinal=Math.max(
+    accruedBy25-advance,
+    0
   );
 
   const all=sumUp(list);
 
   return {
     advance,
+    accruedBy25,
+    carryToFinal,
     firstHalfTotal,
+    secondHalfTotal,
     all,
     rest:all.total-advance,
     nextYm:shiftMonth(ym,1)
@@ -1850,43 +1897,45 @@ function viewShifts(){
 }
 
 function viewStats(){
-  const p=payouts(cursor), a=p.all;
+  const p=payouts(cursor);
+  const a=p.all;
 
   const pct=Math.min(
     100,
-    Math.max(0,p.firstHalfTotal) /
+    Math.max(0,p.advance) /
       ADVANCE_CAP * 100
   );
 
-  const parts=[shiftsWord(a.n)];
+  const details=[];
 
   if(a.extra){
-    parts.push(
-      extraShiftsWord(a.extra)
+    details.push(
+      a.extra+" доп."
     );
   }
 
   if(a.part){
-    parts.push(
-      partialShiftsWord(a.part)
+    details.push(
+      partialShortWord(a.part)
     );
   }
 
-  parts.push(nf(a.shk)+" ШК");
+  const summaryParts=[
+    shiftsWord(a.n)
+  ];
 
-  const shiftParts=[shiftsWord(a.n)];
-
-  if(a.extra){
-    shiftParts.push(
-      extraShiftsWord(a.extra)
+  if(details.length){
+    summaryParts.push(
+      "из них "+details.join(" и ")
     );
   }
 
-  if(a.part){
-    shiftParts.push(
-      partialShiftsWord(a.part)
-    );
-  }
+  summaryParts.push(
+    nf(a.shk)+" ШК"
+  );
+
+  const shiftsSummary=
+    summaryParts.join(" · ");
 
   let h=`
     <div class="card">
@@ -1900,32 +1949,34 @@ function viewStats(){
         </div>
 
         <div class="sub">
-          ${parts.join(" · ")}
+          ${shiftsSummary}
         </div>
       </div>
 
       <div class="prog">
-  <div class="top">
-    <span>
-      Начислено с учётом штрафов:
-    </span>
+        <div class="top">
+          <span>
+            Начислено к авансу ·
+            25 ${esc(monthGen(cursor))}
+          </span>
 
-    <span>
-      ${money(p.firstHalfTotal)}
-    </span>
-  </div>
+          <span>
+            ${money(p.accruedBy25)}
+          </span>
+        </div>
 
-  <div class="limit">
-    Максимальный аванс — ${money(ADVANCE_CAP)}
-  </div>
+        <div class="limit">
+          В аванс — ${money(p.advance)}
+          · в расчёт — ${money(p.carryToFinal)}
+        </div>
 
-  <div class="track">
-    <div
-      class="fill"
-      style="width:${pct}%"
-    ></div>
-  </div>
-</div>
+        <div class="track">
+          <div
+            class="fill"
+            style="width:${pct}%"
+          ></div>
+        </div>
+      </div>
     </div>
   `;
 
@@ -1940,8 +1991,8 @@ function viewStats(){
           </div>
 
           <div class="s">
-            за 1–15 ${esc(monthGen(cursor))}
-            с учётом штрафов, до ${nf(ADVANCE_CAP)} ₽
+            максимальная выплата —
+            ${money(ADVANCE_CAP)}
           </div>
         </div>
 
@@ -1958,8 +2009,8 @@ function viewStats(){
           </div>
 
           <div class="s">
-            остаток за ${esc(monthNom(cursor))}
-            с учётом премий и штрафов
+            всё за ${esc(monthNom(cursor))}
+            за вычетом аванса
           </div>
         </div>
 
@@ -1967,6 +2018,41 @@ function viewStats(){
           ${money(p.rest)}
         </div>
       </div>
+    </div>
+  `;
+
+  h+=`
+    <div class="ml">По периодам</div>
+
+    <div class="card">
+      <div class="row">
+        <div class="l">
+          <div class="t">
+            1–15 ${esc(monthGen(cursor))}
+          </div>
+        </div>
+
+        <div class="v">
+          ${money(p.firstHalfTotal)}
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="l">
+          <div class="t">
+            16–31 ${esc(monthGen(cursor))}
+          </div>
+        </div>
+
+        <div class="v">
+          ${money(p.secondHalfTotal)}
+        </div>
+      </div>
+    </div>
+
+    <div class="note">
+      Оплата за смены с учётом штрафов.
+      Премии показаны отдельно ниже.
     </div>
   `;
 
@@ -1981,7 +2067,7 @@ function viewStats(){
           </div>
 
           <div class="s">
-            ${shiftParts.join(" · ")}
+            ${shiftsSummary}
           </div>
         </div>
 
