@@ -15,7 +15,10 @@ self.addEventListener("activate", event => {
     caches.keys().then(names =>
       Promise.all(
         names
-          .filter(name => name !== CACHE_NAME)
+          .filter(name =>
+            name.startsWith("shifts-cache-v") &&
+            name !== CACHE_NAME
+          )
           .map(name => caches.delete(name))
       )
     )
