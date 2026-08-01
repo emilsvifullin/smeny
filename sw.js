@@ -1,4 +1,4 @@
-const VERSION = "2";
+const VERSION = "0";
 const CACHE_NAME = `shifts-cache-v${VERSION}`;
 const APP_FILE = "./index.html";
 
