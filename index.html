@@ -1318,6 +1318,42 @@ function shiftsWord(n){
   return n+" смен";
 }
 
+function extraShiftsWord(n){
+  const l=n%10, s=n%100;
+
+  if(l===1&&s!==11){
+    return n+" дополнительная смена";
+  }
+
+  if(
+    l>=2 &&
+    l<=4 &&
+    (s<10 || s>=20)
+  ){
+    return n+" дополнительные смены";
+  }
+
+  return n+" дополнительных смен";
+}
+
+function partialShiftsWord(n){
+  const l=n%10, s=n%100;
+
+  if(l===1&&s!==11){
+    return n+" неполная смена";
+  }
+
+  if(
+    l>=2 &&
+    l<=4 &&
+    (s<10 || s>=20)
+  ){
+    return n+" неполные смены";
+  }
+
+  return n+" неполных смен";
+}
+
 /* ========== расчёт ========== */
 function rateForShk(shk){
   for(const t of TIERS){
@@ -1477,9 +1513,20 @@ function viewStats(){
   const p=payouts(cursor), a=p.all;
   const pct=Math.min(100,p.baseFirst/ADVANCE_CAP*100);
   const parts=[shiftsWord(a.n)];
-  if(a.extra) parts.push("доп. "+a.extra);
-  if(a.part) parts.push("неполных "+a.part);
-  parts.push(nf(a.shk)+" ШК");
+
+if(a.extra){
+  parts.push(
+    extraShiftsWord(a.extra)
+  );
+}
+
+if(a.part){
+  parts.push(
+    partialShiftsWord(a.part)
+  );
+}
+
+parts.push(nf(a.shk)+" ШК");
 
   let h = `<div class="card">
     <div class="hero">
@@ -1504,7 +1551,7 @@ function viewStats(){
 
   h += `<div class="ml">Из чего сложилось</div><div class="card">
     <div class="row"><div class="l"><div class="t">Ставки за смены</div>
-      <div class="s">${shiftsWord(a.n)}${a.part?" · неполных "+a.part:""}</div></div>
+      <div class="s">${shiftsWord(a.n)}${a.part?" · "+partialShiftsWord(a.part):""}</div>
       <div class="v">${money(a.base)}</div></div>
     <div class="row"><div class="l"><div class="t">Премии</div></div>
       <div class="v pos">${a.bonus?"+ ":""}${money(a.bonus)}</div></div>
