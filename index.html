@@ -238,14 +238,23 @@ nav.tabs a.on{background:var(--tint2);color:var(--ink)}
   border-top:1px solid var(--line2);
   border-radius:22px 22px 0 0;
 
-  transform:translateY(calc(100% + 60px));
-  transition:transform .32s cubic-bezier(.32,.72,0,1);
+  transform:translateY(110vh);
+  visibility:hidden;
+  pointer-events:none;
+  transition:
+    transform .32s cubic-bezier(.32,.72,0,1),
+    visibility 0s linear .32s;
 
   padding-bottom:calc(28px + env(safe-area-inset-bottom));
 }
 
 .sheet.on{
   transform:translateY(var(--sheet-drag, 0px));
+  visibility:visible;
+  pointer-events:auto;
+  transition:
+    transform .32s cubic-bezier(.32,.72,0,1),
+    visibility 0s;
 }
 
 body.sheet-open{
