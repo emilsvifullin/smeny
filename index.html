@@ -848,6 +848,14 @@ body.date-picker-open .sheet{
   }
 }
 
+.sh.touch-active{
+  background:var(--tint);
+}
+
+.date-day.touch-active{
+  background:var(--tint2);
+}
+
 .date-day.outside{
   color:var(--ink3);
   opacity:.45;
@@ -2780,6 +2788,107 @@ if ("serviceWorker" in navigator) {
   });
 }
 
+let touchActiveState=null;
+
+document.addEventListener("pointerdown",e=>{
+  if(
+    !e.isPrimary ||
+    e.pointerType==="mouse"
+  ){
+    return;
+  }
+
+  const element=e.target.closest(
+    ".sh,.date-day"
+  );
+
+  if(!element) return;
+
+  const state={
+    id:e.pointerId,
+    element,
+    x:e.clientX,
+    y:e.clientY,
+    timer:null
+  };
+
+  state.timer=setTimeout(()=>{
+    if(touchActiveState===state){
+      element.classList.add("touch-active");
+    }
+  },80);
+
+  touchActiveState=state;
+});
+
+document.addEventListener("pointermove",e=>{
+  const state=touchActiveState;
+
+  if(
+    !state ||
+    e.pointerId!==state.id
+  ){
+    return;
+  }
+
+  const dx=e.clientX-state.x;
+  const dy=e.clientY-state.y;
+
+  if(Math.hypot(dx,dy)<8) return;
+
+  clearTimeout(state.timer);
+  state.element.classList.remove("touch-active");
+  touchActiveState=null;
+});
+
+function finishTouchActive(e){
+  const state=touchActiveState;
+
+  if(
+    !state ||
+    e.pointerId!==state.id
+  ){
+    return;
+  }
+
+  clearTimeout(state.timer);
+  touchActiveState=null;
+
+  const dx=e.clientX-state.x;
+  const dy=e.clientY-state.y;
+
+  if(Math.hypot(dx,dy)>=8){
+    state.element.classList.remove("touch-active");
+    return;
+  }
+
+  state.element.classList.add("touch-active");
+
+  setTimeout(()=>{
+    state.element.classList.remove("touch-active");
+  },110);
+}
+
+document.addEventListener(
+  "pointerup",
+  finishTouchActive
+);
+
+document.addEventListener("pointercancel",e=>{
+  const state=touchActiveState;
+
+  if(
+    !state ||
+    e.pointerId!==state.id
+  ){
+    return;
+  }
+
+  clearTimeout(state.timer);
+  state.element.classList.remove("touch-active");
+  touchActiveState=null;
+});
+  
 load();
 </script>
 </body>
