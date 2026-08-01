@@ -2067,7 +2067,7 @@ let suppressMonthClick=false;
 
 document.addEventListener("pointerdown",e=>{
   if(
-    tab!=="shifts" ||
+    !["shifts","stats"].includes(tab) ||
     !e.isPrimary ||
     e.pointerType==="mouse" ||
     document.body.classList.contains("sheet-open") ||
