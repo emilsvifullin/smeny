@@ -244,6 +244,143 @@ input,select{width:100%;padding:0;border:none;outline:none;background:transparen
 input::placeholder{color:var(--ink3)}
 select{appearance:none;text-align-last:right;direction:rtl}
 select option{direction:ltr;background:var(--surf);color:var(--ink)}
+/* свой выбор пункта */
+.point-row{
+  width:100%;
+  border:0;
+  border-top:1px solid var(--line);
+  background:transparent;
+  color:var(--ink);
+  text-align:left;
+  cursor:pointer;
+}
+
+.point-row .t{
+  flex:none;
+  width:112px;
+  color:var(--ink2);
+  font-size:14.5px;
+}
+
+.point-value{
+  flex:1;
+  min-width:0;
+  text-align:right;
+  white-space:nowrap;
+  font-size:clamp(12px,3.25vw,14.5px);
+  letter-spacing:-.25px;
+}
+
+.point-veil{
+  position:fixed;
+  inset:0;
+  z-index:48;
+  background:var(--veil);
+  opacity:0;
+  pointer-events:none;
+  transition:.22s;
+}
+
+.point-veil.on{
+  opacity:1;
+  pointer-events:auto;
+}
+
+.point-picker{
+  position:fixed;
+  left:8px;
+  right:8px;
+  bottom:calc(8px + env(safe-area-inset-bottom));
+  z-index:49;
+
+  max-height:78vh;
+  overflow:hidden;
+
+  background:var(--sheet);
+  border:1px solid var(--line2);
+  border-radius:22px;
+
+  box-shadow:var(--shadow);
+
+  transform:translateY(calc(100% + 30px));
+  transition:transform .3s cubic-bezier(.32,.72,0,1);
+}
+
+.point-picker.on{
+  transform:translateY(0);
+}
+
+.point-picker-grab{
+  width:34px;
+  height:4px;
+  margin:9px auto 7px;
+  border-radius:2px;
+  background:var(--line2);
+}
+
+.point-picker-title{
+  padding:7px 16px 13px;
+  text-align:center;
+
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.19em;
+  text-transform:uppercase;
+  color:var(--ink3);
+}
+
+.point-list{
+  max-height:calc(78vh - 53px);
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  border-top:1px solid var(--line);
+}
+
+.point-option{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:8px;
+
+  padding:12px 13px;
+
+  border:0;
+  border-top:1px solid var(--line);
+  background:transparent;
+  color:var(--ink);
+
+  font-size:clamp(11.5px,3.15vw,13.5px);
+  line-height:1.15;
+  letter-spacing:-.25px;
+  text-align:left;
+
+  cursor:pointer;
+}
+
+.point-option:first-child{
+  border-top:0;
+}
+
+.point-option:active{
+  background:var(--tint2);
+}
+
+.point-option.on{
+  color:var(--gold);
+  background:var(--gold-soft);
+}
+
+.point-check{
+  width:17px;
+  flex:none;
+  text-align:center;
+  font-size:14px;
+  font-weight:700;
+}
+
+.point-name{
+  white-space:nowrap;
+}
 .seg{display:flex;gap:3px;padding:3px;background:var(--tint);border-radius:13px}
 .seg button{flex:1;border:none;background:transparent;border-radius:11px;padding:9px 4px;cursor:pointer;color:var(--ink2);font-size:13px;letter-spacing:-.1px}
 .seg button.on{background:var(--surf);color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.14)}
@@ -300,6 +437,14 @@ textarea::placeholder{color:var(--ink3)}
     <button class="lnk b" id="sheetSave">Готово</button>
   </div>
   <div class="sbody" id="sheetBody"></div>
+</div>
+
+<div class="point-veil" id="pointVeil"></div>
+
+<div class="point-picker" id="pointPicker">
+  <div class="point-picker-grab"></div>
+  <div class="point-picker-title">Выберите пункт</div>
+  <div class="point-list" id="pointList"></div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -608,9 +753,46 @@ function openSheet(id){
   document.getElementById("sheet").classList.add("on");
 }
 function closeSheet(){
+  closePointPicker();
+
   document.getElementById("veil").classList.remove("on");
   document.getElementById("sheet").classList.remove("on");
   draft=null;
+}
+
+function openPointPicker(){
+  if(!draft) return;
+
+  const list=document.getElementById("pointList");
+
+  list.innerHTML=POINTS.map(p=>`
+    <button
+      type="button"
+      class="point-option ${p===draft.point?"on":""}"
+      data-point="${esc(p)}"
+    >
+      <span class="point-check">${p===draft.point?"✓":""}</span>
+      <span class="point-name">${esc(p)}</span>
+    </button>
+  `).join("");
+
+  document.getElementById("pointVeil").classList.add("on");
+  document.getElementById("pointPicker").classList.add("on");
+
+  requestAnimationFrame(()=>{
+    const selected=list.querySelector(".point-option.on");
+
+    if(selected){
+      selected.scrollIntoView({
+        block:"center"
+      });
+    }
+  });
+}
+
+function closePointPicker(){
+  document.getElementById("pointVeil").classList.remove("on");
+  document.getElementById("pointPicker").classList.remove("on");
 }
 function calcHTML(){
   const c=calc(draft);
@@ -631,7 +813,10 @@ function drawSheet(isEdit){
     <div class="ml">Смена</div>
     <div class="card">
       <label class="row"><div class="t">Дата</div><input type="date" id="f-date" value="${draft.date}"></label>
-      <label class="row"><div class="t">Пункт</div><select id="f-point">${POINTS.map(p=>`<option ${p===draft.point?"selected":""}>${esc(p)}</option>`).join("")}</select></label>
+      <button type="button" class="row point-row" id="f-point-open">
+        <div class="t">Пункт</div>
+        <div class="point-value">${esc(draft.point)}</div>
+      </button>
       ${fixed ? "" : `
         <label class="row">
           <div class="t">ШК</div>
@@ -689,6 +874,7 @@ document.getElementById("nextM").onclick=()=>{cursor=shiftMonth(cursor,1);render
 document.getElementById("fab").onclick=()=>openSheet(null);
 document.getElementById("veil").onclick=closeSheet;
 document.getElementById("sheetCancel").onclick=closeSheet;
+document.getElementById("pointVeil").onclick=closePointPicker;
 document.getElementById("sheetSave").onclick=async()=>{
   readForm();
 
@@ -702,8 +888,17 @@ document.getElementById("sheetSave").onclick=async()=>{
   closeSheet(); render(); await save(); toast("Смена сохранена");
 };
 document.getElementById("sheetBody").addEventListener("click",async e=>{
-  const t=e.target.closest("button"); if(!t||!draft) return;
+  const t=e.target.closest("button");
+
+  if(!t || !draft) return;
+
   const isEdit=shifts.some(x=>x.id===draft.id);
+
+  if(t.id==="f-point-open"){
+    readForm();
+    openPointPicker();
+    return;
+  }
 
   if(t.dataset.type){
     readForm();
@@ -729,12 +924,16 @@ document.getElementById("sheetBody").addEventListener("click",async e=>{
 });
 
 
-document.getElementById("sheetBody").addEventListener("change",e=>{
-  if(e.target.id!=="f-point" || !draft) return;
+document.getElementById("pointList").addEventListener("click",e=>{
+  const option=e.target.closest("[data-point]");
+
+  if(!option || !draft) return;
 
   const wasFixed=FIXED_POINTS.has(draft.point);
 
   readForm();
+
+  draft.point=option.dataset.point;
 
   const nowFixed=FIXED_POINTS.has(draft.point);
 
@@ -745,6 +944,8 @@ document.getElementById("sheetBody").addEventListener("change",e=>{
   else if(wasFixed){
     draft.shk="";
   }
+
+  closePointPicker();
 
   const isEdit=shifts.some(x=>x.id===draft.id);
 
