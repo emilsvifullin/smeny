@@ -550,7 +550,7 @@ body.point-picker-open .sheet{
 }
 
 .date-picker.on{
-  transform:translateY(0);
+  transform:translateY(var(--date-drag, 0px));
 }
 
 body.date-picker-open{
@@ -559,6 +559,31 @@ body.date-picker-open{
 
 body.date-picker-open .sheet{
   overflow:hidden;
+}
+
+.date-picker-handle{
+  height:26px;
+  margin:-8px -12px 3px;
+
+  display:grid;
+  place-items:center;
+
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+
+  cursor:grab;
+}
+
+.date-picker-handle:active{
+  cursor:grabbing;
+}
+
+.date-picker-grab{
+  width:34px;
+  height:4px;
+  border-radius:2px;
+  background:var(--line2);
 }
 
 .date-calendar-head{
@@ -1077,6 +1102,10 @@ textarea::placeholder{color:var(--ink3)}
   aria-modal="true"
   aria-label="Выбор даты"
 >
+  <div class="date-picker-handle" id="datePickerHandle">
+    <div class="date-picker-grab"></div>
+  </div>
+
   <div class="date-calendar-head">
     <button
       type="button"
@@ -1629,6 +1658,8 @@ function openDatePicker(){
 
   clearTimeout(datePickerHideTimer);
 
+  picker.style.removeProperty("--date-drag");
+
   dateCalendarCursor=draft.date.slice(0,7);
   
   closeDateJump();
@@ -1660,10 +1691,13 @@ function closeDatePicker(){
   clearTimeout(datePickerHideTimer);
 
   datePickerHideTimer=setTimeout(()=>{
-    if(!picker.classList.contains("on")){
-      picker.style.display="none";
-    }
-  },320);
+  if(!picker.classList.contains("on")){
+    picker.style.display="none";
+  }
+
+  picker.style.removeProperty("--date-drag");
+  picker.style.removeProperty("transition");
+},320);
 }
 
 function selectDate(ymd){
@@ -2052,7 +2086,129 @@ document.getElementById("datePicker").addEventListener("click",e=>{
 
   closeDateJump();
 },true);
-  
+
+const datePickerElement=
+  document.getElementById("datePicker");
+
+const datePickerHandle=
+  document.getElementById("datePickerHandle");
+
+let datePickerDrag=null;
+
+datePickerHandle.addEventListener("pointerdown",e=>{
+  if(
+    !e.isPrimary ||
+    !datePickerElement.classList.contains("on")
+  ){
+    return;
+  }
+
+  closeDateJump();
+
+  datePickerDrag={
+    id:e.pointerId,
+    startY:e.clientY,
+    distance:0,
+    started:performance.now()
+  };
+
+  datePickerElement.style.transition="none";
+
+  datePickerHandle.setPointerCapture(e.pointerId);
+
+  e.preventDefault();
+});
+
+datePickerHandle.addEventListener("pointermove",e=>{
+  if(
+    !datePickerDrag ||
+    e.pointerId!==datePickerDrag.id
+  ){
+    return;
+  }
+
+  const distance=Math.max(
+    0,
+    e.clientY-datePickerDrag.startY
+  );
+
+  datePickerDrag.distance=distance;
+
+  datePickerElement.style.setProperty(
+    "--date-drag",
+    distance+"px"
+  );
+
+  e.preventDefault();
+});
+
+function finishDatePickerDrag(e){
+  if(
+    !datePickerDrag ||
+    e.pointerId!==datePickerDrag.id
+  ){
+    return;
+  }
+
+  const {
+    id,
+    distance,
+    started
+  }=datePickerDrag;
+
+  const duration=Math.max(
+    1,
+    performance.now()-started
+  );
+
+  const fastSwipe=
+    distance>=28 &&
+    distance/duration>=0.45;
+
+  const shouldClose=
+    distance>=80 ||
+    fastSwipe;
+
+  datePickerDrag=null;
+
+  if(datePickerHandle.hasPointerCapture(id)){
+    datePickerHandle.releasePointerCapture(id);
+  }
+
+  datePickerElement.style.removeProperty("transition");
+
+  if(shouldClose){
+    closeDatePicker();
+    return;
+  }
+
+  requestAnimationFrame(()=>{
+    datePickerElement.style.removeProperty("--date-drag");
+  });
+}
+
+datePickerHandle.addEventListener(
+  "pointerup",
+  finishDatePickerDrag
+);
+
+datePickerHandle.addEventListener("pointercancel",e=>{
+  if(
+    !datePickerDrag ||
+    e.pointerId!==datePickerDrag.id
+  ){
+    return;
+  }
+
+  datePickerDrag=null;
+
+  datePickerElement.style.removeProperty("transition");
+
+  requestAnimationFrame(()=>{
+    datePickerElement.style.removeProperty("--date-drag");
+  });
+});
+
 const dateGrid=document.getElementById("dateGrid");
 
 dateGrid.onclick=e=>{
