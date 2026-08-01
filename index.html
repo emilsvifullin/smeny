@@ -652,6 +652,22 @@ body.date-picker-open .sheet{
   display:block;
 }
 
+.date-jump-dismiss{
+  display:none;
+  position:absolute;
+  left:0;
+  right:0;
+  top:68px;
+  bottom:0;
+  z-index:3;
+  background:transparent;
+  touch-action:none;
+}
+
+.date-picker.jump-open .date-jump-dismiss{
+  display:block;
+}  
+
 .date-jump-year{
   display:grid;
   grid-template-columns:42px 1fr 42px;
@@ -1159,6 +1175,12 @@ textarea::placeholder{color:var(--ink3)}
     <div class="date-jump-months" id="dateJumpMonths"></div>
   </div>
 
+<div
+  class="date-jump-dismiss"
+  id="dateJumpDismiss"
+  aria-hidden="true"
+></div>
+
   <div class="date-weekdays">
     <span>Пн</span>
     <span>Вт</span>
@@ -1625,6 +1647,7 @@ function openDateJump(){
   drawDateJump();
 
   document.getElementById("dateJump").classList.add("on");
+  document.getElementById("datePicker").classList.add("jump-open");
 
   document
     .getElementById("datePickerMonth")
@@ -1633,11 +1656,21 @@ function openDateJump(){
 
 function closeDateJump(){
   document.getElementById("dateJump").classList.remove("on");
-
+  document.getElementById("datePicker").classList.remove("jump-open");
+  
   document
     .getElementById("datePickerMonth")
     .setAttribute("aria-expanded","false");
 }
+
+document.getElementById("dateJumpDismiss").addEventListener(
+  "pointerdown",
+  e=>{
+    e.preventDefault();
+    e.stopPropagation();
+    closeDateJump();
+  }
+);
 
 function toggleDateJump(){
   const jump=document.getElementById("dateJump");
@@ -2069,23 +2102,6 @@ document.getElementById("dateJumpMonths").onclick=e=>{
   closeDateJump();
   drawDatePicker();
 };
-
-document.getElementById("datePicker").addEventListener("click",e=>{
-  const jump=document.getElementById("dateJump");
-
-  if(!jump.classList.contains("on")) return;
-
-  const calendarArea=e.target.closest(
-    ".date-weekdays,.date-grid,.date-today"
-  );
-
-  if(!calendarArea) return;
-
-  e.preventDefault();
-  e.stopImmediatePropagation();
-
-  closeDateJump();
-},true);
 
 const datePickerElement=
   document.getElementById("datePicker");
