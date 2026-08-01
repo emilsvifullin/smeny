@@ -231,9 +231,38 @@ main{
   border-top:none;
 }
 
-.sh .day{width:34px;flex:none;text-align:center}
-.sh .day .d{font-size:19px;font-weight:500;letter-spacing:-.6px;line-height:1}
-.sh .day .w{font-size:9px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--ink3);margin-top:3px}
+.sh .day{
+  width:34px;
+  flex:none;
+  text-align:center;
+}
+
+.sh .day .d{
+  display:block;
+  width:100%;
+  text-align:center;
+
+  font-size:19px;
+  font-weight:500;
+  line-height:1;
+  letter-spacing:0;
+  font-variant-numeric:tabular-nums;
+}
+
+.sh .day .w{
+  display:block;
+  width:100%;
+  text-align:center;
+
+  margin-top:3px;
+
+  font-size:9px;
+  font-weight:700;
+  line-height:1;
+  letter-spacing:0;
+  text-transform:uppercase;
+  color:var(--ink3);
+}
 .sh .mid{flex:1;min-width:0}
 .sh .p{font-size:14.5px;letter-spacing:-.15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sh .meta{font-size:11.5px;color:var(--ink2);margin-top:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
@@ -1801,9 +1830,14 @@ function openSheet(id){
 
   drawSheet(!!s);
 
-  document.body.classList.add("sheet-open");
-  document.getElementById("veil").classList.add("on");
-  sheet.classList.add("on");
+/* Сначала отрисовываем шторку внизу */
+sheet.classList.remove("on");
+void sheet.offsetHeight;
+
+/* Затем запускаем подъём */
+document.body.classList.add("sheet-open");
+document.getElementById("veil").classList.add("on");
+sheet.classList.add("on");
 }
 function closeSheet(){
   const sheet=document.getElementById("sheet");
