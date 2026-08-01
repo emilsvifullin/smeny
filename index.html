@@ -1322,7 +1322,7 @@ function extraShiftsWord(n){
   const l=n%10, s=n%100;
 
   if(l===1&&s!==11){
-    return n+" дополнительная смена";
+    return n+" доп. смена";
   }
 
   if(
@@ -1330,10 +1330,10 @@ function extraShiftsWord(n){
     l<=4 &&
     (s<10 || s>=20)
   ){
-    return n+" дополнительные смены";
+    return n+" доп. смены";
   }
 
-  return n+" дополнительных смен";
+  return n+" доп. смен";
 }
 
 function partialShiftsWord(n){
