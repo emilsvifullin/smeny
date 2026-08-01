@@ -2036,6 +2036,23 @@ document.getElementById("dateJumpMonths").onclick=e=>{
   drawDatePicker();
 };
 
+document.getElementById("datePicker").addEventListener("click",e=>{
+  const jump=document.getElementById("dateJump");
+
+  if(!jump.classList.contains("on")) return;
+
+  const calendarArea=e.target.closest(
+    ".date-weekdays,.date-grid,.date-today"
+  );
+
+  if(!calendarArea) return;
+
+  e.preventDefault();
+  e.stopImmediatePropagation();
+
+  closeDateJump();
+},true);
+  
 const dateGrid=document.getElementById("dateGrid");
 
 dateGrid.onclick=e=>{
