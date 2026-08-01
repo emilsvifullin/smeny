@@ -1041,6 +1041,13 @@ body.month-picker-open{
 textarea{width:100%;margin-top:10px;min-height:118px;padding:12px;border-radius:14px;background:var(--surf);border:1px solid var(--line);color:var(--ink);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;outline:none;resize:vertical}
 textarea::placeholder{color:var(--ink3)}
 .note{font-size:12px;color:var(--ink3);padding:9px 4px 0;line-height:1.5}
+.developer-credit{
+  margin:34px 0 8px;
+  text-align:center;
+  font-size:11px;
+  letter-spacing:.08em;
+  color:var(--ink3);
+}
 .toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(10px);background:var(--toast-bg);color:var(--toast-ink);font-size:13px;font-weight:500;padding:10px 17px;border-radius:22px;z-index:60;opacity:0;pointer-events:none;transition:.22s;box-shadow:var(--shadow)}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 .dot{width:7px;height:7px;border-radius:4px;background:var(--gold);flex:none;box-shadow:0 0 0 3px var(--gold-soft)}
@@ -1526,23 +1533,65 @@ function viewStats(){
 
 function viewData(){
   const st={
-    cloud:["Данные сохраняются","Записей: "+shifts.length+". Хранятся в учётной записи Claude и доступны с другого устройства."],
-    local:["Сохранено на этом устройстве","Записей: "+shifts.length+". На другом телефоне их не будет — переносите через JSON."],
-    none:["Хранилище недоступно","Изменения не сохранятся. Скопируйте JSON вручную."]
+    cloud:[
+      "Данные сохраняются",
+      "Записей: "+shifts.length+". Хранятся в учётной записи Claude и доступны с другого устройства."
+    ],
+    local:[
+      "Сохранено на этом устройстве",
+      "Записей: "+shifts.length+". На другом телефоне их не будет — переносите через JSON."
+    ],
+    none:[
+      "Хранилище недоступно",
+      "Изменения не сохранятся. Скопируйте JSON вручную."
+    ]
   }[store.mode];
-  return `<div class="ml">Состояние</div>
-  <div class="card"><div class="row">
-    <div class="dot ${storageOk?"":"off"}"></div>
-    <div class="l"><div class="t">${st[0]}</div><div class="s" style="white-space:normal">${st[1]}</div></div>
-  </div></div>
-  <div class="ml">Резервная копия</div>
-  <button class="btn" id="doExport">Показать JSON</button>
-  <button class="btn" id="doCsv">Показать CSV для Excel</button>
-  <textarea id="io" placeholder="Вставьте сюда сохранённый JSON и нажмите «Загрузить»"></textarea>
-  <button class="btn gold" id="doImport">Загрузить из JSON</button>
-  <div class="note">Загрузка заменяет все текущие смены содержимым поля.</div>
-  <div class="ml">Опасная зона</div>
-  <button class="btn warn" id="doWipe">Удалить все смены</button>`;
+
+  return `
+    <div class="ml">Состояние</div>
+
+    <div class="card">
+      <div class="row">
+        <div class="dot ${storageOk?"":"off"}"></div>
+
+        <div class="l">
+          <div class="t">${st[0]}</div>
+
+          <div
+            class="s"
+            style="white-space:normal"
+          >${st[1]}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ml">Резервная копия</div>
+
+    <button
+      class="btn"
+      id="doExport"
+    >Скопировать JSON</button>
+
+    <button
+      class="btn gold"
+      id="doImport"
+    >Вставить JSON</button>
+
+    <div class="note">
+      Вставка JSON заменяет все текущие смены содержимым буфера обмена.
+    </div>
+
+    <div class="ml">Опасная зона</div>
+
+    <button
+      class="btn warn"
+      id="doWipe"
+    >Удалить все смены</button>
+
+    <div class="developer-credit">
+      Разработчик emilsvifullin
+    </div>
+  `;
 }
 
 /* ========== форма ========== */
@@ -2592,25 +2641,88 @@ document.getElementById("sheetBody").addEventListener("input",e=>{
 app.addEventListener("click",async e=>{
   const row=e.target.closest("[data-edit]");
   if(row){ openSheet(row.dataset.edit); return; }
-  const b=e.target.closest("button"); if(!b) return;
-  const io=document.getElementById("io");
-  if(b.id==="doExport"){ io.value=JSON.stringify(shifts); io.select(); toast("Скопируйте текст"); }
-  if(b.id==="doCsv"){
-    const head="Дата;Пункт;Тип;ШК;Часов;Ставка;База;Премии;Штрафы;Итого";
-    const rows=[...shifts].sort((a,c)=>a.date<c.date?-1:1).map(s=>{
-      const c=calc(s);
-      return [s.date,s.point,s.type==="extra"?"доп.":"основная",s.shk||0,c.hours,c.rate,c.base,c.bonus,c.fine,c.total].join(";");
-    });
-    io.value=[head,...rows].join("\n"); io.select(); toast("Скопируйте и вставьте в Excel");
+  const b=e.target.closest("button");
+
+if(!b) return;
+
+if(b.id==="doExport"){
+  const json=JSON.stringify(shifts);
+
+  try{
+    await navigator.clipboard.writeText(json);
+    toast("JSON скопирован");
+  }catch(err){
+    const field=document.createElement("textarea");
+
+    field.value=json;
+    field.setAttribute("readonly","");
+    field.style.position="fixed";
+    field.style.opacity="0";
+
+    document.body.appendChild(field);
+
+    field.select();
+    field.setSelectionRange(0,field.value.length);
+
+    const copied=document.execCommand("copy");
+
+    field.remove();
+
+    toast(
+      copied
+        ? "JSON скопирован"
+        : "Не удалось скопировать JSON"
+    );
   }
-  if(b.id==="doImport"){
-    try{
-      const parsed=JSON.parse(io.value);
-      if(!Array.isArray(parsed)) throw 0;
-      if(!confirm("Заменить все смены данными из поля?")) return;
-      shifts=parsed.map(migrate).filter(s=>s&&s.date); render(); await save(); toast("Загружено: "+shifts.length);
-    }catch(err){ toast("Не похоже на сохранённый JSON"); }
+
+  return;
+}
+
+if(b.id==="doImport"){
+  let json="";
+
+  try{
+    json=await navigator.clipboard.readText();
+  }catch(err){
+    json=prompt(
+      "Вставьте сохранённый JSON:"
+    ) || "";
   }
+
+  if(!json.trim()){
+    toast("JSON не вставлен");
+    return;
+  }
+
+  try{
+    const parsed=JSON.parse(json);
+
+    if(!Array.isArray(parsed)){
+      throw new Error("invalid");
+    }
+
+    if(
+      !confirm(
+        "Заменить все текущие смены вставленными данными?"
+      )
+    ){
+      return;
+    }
+
+    shifts=parsed
+      .map(migrate)
+      .filter(s=>s&&s.date);
+
+    render();
+    await save();
+
+    toast("Загружено: "+shifts.length);
+  }catch(err){
+    toast("Не похоже на сохранённый JSON");
+  }
+
+  return;
+}
   if(b.id==="doWipe"){
     if(!confirm("Удалить все смены без возможности вернуть?")) return;
     shifts=[]; render(); await save(); toast("Всё удалено");
