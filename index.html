@@ -223,6 +223,7 @@ nav.tabs a.on{background:var(--tint2);color:var(--ink)}
 .veil{position:fixed;inset:0;background:var(--veil);z-index:40;opacity:0;pointer-events:none;transition:.24s}
 .veil.on{opacity:1;pointer-events:auto}
 .sheet{
+  display:none;
   position:fixed;
   left:0;
   right:0;
@@ -803,6 +804,7 @@ function viewData(){
 /* ========== форма ========== */
 function openSheet(id){
   const sheet=document.getElementById("sheet");
+  sheet.style.display="block";
   const s=shifts.find(x=>x.id===id);
 
   sheet.style.removeProperty("transition");
@@ -842,6 +844,10 @@ function closeSheet(){
   draft=null;
 
   setTimeout(()=>{
+    if(!sheet.classList.contains("on")){
+      sheet.style.display="none";
+    }
+
     sheet.style.removeProperty("transition");
     sheet.style.removeProperty("--sheet-drag");
   },320);
