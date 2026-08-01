@@ -5,25 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <meta name="apple-mobile-web-app-capable" content="yes">
 
-<meta id="ios-status-bar-style"
-      name="apple-mobile-web-app-status-bar-style"
-      content="default">
-
 <script>
   const darkTheme = window.matchMedia("(prefers-color-scheme: dark)");
-  const statusBar = document.getElementById("ios-status-bar-style");
 
-  function updateStatusBar() {
-    statusBar.setAttribute(
-      "content",
-      darkTheme.matches ? "black-translucent" : "default"
-    );
-  }
-
-  updateStatusBar();
+  document.write(
+    '<meta name="apple-mobile-web-app-status-bar-style" content="' +
+    (darkTheme.matches ? "black-translucent" : "default") +
+    '">'
+  );
 
   darkTheme.addEventListener("change", () => {
-    updateStatusBar();
     location.reload();
   });
 </script>
