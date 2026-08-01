@@ -226,12 +226,10 @@ main{
   border-top:none;
 }
 
-.sh:active{
-  background:var(--tint);
-}
-
-body.month-swiping .sh:active{
-  background:transparent;
+@media (hover:hover) and (pointer:fine){
+  .sh:active{
+    background:var(--tint);
+  }
 }
 .sh .day{width:34px;flex:none;text-align:center}
 .sh .day .d{font-size:19px;font-weight:500;letter-spacing:-.6px;line-height:1}
