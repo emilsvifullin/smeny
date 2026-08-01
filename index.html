@@ -86,7 +86,22 @@
     --glow-op:.5;
   }
 }
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+*{
+  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
+
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-touch-callout:none;
+}
+
+input,
+textarea{
+  user-select:text;
+  -webkit-user-select:text;
+  -webkit-touch-callout:default;
+}
+
 html{
   background:var(--bg);
 }
@@ -827,12 +842,10 @@ body.date-picker-open .sheet{
   cursor:pointer;
 }
 
-.date-day:active{
-  background:var(--tint2);
-}
-
-.date-grid.date-swiping .date-day:active{
-  background:transparent;
+@media (hover:hover) and (pointer:fine){
+  .date-day:active{
+    background:var(--tint2);
+  }
 }
 
 .date-day.outside{
