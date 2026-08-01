@@ -239,8 +239,15 @@ main{
 
 .sh .day .d{
   display:block;
-  width:100%;
+  width:2ch;
+  margin:0 auto;
   text-align:center;
+
+  font-family:
+    ui-monospace,
+    "SFMono-Regular",
+    Menlo,
+    monospace;
 
   font-size:19px;
   font-weight:500;
@@ -251,10 +258,15 @@ main{
 
 .sh .day .w{
   display:block;
-  width:100%;
+  width:2ch;
+  margin:3px auto 0;
   text-align:center;
 
-  margin-top:3px;
+  font-family:
+    ui-monospace,
+    "SFMono-Regular",
+    Menlo,
+    monospace;
 
   font-size:9px;
   font-weight:700;
@@ -263,6 +275,7 @@ main{
   text-transform:uppercase;
   color:var(--ink3);
 }
+
 .sh .mid{flex:1;min-width:0}
 .sh .p{font-size:14.5px;letter-spacing:-.15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sh .meta{font-size:11.5px;color:var(--ink2);margin-top:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
