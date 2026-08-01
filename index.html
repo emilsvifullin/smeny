@@ -223,13 +223,41 @@ nav.tabs a.on{background:var(--tint2);color:var(--ink)}
 .veil{position:fixed;inset:0;background:var(--veil);z-index:40;opacity:0;pointer-events:none;transition:.24s}
 .veil.on{opacity:1;pointer-events:auto}
 .sheet{
-  position:fixed;left:0;right:0;bottom:0;z-index:41;max-height:93vh;overflow-y:auto;
-  -webkit-overflow-scrolling:touch;background:var(--sheet);border-top:1px solid var(--line2);
-  border-radius:22px 22px 0 0;transform:translateY(101%);
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  z-index:41;
+
+  max-height:93vh;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+
+  background:var(--sheet);
+  border-top:1px solid var(--line2);
+  border-radius:22px 22px 0 0;
+
+  transform:translateY(101%);
   transition:transform .32s cubic-bezier(.32,.72,0,1);
-  padding-bottom:calc(28px + env(safe-area-inset-bottom))
+
+  padding-bottom:calc(28px + env(safe-area-inset-bottom));
 }
-.sheet.on{transform:translateY(0)}
+
+.sheet.on{
+  transform:translateY(var(--sheet-drag, 0px));
+}
+
+body.sheet-open{
+  overflow:hidden;
+}
+
+.sheet .grab,
+.sheet .shead{
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+}
 .grab{width:34px;height:4px;border-radius:2px;background:var(--line2);margin:9px auto 0}
 .shead{position:sticky;top:0;z-index:2;display:flex;align-items:center;padding:12px 18px;background:var(--sheet);border-bottom:1px solid var(--line)}
 .shead .ttl{flex:1;text-align:center;font-size:11px;font-weight:700;letter-spacing:.19em;text-transform:uppercase}
@@ -765,23 +793,49 @@ function viewData(){
 
 /* ========== форма ========== */
 function openSheet(id){
-  const s = shifts.find(x=>x.id===id);
+  const sheet=document.getElementById("sheet");
+  const s=shifts.find(x=>x.id===id);
+
+  sheet.style.removeProperty("transition");
+  sheet.style.removeProperty("--sheet-drag");
+
   draft = s ? {...s} : {
-    v:2, id:"s"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),
-    date:new Date().toISOString().slice(0,10), point:POINTS[0], type:"main",
-    shk:"", partial:false, hours:6, bonus:"", fine:""
+    v:2,
+    id:"s"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+    date:new Date().toISOString().slice(0,10),
+    point:POINTS[0],
+    type:"main",
+    shk:"",
+    partial:false,
+    hours:6,
+    bonus:"",
+    fine:""
   };
-  document.getElementById("sheetTitle").textContent = s ? "Смена" : "Новая смена";
+
+  document.getElementById("sheetTitle").textContent =
+    s ? "Смена" : "Новая смена";
+
   drawSheet(!!s);
+
+  document.body.classList.add("sheet-open");
   document.getElementById("veil").classList.add("on");
-  document.getElementById("sheet").classList.add("on");
+  sheet.classList.add("on");
 }
 function closeSheet(){
+  const sheet=document.getElementById("sheet");
+
   closePointPicker();
 
   document.getElementById("veil").classList.remove("on");
-  document.getElementById("sheet").classList.remove("on");
+  sheet.classList.remove("on");
+  document.body.classList.remove("sheet-open");
+
   draft=null;
+
+  setTimeout(()=>{
+    sheet.style.removeProperty("transition");
+    sheet.style.removeProperty("--sheet-drag");
+  },320);
 }
 
 function openPointPicker(){
@@ -913,6 +967,74 @@ document.getElementById("fab").onclick=()=>openSheet(null);
 document.getElementById("veil").onclick=closeSheet;
 document.getElementById("sheetCancel").onclick=closeSheet;
 document.getElementById("pointVeil").onclick=closePointPicker;
+  const shiftSheet=document.getElementById("sheet");
+
+let sheetDragging=false;
+let sheetDragStartY=0;
+let sheetDragY=0;
+
+shiftSheet.addEventListener("pointerdown",e=>{
+  const dragArea=e.target.closest(".grab,.shead");
+
+  if(
+    !dragArea ||
+    e.target.closest("button") ||
+    !shiftSheet.classList.contains("on")
+  ){
+    return;
+  }
+
+  sheetDragging=true;
+  sheetDragStartY=e.clientY;
+  sheetDragY=0;
+
+  shiftSheet.style.transition="none";
+  shiftSheet.setPointerCapture(e.pointerId);
+
+  e.preventDefault();
+});
+
+shiftSheet.addEventListener("pointermove",e=>{
+  if(!sheetDragging) return;
+
+  sheetDragY=Math.max(0,e.clientY-sheetDragStartY);
+
+  shiftSheet.style.setProperty(
+    "--sheet-drag",
+    sheetDragY+"px"
+  );
+
+  e.preventDefault();
+});
+
+function finishSheetDrag(e){
+  if(!sheetDragging) return;
+
+  sheetDragging=false;
+
+  if(shiftSheet.hasPointerCapture(e.pointerId)){
+    shiftSheet.releasePointerCapture(e.pointerId);
+  }
+
+  shiftSheet.style.transition=
+    "transform .28s cubic-bezier(.32,.72,0,1)";
+
+  if(sheetDragY>=90){
+    closeSheet();
+  } else {
+    shiftSheet.style.setProperty("--sheet-drag","0px");
+
+    setTimeout(()=>{
+      shiftSheet.style.removeProperty("transition");
+      shiftSheet.style.removeProperty("--sheet-drag");
+    },300);
+  }
+
+  sheetDragY=0;
+}
+
+shiftSheet.addEventListener("pointerup",finishSheetDrag);
+shiftSheet.addEventListener("pointercancel",finishSheetDrag);
 const pointPicker=document.getElementById("pointPicker");
 const pointPickerHead=document.getElementById("pointPickerHead");
 
