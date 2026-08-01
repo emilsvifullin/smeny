@@ -976,6 +976,54 @@ body.month-picker-open{
   color:var(--ink3);
 }
 
+.picker-toolbar{
+  min-height:42px;
+  margin-bottom:10px;
+
+  display:grid;
+  grid-template-columns:72px minmax(0,1fr) 72px;
+  align-items:center;
+}
+
+.picker-toolbar-title{
+  min-width:0;
+  text-align:center;
+
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.19em;
+  text-transform:uppercase;
+  color:var(--ink3);
+  white-space:nowrap;
+}
+
+.picker-toolbar-btn{
+  min-width:0;
+  padding:9px 0;
+
+  border:0;
+  background:transparent;
+
+  font-size:14.5px;
+  color:var(--ink2);
+  cursor:pointer;
+}
+
+.picker-toolbar-btn.cancel{
+  text-align:left;
+}
+
+.picker-toolbar-btn.done{
+  text-align:right;
+  color:var(--gold);
+  font-weight:600;
+}
+
+.month-option.current:not(.on){
+  color:var(--gold);
+  box-shadow:inset 0 0 0 1px var(--gold-line);
+}
+  
 .month-picker-head{
   display:grid;
   grid-template-columns:42px 1fr 42px;
@@ -1279,7 +1327,28 @@ body.confirm-open{
   aria-label="Выбор месяца"
 >
   <div class="month-picker-grab"></div>
-  <div class="month-picker-title">Выберите месяц</div>
+
+<div class="picker-toolbar">
+  <button
+    type="button"
+    class="picker-toolbar-btn cancel"
+    id="monthCancel"
+  >
+    Отмена
+  </button>
+
+  <div class="picker-toolbar-title">
+    Выберите месяц
+  </div>
+
+  <button
+    type="button"
+    class="picker-toolbar-btn done"
+    id="monthDone"
+  >
+    Готово
+  </button>
+</div>
 
   <div class="month-picker-head">
     <button
@@ -1316,10 +1385,32 @@ body.confirm-open{
   aria-label="Выбор даты"
 >
   <div class="date-picker-handle" id="datePickerHandle">
-    <div class="date-picker-grab"></div>
+  <div class="date-picker-grab"></div>
+</div>
+
+<div class="picker-toolbar">
+  <button
+    type="button"
+    class="picker-toolbar-btn cancel"
+    id="dateCancel"
+  >
+    Отмена
+  </button>
+
+  <div class="picker-toolbar-title">
+    Дата
   </div>
 
-  <div class="date-calendar-head">
+  <button
+    type="button"
+    class="picker-toolbar-btn done"
+    id="dateDone"
+  >
+    Готово
+  </button>
+</div>
+
+<div class="date-calendar-head">
     <button
       type="button"
       class="date-calendar-nav"
@@ -2246,6 +2337,7 @@ function closeSheet(){
 
 let datePickerHideTimer;
 let dateCalendarCursor="";
+let datePickerValue="";
 let dateJumpYear=0;
 let dateSwipe=null;
 let dateSwipeBlockClick=false;
@@ -2277,7 +2369,7 @@ function drawDatePicker(){
 
     const ymd=localYMD(day);
     const outside=day.getMonth()!==month-1;
-    const selected=ymd===draft.date;
+    const selected=ymd===datePickerValue;
     const isToday=ymd===today;
 
     html+=`
@@ -2373,7 +2465,10 @@ function openDatePicker(){
 
   picker.style.removeProperty("--date-drag");
 
-  dateCalendarCursor=draft.date.slice(0,7);
+  datePickerValue=draft.date;
+
+dateCalendarCursor=
+  datePickerValue.slice(0,7);
   
   closeDateJump();
   drawDatePicker();
@@ -2564,6 +2659,7 @@ function readForm(){
 }
 
 let monthPickerHideTimer;
+let monthPickerValue=cursor;
 let monthPickerYear=Number(cursor.slice(0,4));
 
 function drawMonthPicker(){
@@ -2583,7 +2679,7 @@ function drawMonthPicker(){
         type="button"
         class="
           month-option
-          ${ym===cursor?"on":""}
+          ${ym===monthPickerValue?"on":""}
           ${ym===currentYm?"current":""}
         "
         data-month="${ym}"
@@ -2607,8 +2703,13 @@ function openMonthPicker(){
 
   clearTimeout(monthPickerHideTimer);
 
-  monthPickerYear=Number(cursor.slice(0,4));
-  drawMonthPicker();
+  monthPickerValue=cursor;
+
+monthPickerYear=Number(
+  monthPickerValue.slice(0,4)
+);
+
+drawMonthPicker();
 
   picker.style.display="block";
   picker.classList.remove("on");
@@ -2677,10 +2778,10 @@ document.getElementById("monthGrid").onclick=e=>{
 };
 
 document.getElementById("monthToday").onclick=()=>{
-  const currentYm=ymOf(new Date());
+  monthPickerValue=ymOf(new Date());
 
   monthPickerYear=Number(
-    currentYm.slice(0,4)
+    monthPickerValue.slice(0,4)
   );
 
   drawMonthPicker();
@@ -2947,7 +3048,13 @@ dateGrid.onclick=e=>{
 
   if(!day) return;
 
-  selectDate(day.dataset.date);
+  datePickerValue=day.dataset.date;
+
+  dateCalendarCursor=
+    datePickerValue.slice(0,7);
+
+  closeDateJump();
+  drawDatePicker();
 };
 
 dateGrid.addEventListener("pointerdown",e=>{
@@ -3023,11 +3130,23 @@ dateGrid.addEventListener("pointercancel",e=>{
 });
 
 document.getElementById("dateToday").onclick=()=>{
+  datePickerValue=localYMD();
+
   dateCalendarCursor=
-    ymOf(new Date());
+    datePickerValue.slice(0,7);
 
   closeDateJump();
   drawDatePicker();
+};
+
+document.getElementById("dateCancel").onclick=()=>{
+  closeDatePicker();
+};
+
+document.getElementById("dateDone").onclick=()=>{
+  if(!datePickerValue) return;
+
+  selectDate(datePickerValue);
 };
   const shiftSheet=document.getElementById("sheet");
 
