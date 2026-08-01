@@ -1028,6 +1028,12 @@ body.month-picker-open{
   font-weight:600;
 }
 
+.month-option.current:not(.on){
+  color:var(--gold);
+  box-shadow:
+    inset 0 0 0 1px var(--gold-line);
+}
+  
 .month-today{
   width:100%;
   margin-top:10px;
@@ -2562,6 +2568,7 @@ let monthPickerYear=Number(cursor.slice(0,4));
 
 function drawMonthPicker(){
   const grid=document.getElementById("monthGrid");
+  const currentYm=ymOf(new Date());
 
   document.getElementById("monthPickerYear").textContent=
     monthPickerYear;
@@ -2574,7 +2581,11 @@ function drawMonthPicker(){
     return `
       <button
         type="button"
-        class="month-option ${ym===cursor?"on":""}"
+        class="
+          month-option
+          ${ym===cursor?"on":""}
+          ${ym===currentYm?"current":""}
+        "
         data-month="${ym}"
       >
         ${name}
@@ -2666,7 +2677,13 @@ document.getElementById("monthGrid").onclick=e=>{
 };
 
 document.getElementById("monthToday").onclick=()=>{
-  selectMonth(ymOf(new Date()));
+  const currentYm=ymOf(new Date());
+
+  monthPickerYear=Number(
+    currentYm.slice(0,4)
+  );
+
+  drawMonthPicker();
 };
 let monthSwipe=null;
 let suppressMonthClick=false;
@@ -3006,7 +3023,11 @@ dateGrid.addEventListener("pointercancel",e=>{
 });
 
 document.getElementById("dateToday").onclick=()=>{
-  selectDate(localYMD());
+  dateCalendarCursor=
+    ymOf(new Date());
+
+  closeDateJump();
+  drawDatePicker();
 };
   const shiftSheet=document.getElementById("sheet");
 
