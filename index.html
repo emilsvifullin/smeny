@@ -322,7 +322,7 @@ const KEY = "wb-shifts-v1";
 const UI_KEY = "wb-shifts-ui-v1";
 
 function saveUIState(){
-  localStorage.setItem(UI_KEY, JSON.stringify({
+  sessionStorage.setItem(UI_KEY, JSON.stringify({
     tab,
     cursor,
     scrollY: window.scrollY
@@ -331,7 +331,7 @@ function saveUIState(){
 
 function loadUIState(){
   try {
-    return JSON.parse(localStorage.getItem(UI_KEY)) || {};
+    return JSON.parse(sessionStorage.getItem(UI_KEY)) || {};
   } catch(e){
     return {};
   }
