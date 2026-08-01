@@ -1664,10 +1664,10 @@ function closeDateJump(){
 }
 
 document.getElementById("dateJumpDismiss").addEventListener(
-  "pointerdown",
+  "click",
   e=>{
     e.preventDefault();
-    e.stopPropagation();
+    e.stopImmediatePropagation();
     closeDateJump();
   }
 );
