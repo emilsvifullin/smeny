@@ -506,6 +506,187 @@ body.point-picker-open .sheet{
 .point-name{
   white-space:nowrap;
 }
+
+/* календарь даты */
+.date-veil{
+  position:fixed;
+  inset:0;
+  z-index:52;
+  background:var(--veil);
+  opacity:0;
+  pointer-events:none;
+  transition:.22s;
+  touch-action:none;
+}
+
+.date-veil.on{
+  opacity:1;
+  pointer-events:auto;
+}
+
+.date-picker{
+  display:none;
+  position:fixed;
+  left:8px;
+  right:8px;
+  bottom:calc(8px + env(safe-area-inset-bottom));
+  z-index:53;
+
+  max-width:604px;
+  margin:0 auto;
+  padding:14px 12px 12px;
+
+  background:var(--sheet);
+  border:1px solid var(--line2);
+  border-radius:22px;
+  box-shadow:var(--shadow);
+
+  transform:translateY(
+    calc(100% + 24px + env(safe-area-inset-bottom))
+  );
+
+  transition:transform .3s cubic-bezier(.32,.72,0,1);
+}
+
+.date-picker.on{
+  transform:translateY(0);
+}
+
+body.date-picker-open{
+  overflow:hidden;
+}
+
+body.date-picker-open .sheet{
+  overflow:hidden;
+}
+
+.date-calendar-head{
+  display:grid;
+  grid-template-columns:42px 1fr 42px;
+  align-items:center;
+  gap:8px;
+  margin-bottom:12px;
+}
+
+.date-calendar-title{
+  text-align:center;
+  font-size:13px;
+  font-weight:600;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+  color:var(--ink);
+}
+
+.date-calendar-nav{
+  width:42px;
+  height:38px;
+  padding:0;
+
+  display:grid;
+  place-items:center;
+
+  border:1px solid var(--line);
+  border-radius:12px;
+
+  background:var(--tint);
+  color:var(--ink2);
+  cursor:pointer;
+}
+
+.date-calendar-nav:active{
+  background:var(--tint2);
+}
+
+.date-calendar-nav svg{
+  width:14px;
+  height:14px;
+  display:block;
+
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.7;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.date-weekdays,
+.date-grid{
+  display:grid;
+  grid-template-columns:repeat(7,minmax(0,1fr));
+  gap:4px;
+}
+
+.date-weekdays{
+  margin-bottom:5px;
+}
+
+.date-weekdays span{
+  padding:4px 0;
+  text-align:center;
+
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--ink3);
+}
+
+.date-day{
+  min-width:0;
+  aspect-ratio:1;
+
+  border:0;
+  border-radius:50%;
+
+  background:transparent;
+  color:var(--ink);
+
+  font-size:13px;
+  font-weight:500;
+  font-variant-numeric:tabular-nums;
+
+  cursor:pointer;
+}
+
+.date-day:active{
+  background:var(--tint2);
+}
+
+.date-day.outside{
+  color:var(--ink3);
+  opacity:.45;
+}
+
+.date-day.today:not(.on){
+  color:var(--gold);
+  box-shadow:inset 0 0 0 1px var(--gold-line);
+}
+
+.date-day.on{
+  background:var(--gold);
+  color:var(--sheet);
+  box-shadow:none;
+}
+
+.date-today{
+  width:100%;
+  margin-top:10px;
+  padding:11px;
+
+  border:1px solid var(--line);
+  border-radius:12px;
+
+  background:var(--tint);
+  color:var(--ink2);
+
+  font-size:13px;
+  cursor:pointer;
+}
+
+.date-today:active{
+  background:var(--tint2);
+}
+
 /* выбор месяца */
 .month-veil{
   position:fixed;
@@ -766,6 +947,58 @@ textarea::placeholder{color:var(--ink3)}
   </button>
 </div>
 
+<div class="date-veil" id="dateVeil"></div>
+
+<div
+  class="date-picker"
+  id="datePicker"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Выбор даты"
+>
+  <div class="date-calendar-head">
+    <button
+      type="button"
+      class="date-calendar-nav"
+      id="datePrev"
+      aria-label="Предыдущий месяц"
+    >
+      <svg viewBox="0 0 20 20" aria-hidden="true">
+        <path d="M13 4L7 10L13 16"></path>
+      </svg>
+    </button>
+
+    <div class="date-calendar-title" id="datePickerMonth"></div>
+
+    <button
+      type="button"
+      class="date-calendar-nav"
+      id="dateNext"
+      aria-label="Следующий месяц"
+    >
+      <svg viewBox="0 0 20 20" aria-hidden="true">
+        <path d="M7 4L13 10L7 16"></path>
+      </svg>
+    </button>
+  </div>
+
+  <div class="date-weekdays">
+    <span>Пн</span>
+    <span>Вт</span>
+    <span>Ср</span>
+    <span>Чт</span>
+    <span>Пт</span>
+    <span>Сб</span>
+    <span>Вс</span>
+  </div>
+
+  <div class="date-grid" id="dateGrid"></div>
+
+  <button type="button" class="date-today" id="dateToday">
+    Сегодня
+  </button>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -831,6 +1064,17 @@ function ymLabel(ym){ const [y,m]=ym.split("-"); return MONTHS[+m-1]+" "+y; }
 function monthNom(ym){ return MONTHS[+ym.split("-")[1]-1].toLowerCase(); }
 function monthGen(ym){ return MONTHS_G[+ym.split("-")[1]-1]; }
 function shiftMonth(ym,d){ const [y,m]=ym.split("-").map(Number); return ymOf(new Date(y,m-1+d,1)); }
+function localYMD(date=new Date()){
+  return date.getFullYear()+"-"+
+    String(date.getMonth()+1).padStart(2,"0")+"-"+
+    String(date.getDate()).padStart(2,"0");
+}
+
+function dateLabel(ymd){
+  const [year,month,day]=ymd.split("-").map(Number);
+
+  return day+" "+MONTHS_G[month-1]+" "+year;
+}
 function nf(n){ return Math.round(n).toLocaleString("ru-RU"); }
 function money(n){ return nf(n)+" ₽"; }
 function esc(s){ return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
@@ -1080,7 +1324,7 @@ function openSheet(id){
   draft = s ? {...s} : {
     v:2,
     id:"s"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),
-    date:new Date().toISOString().slice(0,10),
+    date:localYMD(),
     point:POINTS[0],
     type:"main",
     shk:"",
@@ -1102,6 +1346,7 @@ function openSheet(id){
 function closeSheet(){
   const sheet=document.getElementById("sheet");
 
+  closeDatePicker();
   closePointPicker();
 
   document.getElementById("veil").classList.remove("on");
@@ -1118,6 +1363,113 @@ function closeSheet(){
     sheet.style.removeProperty("transition");
     sheet.style.removeProperty("--sheet-drag");
   },320);
+}
+
+let datePickerHideTimer;
+let dateCalendarCursor="";
+
+function drawDatePicker(){
+  const [year,month]=dateCalendarCursor.split("-").map(Number);
+
+  document.getElementById("datePickerMonth").textContent=
+    MONTHS[month-1]+" "+year;
+
+  const firstDay=new Date(year,month-1,1,12);
+  const mondayOffset=(firstDay.getDay()+6)%7;
+
+  const gridStart=new Date(
+    year,
+    month-1,
+    1-mondayOffset,
+    12
+  );
+
+  const today=localYMD();
+
+  let html="";
+
+  for(let index=0;index<42;index++){
+    const day=new Date(gridStart);
+
+    day.setDate(gridStart.getDate()+index);
+
+    const ymd=localYMD(day);
+    const outside=day.getMonth()!==month-1;
+    const selected=ymd===draft.date;
+    const isToday=ymd===today;
+
+    html+=`
+      <button
+        type="button"
+        class="date-day
+          ${outside?"outside":""}
+          ${selected?"on":""}
+          ${isToday?"today":""}
+        "
+        data-date="${ymd}"
+        aria-label="${esc(dateLabel(ymd))}"
+      >
+        ${day.getDate()}
+      </button>
+    `;
+  }
+
+  document.getElementById("dateGrid").innerHTML=html;
+}
+
+function openDatePicker(){
+  if(!draft) return;
+
+  readForm();
+
+  const picker=document.getElementById("datePicker");
+
+  clearTimeout(datePickerHideTimer);
+
+  dateCalendarCursor=draft.date.slice(0,7);
+
+  drawDatePicker();
+
+  picker.style.display="block";
+  picker.classList.remove("on");
+  picker.style.removeProperty("transition");
+
+  document.body.classList.add("date-picker-open");
+  document.getElementById("dateVeil").classList.add("on");
+
+  void picker.offsetHeight;
+
+  picker.classList.add("on");
+}
+
+function closeDatePicker(){
+  const picker=document.getElementById("datePicker");
+
+  picker.style.removeProperty("transition");
+  picker.classList.remove("on");
+
+  document.getElementById("dateVeil").classList.remove("on");
+  document.body.classList.remove("date-picker-open");
+
+  clearTimeout(datePickerHideTimer);
+
+  datePickerHideTimer=setTimeout(()=>{
+    if(!picker.classList.contains("on")){
+      picker.style.display="none";
+    }
+  },320);
+}
+
+function selectDate(ymd){
+  if(!draft) return;
+
+  draft.date=ymd;
+
+  closeDatePicker();
+
+  const isEdit=shifts.some(item=>item.id===draft.id);
+
+  drawSheet(isEdit);
 }
 
 let pointPickerHideTimer;
@@ -1201,7 +1553,10 @@ function drawSheet(isEdit){
   document.getElementById("sheetBody").innerHTML = `
     <div class="ml">Смена</div>
     <div class="card">
-      <label class="row"><div class="t">Дата</div><input type="date" id="f-date" value="${draft.date}"></label>
+      <button type="button" class="row point-row" id="f-date-open">
+        <div class="t">Дата</div>
+        <div class="point-value">${esc(dateLabel(draft.date))}</div>
+      </button>
       <button type="button" class="row point-row" id="f-point-open">
         <div class="t">Пункт</div>
         <div class="point-value">${esc(draft.point)}</div>
@@ -1248,7 +1603,6 @@ function drawSheet(isEdit){
 }
 function readForm(){
   const g=id=>document.getElementById(id);
-  if(g("f-date")) draft.date = g("f-date").value || draft.date;
   if(g("f-point")) draft.point = g("f-point").value;
   if(g("f-shk")) draft.shk = g("f-shk").value;
   if(g("f-hours")) draft.hours = g("f-hours").value===""?0:Number(g("f-hours").value);
@@ -1442,6 +1796,29 @@ document.getElementById("fab").onclick=()=>openSheet(null);
 document.getElementById("veil").onclick=closeSheet;
 document.getElementById("sheetCancel").onclick=closeSheet;
 document.getElementById("pointVeil").onclick=closePointPicker;
+document.getElementById("dateVeil").onclick=closeDatePicker;
+
+document.getElementById("datePrev").onclick=()=>{
+  dateCalendarCursor=shiftMonth(dateCalendarCursor,-1);
+  drawDatePicker();
+};
+
+document.getElementById("dateNext").onclick=()=>{
+  dateCalendarCursor=shiftMonth(dateCalendarCursor,1);
+  drawDatePicker();
+};
+
+document.getElementById("dateGrid").onclick=e=>{
+  const day=e.target.closest("[data-date]");
+
+  if(!day) return;
+
+  selectDate(day.dataset.date);
+};
+
+document.getElementById("dateToday").onclick=()=>{
+  selectDate(localYMD());
+};
   const shiftSheet=document.getElementById("sheet");
 
 let sheetDragging=false;
@@ -1588,7 +1965,12 @@ document.getElementById("sheetBody").addEventListener("click",async e=>{
 
   const isEdit=shifts.some(x=>x.id===draft.id);
 
-  if(t.id==="f-point-open"){
+if(t.id==="f-date-open"){
+  openDatePicker();
+  return;
+}
+
+if(t.id==="f-point-open"){
     readForm();
     openPointPicker();
     return;
