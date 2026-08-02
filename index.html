@@ -1960,8 +1960,17 @@ function dateLabel(ymd){
 
   return day+" "+MONTHS_G[month-1]+" "+year;
 }
-function nf(n){ return Math.round(n).toLocaleString("ru-RU"); }
-function money(n){ return nf(n)+" ₽"; }
+
+function nf(n){
+  return Math.round(n)
+    .toLocaleString("ru-RU")
+    .replace(/\s/g,"\u00A0");
+}
+
+function money(n){
+  return nf(n)+"\u00A0₽";
+}
+
 function esc(s){ return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 let appConfirmResolve=null;
 let appConfirmPreviousFocus=null;
