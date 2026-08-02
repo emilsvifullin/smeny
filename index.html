@@ -4457,24 +4457,41 @@ if(b.id==="doImport"){
   let clipboardText="";
 
   try{
-    clipboardText=await navigator.clipboard.readText();
-  }catch(e){}
+    clipboardText=
+      await navigator.clipboard.readText();
+  }catch(error){
+    toast(
+      "Не удалось прочитать буфер обмена",
+      3000
+    );
+    return;
+  }
 
-  const json=await requestJsonImport(clipboardText);
+  if(!clipboardText.trim()){
+    toast(
+      "Буфер обмена не содержит JSON",
+      3000
+    );
+    return;
+  }
 
-  if(json===null) return;
+  let parsed;
 
-  if(!json.trim()){
-    toast("JSON не вставлен");
+  try{
+    parsed=JSON.parse(clipboardText);
+  }catch(error){
+    toast(
+      "Буфер обмена не содержит JSON",
+      3000
+    );
     return;
   }
 
   let importedShifts;
 
   try{
-    importedShifts=normalizeImportedShifts(
-      JSON.parse(json)
-    );
+    importedShifts=
+      normalizeImportedShifts(parsed);
   }catch(error){
     toast(
       error instanceof Error
@@ -4486,16 +4503,24 @@ if(b.id==="doImport"){
   }
 
   const confirmed=await appConfirm(
-    "Заменить все текущие смены вставленными данными?",
-    {okText:"Заменить"}
+    "Заменить все текущие смены данными из буфера обмена?",
+    {
+      okText:"Заменить"
+    }
   );
 
   if(!confirmed) return;
-  if(!await save(importedShifts)) return;
+
+  if(!await save(importedShifts)){
+    return;
+  }
 
   shifts=importedShifts;
   render();
-  toast("Загружено: "+shifts.length);
+
+  toast(
+    "Загружено: "+shifts.length
+  );
 
   return;
 }
