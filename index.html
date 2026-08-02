@@ -211,7 +211,7 @@ main{
 .row .t{font-size:15px;letter-spacing:-.15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .row .s{font-size:12px;color:var(--ink2);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .row .v{font-size:15px;font-weight:500;letter-spacing:-.2px;white-space:nowrap}
-.muted{color:var(--ink2)}.pos{color:var(--gold)}.neg{color:var(--rust)}
+.pos{color:var(--gold)}.neg{color:var(--rust)}
 .total{background:var(--tint-soft)}
 .total .t{font-weight:600}.total .v{font-weight:600;font-size:16px}
 
@@ -966,16 +966,6 @@ body.month-picker-open{
   margin:9px auto 7px;
   border-radius:2px;
   background:var(--line2);
-}
-
-.month-picker-title{
-  padding:6px 0 10px;
-  text-align:center;
-  font-size:10px;
-  font-weight:700;
-  letter-spacing:.19em;
-  text-transform:uppercase;
-  color:var(--ink3);
 }
 
 .picker-toolbar{
@@ -1751,42 +1741,6 @@ function shiftsWord(n){
   if(l===1&&s!==11) return n+" смена";
   if(l>=2&&l<=4&&(s<10||s>=20)) return n+" смены";
   return n+" смен";
-}
-
-function extraShiftsWord(n){
-  const l=n%10, s=n%100;
-
-  if(l===1&&s!==11){
-    return n+" доп. смена";
-  }
-
-  if(
-    l>=2 &&
-    l<=4 &&
-    (s<10 || s>=20)
-  ){
-    return n+" доп. смены";
-  }
-
-  return n+" доп. смен";
-}
-
-function partialShiftsWord(n){
-  const l=n%10, s=n%100;
-
-  if(l===1&&s!==11){
-    return n+" неполная смена";
-  }
-
-  if(
-    l>=2 &&
-    l<=4 &&
-    (s<10 || s>=20)
-  ){
-    return n+" неполные смены";
-  }
-
-  return n+" неполных смен";
 }
 
 function partialShortWord(n){
