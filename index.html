@@ -1038,6 +1038,11 @@ body.month-picker-open{
   font-weight:600;
 }
 
+.picker-toolbar-btn:disabled{
+  opacity:.3;
+  pointer-events:none;
+}
+
 .picker-toolbar-btn.touch-active{
   opacity:.55;
   background:transparent !important;
@@ -2687,6 +2692,14 @@ function drawMonthPicker(){
     .getElementById("monthPickerYear")
     .textContent=monthPickerYear;
 
+  const done=
+  document.getElementById("monthDone");
+
+done.disabled=
+  !monthPickerValue ||
+  Number(monthPickerValue.slice(0,4))!==
+    monthPickerYear;
+
   grid.innerHTML=MONTHS.map(
     (name,index)=>{
       const ym=
@@ -2780,21 +2793,11 @@ document.getElementById("monthVeil").onclick=closeMonthPicker;
 
 document.getElementById("monthYearPrev").onclick=()=>{
   monthPickerYear--;
-
-  monthPickerValue=
-    monthPickerYear+"-"+
-    monthPickerValue.slice(5,7);
-
   drawMonthPicker();
 };
 
 document.getElementById("monthYearNext").onclick=()=>{
   monthPickerYear++;
-
-  monthPickerValue=
-    monthPickerYear+"-"+
-    monthPickerValue.slice(5,7);
-
   drawMonthPicker();
 };
 
