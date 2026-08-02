@@ -305,11 +305,27 @@ main{
 }
 
 .prog .limit{
-  margin-top:4px;
+  margin-top:5px;
   margin-bottom:8px;
+
+  display:grid;
+  gap:2px;
 
   font-size:11px;
   color:var(--ink3);
+}
+
+.prog .limit-row{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.prog .limit-value{
+  flex:none;
+  white-space:nowrap;
+  text-align:right;
 }
 .prog .track{height:4px;border-radius:2px;background:var(--tint2);overflow:hidden}
 .prog .fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--gold-d),var(--gold))}
@@ -2768,8 +2784,21 @@ function viewStats(){
         </div>
 
         <div class="limit">
-          В аванс — ${money(p.advance)}
-          · перенесено в окончательный расчёт — ${money(p.carryToFinal)}
+          <div class="limit-row">
+            <span>В аванс</span>
+
+            <span class="limit-value">
+              ${money(p.advance)}
+            </span>
+          </div>
+
+          <div class="limit-row">
+            <span>Перенесено в окончательный расчёт</span>
+
+            <span class="limit-value">
+              ${money(p.carryToFinal)}
+            </span>
+          </div>
         </div>
 
         <div class="track">
