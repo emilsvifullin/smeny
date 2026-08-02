@@ -980,13 +980,24 @@ body.month-picker-open{
   min-height:42px;
   margin-bottom:10px;
 
-  display:grid;
-  grid-template-columns:72px minmax(0,1fr) 72px;
+  position:relative;
+  display:flex;
   align-items:center;
+  justify-content:space-between;
 }
 
 .picker-toolbar-title{
-  min-width:0;
+  position:absolute;
+  left:50%;
+  top:50%;
+
+  transform:
+    translate(-50%,-50%);
+
+  width:max-content;
+  max-width:calc(100% - 160px);
+
+  padding-left:.19em;
   text-align:center;
 
   font-size:10px;
@@ -995,9 +1006,14 @@ body.month-picker-open{
   text-transform:uppercase;
   color:var(--ink3);
   white-space:nowrap;
+
+  pointer-events:none;
 }
 
 .picker-toolbar-btn{
+  position:relative;
+  z-index:1;
+  
   min-width:0;
   padding:9px 0;
 
@@ -1017,11 +1033,6 @@ body.month-picker-open{
   text-align:right;
   color:var(--gold);
   font-weight:600;
-}
-
-.month-option.current:not(.on){
-  color:var(--gold);
-  box-shadow:inset 0 0 0 1px var(--gold-line);
 }
   
 .month-picker-head{
@@ -1074,12 +1085,6 @@ body.month-picker-open{
   border-color:var(--gold-line);
   background:var(--gold-soft);
   font-weight:600;
-}
-
-.month-option.current:not(.on){
-  color:var(--gold);
-  box-shadow:
-    inset 0 0 0 1px var(--gold-line);
 }
   
 .month-today{
@@ -2663,31 +2668,33 @@ let monthPickerValue=cursor;
 let monthPickerYear=Number(cursor.slice(0,4));
 
 function drawMonthPicker(){
-  const grid=document.getElementById("monthGrid");
-  const currentYm=ymOf(new Date());
+  const grid=
+    document.getElementById("monthGrid");
 
-  document.getElementById("monthPickerYear").textContent=
-    monthPickerYear;
+  document
+    .getElementById("monthPickerYear")
+    .textContent=monthPickerYear;
 
-  grid.innerHTML=MONTHS.map((name,index)=>{
-    const ym=
-      monthPickerYear+"-"+
-      String(index+1).padStart(2,"0");
+  grid.innerHTML=MONTHS.map(
+    (name,index)=>{
+      const ym=
+        monthPickerYear+"-"+
+        String(index+1).padStart(2,"0");
 
-    return `
-      <button
-        type="button"
-        class="
-          month-option
-          ${ym===monthPickerValue?"on":""}
-          ${ym===currentYm?"current":""}
-        "
-        data-month="${ym}"
-      >
-        ${name}
-      </button>
-    `;
-  }).join("");
+      return `
+        <button
+          type="button"
+          class="
+            month-option
+            ${ym===monthPickerValue?"on":""}
+          "
+          data-month="${ym}"
+        >
+          ${name}
+        </button>
+      `;
+    }
+  ).join("");
 }
 
 function openMonthPicker(){
@@ -2761,11 +2768,21 @@ document.getElementById("monthVeil").onclick=closeMonthPicker;
 
 document.getElementById("monthYearPrev").onclick=()=>{
   monthPickerYear--;
+
+  monthPickerValue=
+    monthPickerYear+"-"+
+    monthPickerValue.slice(5,7);
+
   drawMonthPicker();
 };
 
 document.getElementById("monthYearNext").onclick=()=>{
   monthPickerYear++;
+
+  monthPickerValue=
+    monthPickerYear+"-"+
+    monthPickerValue.slice(5,7);
+
   drawMonthPicker();
 };
 
@@ -2774,7 +2791,35 @@ document.getElementById("monthGrid").onclick=e=>{
 
   if(!option) return;
 
-  selectMonth(option.dataset.month);
+  monthPickerValue=
+    option.dataset.month;
+
+  monthPickerYear=Number(
+    monthPickerValue.slice(0,4)
+  );
+
+  drawMonthPicker();
+};
+
+document.getElementById("monthToday").onclick=()=>{
+  monthPickerValue=
+    ymOf(new Date());
+
+  monthPickerYear=Number(
+    monthPickerValue.slice(0,4)
+  );
+
+  drawMonthPicker();
+};
+
+document.getElementById("monthCancel").onclick=()=>{
+  closeMonthPicker();
+};
+
+document.getElementById("monthDone").onclick=()=>{
+  if(!monthPickerValue) return;
+
+  selectMonth(monthPickerValue);
 };
 
 document.getElementById("monthToday").onclick=()=>{
