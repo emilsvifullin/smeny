@@ -407,6 +407,12 @@ main{
 
   align-items:center;
 
+  transform:translate3d(
+    0,
+    var(--bottom-viewport-fix,0px),
+    0
+  );
+
   pointer-events:none;
 }
 
@@ -1787,23 +1793,43 @@ try{
 
 function saveUIState(){
   try{
+    if(
+      draft &&
+      document.body.classList.contains("sheet-open") &&
+      typeof readForm==="function"
+    ){
+      readForm();
+    }
+
+    const sheet=document.getElementById("sheet");
+    const sheetOpen=Boolean(
+      draft &&
+      document.body.classList.contains("sheet-open")
+    );
+
     localStorage.setItem(UI_KEY,JSON.stringify({
       tab,
       cursor,
-      scrollY:window.scrollY
+      scrollY:window.scrollY,
+      sheetOpen,
+      sheetScrollTop:sheetOpen && sheet
+        ? sheet.scrollTop
+        : 0,
+      draft:sheetOpen ? draft : null
     }));
   }catch(e){}
 }
 
 function loadUIState(){
-  try {
+  try{
     return JSON.parse(localStorage.getItem(UI_KEY)) || {};
-  } catch(e){
+  }catch(e){
     return {};
   }
 }
 
-const savedUI = sameUISession ? loadUIState() : {};
+const persistedUI=loadUIState();
+const savedUI=sameUISession ? persistedUI : {};
 
 let shifts = [],
     tab = savedUI.tab || "shifts",
@@ -2376,6 +2402,8 @@ const store=(function(){
 })();
 
 async function load(){
+  const pendingUI=loadUIState();
+
   try{
     const raw=await store.get();
     const parsed=raw ? JSON.parse(raw) : [];
@@ -2389,6 +2417,23 @@ async function load(){
 
   storageOk=store.mode!=="none";
   render();
+
+  const savedDraft=pendingUI.draft;
+
+  if(
+    pendingUI.sheetOpen===true &&
+    savedDraft &&
+    typeof savedDraft==="object" &&
+    typeof savedDraft.id==="string" &&
+    isValidDateString(savedDraft.date) &&
+    POINTS.includes(savedDraft.point)
+  ){
+    openSheet(
+      savedDraft.id,
+      savedDraft,
+      Number(pendingUI.sheetScrollTop) || 0
+    );
+  }
 }
 
 async function save(nextShifts=shifts){
@@ -2401,6 +2446,39 @@ async function save(nextShifts=shifts){
     toast("Не удалось сохранить данные",3000);
     return false;
   }
+}
+
+function syncBottomControlsPosition(){
+  const viewport=window.visualViewport;
+  const active=document.activeElement;
+  const editing=Boolean(
+    active &&
+    ["INPUT","TEXTAREA","SELECT"].includes(active.tagName)
+  );
+
+  let correction=0;
+
+  if(
+    viewport &&
+    !editing &&
+    !document.body.classList.contains("sheet-open")
+  ){
+    const hiddenBottom=Math.max(
+      0,
+      window.innerHeight-
+      viewport.height-
+      viewport.offsetTop
+    );
+
+    if(hiddenBottom>80){
+      correction=hiddenBottom;
+    }
+  }
+
+  document.documentElement.style.setProperty(
+    "--bottom-viewport-fix",
+    correction+"px"
+  );
 }
 
 /* ========== экраны ========== */
@@ -2447,6 +2525,8 @@ function render(){
       : tab==="stats"
         ? viewStats()
         : viewData();
+
+  requestAnimationFrame(syncBottomControlsPosition);
 }
 
 function viewShifts(){
@@ -2814,31 +2894,40 @@ function viewData(){
 }
 
 /* ========== форма ========== */
-function openSheet(id){
+function openSheet(id,restoredDraft=null,restoredScrollTop=0){
   const sheet=document.getElementById("sheet");
   sheet.style.display="block";
-  const s=shifts.find(x=>x.id===id);
+  const savedShift=shifts.find(item=>item.id===id);
 
   sheet.style.removeProperty("transition");
   sheet.style.removeProperty("--sheet-drag");
 
-  draft = s ? {...s} : {
-    v:2,
-    id:"s"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),
-    date:localYMD(),
-    point:POINTS[0],
-    type:"main",
-    shk:"",
-    partial:false,
-    hours:"",
-    bonus:"",
-    fine:""
-  };
+  draft=restoredDraft
+    ? {...restoredDraft}
+    : savedShift
+      ? {...savedShift}
+      : {
+          v:2,
+          id:
+            "s"+
+            Date.now().toString(36)+
+            Math.random().toString(36).slice(2,6),
+          date:localYMD(),
+          point:POINTS[0],
+          type:"main",
+          shk:"",
+          partial:false,
+          hours:"",
+          bonus:"",
+          fine:""
+        };
 
-  document.getElementById("sheetTitle").textContent =
-    s ? "Смена" : "Новая смена";
+  const isEdit=shifts.some(item=>item.id===draft.id);
 
-  drawSheet(!!s);
+  document.getElementById("sheetTitle").textContent=
+    isEdit ? "Смена" : "Новая смена";
+
+  drawSheet(isEdit);
 
   /* Сначала отрисовываем шторку внизу */
   sheet.classList.remove("on");
@@ -2848,6 +2937,12 @@ function openSheet(id){
   document.body.classList.add("sheet-open");
   document.getElementById("veil").classList.add("on");
   sheet.classList.add("on");
+
+  requestAnimationFrame(()=>{
+    sheet.scrollTop=Math.max(0,restoredScrollTop);
+  });
+
+  saveUIState();
 }
 
 function closeSheet(){
@@ -2861,6 +2956,7 @@ function closeSheet(){
   document.body.classList.remove("sheet-open");
 
   draft=null;
+  saveUIState();
 
   setTimeout(()=>{
     if(!sheet.classList.contains("on")){
@@ -3055,6 +3151,7 @@ function selectDate(ymd){
   const isEdit=shifts.some(item=>item.id===draft.id);
 
   drawSheet(isEdit);
+  saveUIState();
 }
 
 let pointPickerHideTimer;
@@ -3639,6 +3736,7 @@ document.addEventListener("click",e=>{
   button.onclick=()=>{
     tab=name;
     render();
+    window.scrollTo(0,0);
   };
 
   button.addEventListener("keydown",e=>{
@@ -3653,6 +3751,7 @@ document.addEventListener("click",e=>{
 
     tab=next;
     render();
+    window.scrollTo(0,0);
     document.getElementById("tab-"+next).focus();
   });
 });
@@ -4113,6 +4212,7 @@ document.getElementById("sheetBody").addEventListener("click",async e=>{
     readForm();
     draft.type=t.dataset.type;
     drawSheet(isEdit);
+    saveUIState();
   }
 
   else if(t.dataset.part){
@@ -4127,6 +4227,7 @@ document.getElementById("sheetBody").addEventListener("click",async e=>{
 
     draft.partial=nextPartial;
     drawSheet(isEdit);
+    saveUIState();
   }
 
   else if(t.id==="f-del"){
@@ -4178,6 +4279,7 @@ document.getElementById("pointList").addEventListener("click",e=>{
   const isEdit=shifts.some(x=>x.id===draft.id);
 
   drawSheet(isEdit);
+  saveUIState();
 });
 
 document.getElementById("sheetBody").addEventListener("input",e=>{
@@ -4189,6 +4291,8 @@ document.getElementById("sheetBody").addEventListener("input",e=>{
     if(box){
       box.innerHTML=calcHTML();
     }
+
+    saveUIState();
   }
 });
 
@@ -4387,19 +4491,43 @@ app.addEventListener("click",async e=>{
 });
 
 let scrollTimer;
-window.addEventListener("scroll", ()=>{
+window.addEventListener("scroll",()=>{
   clearTimeout(scrollTimer);
-  scrollTimer = setTimeout(saveUIState, 150);
-}, {passive:true});
+  scrollTimer=setTimeout(saveUIState,150);
+},{passive:true});
 
-window.addEventListener("pagehide", saveUIState);
+let sheetScrollTimer;
+document.getElementById("sheet").addEventListener("scroll",()=>{
+  clearTimeout(sheetScrollTimer);
+  sheetScrollTimer=setTimeout(saveUIState,150);
+},{passive:true});
 
-window.addEventListener("pageshow", ()=>{
-  const ui = sameUISession ? loadUIState() : {};
-  window.scrollTo(0, ui.scrollY || 0);
+window.addEventListener("pagehide",saveUIState);
+
+window.addEventListener("pageshow",()=>{
+  const ui=sameUISession ? loadUIState() : {};
+  window.scrollTo(0,ui.scrollY || 0);
+  syncBottomControlsPosition();
+
+  setTimeout(syncBottomControlsPosition,120);
+  setTimeout(syncBottomControlsPosition,400);
 });
 
-if ("serviceWorker" in navigator) {
+window.addEventListener("resize",syncBottomControlsPosition);
+
+if(window.visualViewport){
+  window.visualViewport.addEventListener(
+    "resize",
+    syncBottomControlsPosition
+  );
+
+  window.visualViewport.addEventListener(
+    "scroll",
+    syncBottomControlsPosition
+  );
+}
+
+if("serviceWorker" in navigator){
   let reloadingForUpdate = false;
 
   navigator.serviceWorker.addEventListener("controllerchange", () => {
@@ -4421,18 +4549,26 @@ if ("serviceWorker" in navigator) {
     }
   });
 
-  document.addEventListener("visibilitychange", async () => {
-    if (document.visibilityState !== "visible") return;
+  document.addEventListener("visibilitychange",async()=>{
+    if(document.visibilityState==="hidden"){
+      saveUIState();
+      return;
+    }
 
-    try {
-      const registration =
+    syncBottomControlsPosition();
+
+    setTimeout(syncBottomControlsPosition,120);
+    setTimeout(syncBottomControlsPosition,400);
+
+    try{
+      const registration=
         await navigator.serviceWorker.getRegistration();
 
-      if (registration) {
+      if(registration){
         await registration.update();
       }
-    } catch (error) {
-      console.error("Не удалось проверить обновление:", error);
+    }catch(error){
+      console.error("Не удалось проверить обновление:",error);
     }
   });
 }
