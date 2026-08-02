@@ -406,13 +406,6 @@ main{
     minmax(0,1fr);
 
   align-items:center;
-
-  transform:translate3d(
-    0,
-    var(--bottom-viewport-fix,0px),
-    0
-  );
-
   pointer-events:none;
 }
 
@@ -2448,39 +2441,6 @@ async function save(nextShifts=shifts){
   }
 }
 
-function syncBottomControlsPosition(){
-  const viewport=window.visualViewport;
-  const active=document.activeElement;
-  const editing=Boolean(
-    active &&
-    ["INPUT","TEXTAREA","SELECT"].includes(active.tagName)
-  );
-
-  let correction=0;
-
-  if(
-    viewport &&
-    !editing &&
-    !document.body.classList.contains("sheet-open")
-  ){
-    const hiddenBottom=Math.max(
-      0,
-      window.innerHeight-
-      viewport.height-
-      viewport.offsetTop
-    );
-
-    if(hiddenBottom>80){
-      correction=hiddenBottom;
-    }
-  }
-
-  document.documentElement.style.setProperty(
-    "--bottom-viewport-fix",
-    correction+"px"
-  );
-}
-
 /* ========== экраны ========== */
 const app = document.getElementById("app");
 function render(){
@@ -2525,8 +2485,6 @@ function render(){
       : tab==="stats"
         ? viewStats()
         : viewData();
-
-  requestAnimationFrame(syncBottomControlsPosition);
 }
 
 function viewShifts(){
@@ -4524,25 +4482,7 @@ window.addEventListener("pagehide",saveUIState);
 window.addEventListener("pageshow",()=>{
   const ui=sameUISession ? loadUIState() : {};
   window.scrollTo(0,ui.scrollY || 0);
-  syncBottomControlsPosition();
-
-  setTimeout(syncBottomControlsPosition,120);
-  setTimeout(syncBottomControlsPosition,400);
 });
-
-window.addEventListener("resize",syncBottomControlsPosition);
-
-if(window.visualViewport){
-  window.visualViewport.addEventListener(
-    "resize",
-    syncBottomControlsPosition
-  );
-
-  window.visualViewport.addEventListener(
-    "scroll",
-    syncBottomControlsPosition
-  );
-}
 
 if("serviceWorker" in navigator){
   let reloadingForUpdate = false;
@@ -4571,11 +4511,6 @@ if("serviceWorker" in navigator){
       saveUIState();
       return;
     }
-
-    syncBottomControlsPosition();
-
-    setTimeout(syncBottomControlsPosition,120);
-    setTimeout(syncBottomControlsPosition,400);
 
     try{
       const registration=
