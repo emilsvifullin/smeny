@@ -1,47 +1,63 @@
-const VERSION = "0";
+const VERSION = "1";
 const CACHE_NAME = `shifts-cache-v${VERSION}`;
 const APP_FILE = "./index.html";
 
 self.addEventListener("install", event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.add(APP_FILE))
+    caches
+      .open(CACHE_NAME)
+      .then(cache => cache.add(APP_FILE))
+      .then(() => self.skipWaiting())
   );
-
-  self.skipWaiting();
 });
 
 self.addEventListener("activate", event => {
   event.waitUntil(
-    caches.keys().then(names =>
-      Promise.all(
-        names
-          .filter(name =>
-            name.startsWith("shifts-cache-v") &&
-            name !== CACHE_NAME
-          )
-          .map(name => caches.delete(name))
-      )
-    )
-  );
+    Promise.all([
+      caches.keys().then(names =>
+        Promise.all(
+          names
+            .filter(name =>
+              name.startsWith("shifts-cache-v") &&
+              name !== CACHE_NAME
+            )
+            .map(name => caches.delete(name))
+        )
+      ),
 
-  self.clients.claim();
+      self.clients.claim()
+    ])
+  );
 });
 
 self.addEventListener("fetch", event => {
-  if (event.request.method !== "GET") return;
-  if (event.request.mode !== "navigate") return;
+  if(event.request.method !== "GET") return;
+  if(event.request.mode !== "navigate") return;
 
   event.respondWith(
-    fetch(event.request, { cache: "no-store" })
-      .then(response => {
-        const copy = response.clone();
+    (async()=>{
+      try{
+        const response=await fetch(
+          event.request,
+          {cache:"no-store"}
+        );
 
-        caches.open(CACHE_NAME).then(cache => {
-          cache.put(APP_FILE, copy);
-        });
+        if(response.ok){
+          const cache=await caches.open(CACHE_NAME);
+
+          await cache.put(
+            APP_FILE,
+            response.clone()
+          );
+        }
 
         return response;
-      })
-      .catch(() => caches.match(APP_FILE))
+      }catch{
+        const cached=
+          await caches.match(APP_FILE);
+
+        return cached || Response.error();
+      }
+    })()
   );
 });
