@@ -2288,7 +2288,7 @@ function openSheet(id){
     type:"main",
     shk:"",
     partial:false,
-    hours:6,
+    hours:"",
     bonus:"",
     fine:""
   };
@@ -3327,10 +3327,18 @@ if(t.id==="f-point-open"){
   }
 
   else if(t.dataset.part){
-    readForm();
-    draft.partial=t.dataset.part==="1";
-    drawSheet(isEdit);
+  readForm();
+
+  const nextPartial=
+    t.dataset.part==="1";
+
+  if(nextPartial && !draft.partial){
+    draft.hours="";
   }
+
+  draft.partial=nextPartial;
+  drawSheet(isEdit);
+}
 
   else if(t.id==="f-del"){
   const confirmed=await appConfirm(
@@ -3392,6 +3400,57 @@ document.getElementById("sheetBody").addEventListener("input",e=>{
     }
   }
 });
+
+function moveFieldCaretToEnd(field){
+  const allowed=[
+    "f-shk",
+    "f-hours",
+    "f-bonus",
+    "f-fine"
+  ];
+
+  if(
+    !field ||
+    !allowed.includes(field.id) ||
+    field.value===""
+  ){
+    return;
+  }
+
+  setTimeout(()=>{
+    if(document.activeElement!==field) return;
+
+    const value=field.value;
+
+    try{
+      field.setSelectionRange(
+        value.length,
+        value.length
+      );
+    }catch{
+      /*
+        Для input type="number" iPhone
+        не всегда разрешает setSelectionRange.
+        Повторная установка значения
+        переносит курсор в конец.
+      */
+      field.value="";
+      field.value=value;
+    }
+  },0);
+}
+
+const sheetBody=
+  document.getElementById("sheetBody");
+
+sheetBody.addEventListener("focusin",e=>{
+  moveFieldCaretToEnd(e.target);
+});
+
+sheetBody.addEventListener("click",e=>{
+  moveFieldCaretToEnd(e.target);
+});
+  
 app.addEventListener("click",async e=>{
   const row=e.target.closest("[data-edit]");
   if(row){ openSheet(row.dataset.edit); return; }
