@@ -370,20 +370,56 @@ main{
 }
 
 /* таббар */
+.bottom-controls{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:calc(14px + env(safe-area-inset-bottom));
+  z-index:30;
+
+  display:grid;
+  grid-template-columns:
+    minmax(0,1fr)
+    auto
+    minmax(0,1fr);
+
+  align-items:center;
+
+  pointer-events:none;
+}
+
+.bottom-controls > *{
+  pointer-events:auto;
+}
+
+.fab-slot{
+  width:100%;
+  display:grid;
+  place-items:center;
+}
+
 nav.tabs{
-  position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);
-  z-index:30;display:flex;gap:2px;padding:4px;border-radius:24px;
-  background:var(--tabs);border:1px solid var(--line2);
-  backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);
-  box-shadow:var(--shadow)
+  position:static;
+  transform:none;
+
+  display:flex;
+  gap:2px;
+  padding:4px;
+  border-radius:24px;
+
+  background:var(--tabs);
+  border:1px solid var(--line2);
+
+  backdrop-filter:blur(22px) saturate(160%);
+  -webkit-backdrop-filter:blur(22px) saturate(160%);
+
+  box-shadow:var(--shadow);
 }
 nav.tabs a{padding:8px 17px;border-radius:20px;font-size:12.5px;font-weight:500;color:var(--ink2);cursor:pointer;white-space:nowrap}
 nav.tabs a.on{background:var(--tint2);color:var(--ink)}
 .fab{
-  position:fixed;
-  right:18px;
-  bottom:calc(10px + env(safe-area-inset-bottom));
-  z-index:31;
+  position:relative;
+  z-index:1;
 
   width:50px;
   height:50px;
@@ -1375,13 +1411,23 @@ body.confirm-open{
 
 <main id="app"></main>
 
-<button class="fab" id="fab" aria-label="Добавить смену"></button>
+<div class="bottom-controls">
+  <div aria-hidden="true"></div>
 
-<nav class="tabs">
-  <a id="tab-shifts" class="on">Смены</a>
-  <a id="tab-stats">Итоги</a>
-  <a id="tab-data">Данные</a>
-</nav>
+  <nav class="tabs">
+    <a id="tab-shifts" class="on">Смены</a>
+    <a id="tab-stats">Итоги</a>
+    <a id="tab-data">Данные</a>
+  </nav>
+
+  <div class="fab-slot">
+    <button
+      class="fab"
+      id="fab"
+      aria-label="Добавить смену"
+    ></button>
+  </div>
+</div>
 
 <div class="veil" id="veil"></div>
 <div class="sheet" id="sheet">
