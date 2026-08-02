@@ -2834,15 +2834,6 @@ document.getElementById("monthDone").onclick=()=>{
   selectMonth(monthPickerValue);
 };
 
-document.getElementById("monthToday").onclick=()=>{
-  monthPickerValue=ymOf(new Date());
-
-  monthPickerYear=Number(
-    monthPickerValue.slice(0,4)
-  );
-
-  drawMonthPicker();
-};
 let monthSwipe=null;
 let suppressMonthClick=false;
 
