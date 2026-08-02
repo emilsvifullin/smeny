@@ -998,11 +998,6 @@ body.month-picker-open{
   font-weight:600;
 }
 
-.picker-toolbar-btn:disabled{
-  opacity:.3;
-  pointer-events:none;
-}
-
 .picker-toolbar-btn.touch-active{
   opacity:.55;
   background:transparent !important;
@@ -2668,14 +2663,6 @@ function drawMonthPicker(){
   document
     .getElementById("monthPickerYear")
     .textContent=monthPickerYear;
-
-  const done=
-  document.getElementById("monthDone");
-
-done.disabled=
-  !monthPickerValue ||
-  Number(monthPickerValue.slice(0,4))!==
-    monthPickerYear;
 
   grid.innerHTML=MONTHS.map(
     (name,index)=>{
