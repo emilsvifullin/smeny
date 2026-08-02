@@ -309,7 +309,65 @@ main{
 .prog .track{height:4px;border-radius:2px;background:var(--tint2);overflow:hidden}
 .prog .fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--gold-d),var(--gold))}
 
-.empty{padding:46px 24px;text-align:center;color:var(--ink3);font-size:14px;line-height:1.55}
+.empty{
+  padding:38px 24px 30px;
+  text-align:center;
+  color:var(--ink3);
+  font-size:14px;
+  line-height:1.55;
+}
+
+.empty-add{
+  min-height:42px;
+  margin:18px auto 0;
+  padding:0 18px;
+
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+
+  border:1px solid var(--gold-line);
+  border-radius:13px;
+
+  background:var(--gold-soft);
+  color:var(--gold);
+
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.empty-add-plus{
+  position:relative;
+  width:14px;
+  height:14px;
+  flex:none;
+}
+
+.empty-add-plus::before,
+.empty-add-plus::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:50%;
+
+  width:13px;
+  height:1.5px;
+  border-radius:2px;
+  background:currentColor;
+
+  transform:translate(-50%,-50%);
+}
+
+.empty-add-plus::after{
+  transform:translate(-50%,-50%) rotate(90deg);
+}
+
+.empty-add.touch-active{
+  opacity:.7;
+  box-shadow:none !important;
+}
 
 /* таббар */
 nav.tabs{
@@ -1955,15 +2013,42 @@ function render(){
   tab!=="data"
   );
   document.querySelectorAll("#prevM,#nextM").forEach(b=>b.style.visibility = tab==="data" ? "hidden" : "visible");
-  document.getElementById("fab").style.display = tab==="shifts" ? "block" : "none";
+  const showFab=
+  tab==="shifts" &&
+  inMonth(cursor).length>0;
+
+document.getElementById("fab").style.display=
+  showFab ? "block" : "none";
   ["shifts","stats","data"].forEach(t=>document.getElementById("tab-"+t).classList.toggle("on",t===tab));
   app.innerHTML = tab==="shifts" ? viewShifts() : tab==="stats" ? viewStats() : viewData();
 }
 
 function viewShifts(){
   const list = inMonth(cursor);
-  if(!list.length)
-    return `<div class="card"><div class="empty">В этом месяце смен пока нет.<br>Нажмите «+», чтобы добавить.</div></div>`;
+  if(!list.length){
+  return `
+    <div class="card">
+      <div class="empty">
+        <div>
+          В этом месяце смен пока нет.
+        </div>
+
+        <button
+          type="button"
+          class="empty-add"
+          id="emptyAdd"
+        >
+          <span
+            class="empty-add-plus"
+            aria-hidden="true"
+          ></span>
+
+          Добавить смену
+        </button>
+      </div>
+    </div>
+  `;
+}
   let h = `<div class="ml">${shiftsWord(list.length)}</div><div class="card">`;
   list.forEach(s=>{
     const c=calc(s), d=s.date.split("-");
@@ -3457,6 +3542,11 @@ app.addEventListener("click",async e=>{
   const b=e.target.closest("button");
 
 if(!b) return;
+
+if(b.id==="emptyAdd"){
+  openSheet(null);
+  return;
+}
 
 if(b.id==="doExport"){
   const json=JSON.stringify(shifts);
