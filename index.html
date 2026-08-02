@@ -4457,11 +4457,18 @@ if(b.id==="doImport"){
   let clipboardText="";
 
   try{
+    if(
+      !navigator.clipboard ||
+      typeof navigator.clipboard.readText!=="function"
+    ){
+      throw new Error("clipboard unavailable");
+    }
+
     clipboardText=
       await navigator.clipboard.readText();
   }catch(error){
     toast(
-      "Не удалось прочитать буфер обмена",
+      "Буфер обмена недоступен",
       3000
     );
     return;
@@ -4469,7 +4476,7 @@ if(b.id==="doImport"){
 
   if(!clipboardText.trim()){
     toast(
-      "Буфер обмена не содержит JSON",
+      "Буфер обмена пуст",
       3000
     );
     return;
@@ -4496,7 +4503,7 @@ if(b.id==="doImport"){
     toast(
       error instanceof Error
         ? error.message
-        : "Не удалось проверить JSON",
+        : "JSON не является резервной копией",
       4200
     );
     return;
