@@ -2929,18 +2929,35 @@ function openSheet(id,restoredDraft=null,restoredScrollTop=0){
 
   drawSheet(isEdit);
 
-  /* Сначала отрисовываем шторку внизу */
+  const restoring=Boolean(restoredDraft);
+  const veil=document.getElementById("veil");
+
   sheet.classList.remove("on");
+
+  if(restoring){
+    sheet.style.transition="none";
+    veil.style.transition="none";
+  }
+
   void sheet.offsetHeight;
 
-  /* Затем запускаем подъём */
   document.body.classList.add("sheet-open");
-  document.getElementById("veil").classList.add("on");
+  veil.classList.add("on");
   sheet.classList.add("on");
 
-  requestAnimationFrame(()=>{
+  if(restoring){
     sheet.scrollTop=Math.max(0,restoredScrollTop);
-  });
+    void sheet.offsetHeight;
+
+    requestAnimationFrame(()=>{
+      sheet.style.removeProperty("transition");
+      veil.style.removeProperty("transition");
+    });
+  }else{
+    requestAnimationFrame(()=>{
+      sheet.scrollTop=Math.max(0,restoredScrollTop);
+    });
+  }
 
   saveUIState();
 }
