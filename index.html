@@ -2953,18 +2953,30 @@ function viewData(){
     <div class="ml">Резервная копия</div>
 
     <button
-      class="btn"
-      id="doExport"
-    >Скопировать JSON</button>
+  class="btn"
+  id="doExport"
+>Скопировать JSON</button>
 
-    <button
-      class="btn gold"
-      id="doImport"
-    >Вставить JSON</button>
+<div class="note">
+  Вставьте резервную копию JSON в поле ниже.
+</div>
 
-    <div class="note">
-      Вставка JSON заменяет все текущие смены содержимым буфера обмена.
-    </div>
+<textarea
+  id="dataImportInput"
+  spellcheck="false"
+  autocapitalize="off"
+  autocomplete="off"
+  placeholder="Вставьте JSON сюда"
+></textarea>
+
+<button
+  class="btn gold"
+  id="doImport"
+>Загрузить данные</button>
+
+<div class="note">
+  При загрузке резервной копии текущие смены будут заменены.
+</div>
 
     <div class="ml">Опасная зона</div>
 
@@ -4454,23 +4466,16 @@ if(b.id==="doExport"){
 }
 
 if(b.id==="doImport"){
-  let clipboardText="";
+  const input=
+    document.getElementById("dataImportInput");
 
-  try{
-    clipboardText=
-      await navigator.clipboard.readText();
-  }catch(error){
-    /*
-      Пользователь закрыл системное
-      предложение «Вставить».
-      Никакую ошибку не показываем.
-    */
-    return;
-  }
+  const json=input
+    ? input.value.trim()
+    : "";
 
-  if(!clipboardText.trim()){
+  if(!json){
     toast(
-      "Буфер обмена пуст",
+      "Вставьте резервную копию JSON",
       3000
     );
     return;
@@ -4479,10 +4484,10 @@ if(b.id==="doImport"){
   let parsed;
 
   try{
-    parsed=JSON.parse(clipboardText);
+    parsed=JSON.parse(json);
   }catch(error){
     toast(
-      "Буфер обмена не содержит резервную копию JSON",
+      "Вставленный текст не является корректным JSON",
       3500
     );
     return;
@@ -4497,16 +4502,23 @@ if(b.id==="doImport"){
     toast(
       error instanceof Error
         ? error.message
-        : "JSON не является резервной копией",
+        : "JSON не является резервной копией Shift Register",
       4200
     );
     return;
   }
 
+  const hasCurrentShifts=
+    shifts.length>0;
+
   const confirmed=await appConfirm(
-    "Заменить все текущие смены данными из буфера обмена?",
+    hasCurrentShifts
+      ? "Заменить все текущие смены данными из резервной копии?"
+      : "Загрузить смены из резервной копии?",
     {
-      okText:"Заменить"
+      okText:hasCurrentShifts
+        ? "Заменить"
+        : "Загрузить"
     }
   );
 
@@ -4517,10 +4529,15 @@ if(b.id==="doImport"){
   }
 
   shifts=importedShifts;
+
+  if(input){
+    input.value="";
+  }
+
   render();
 
   toast(
-    "Загружено: "+shifts.length
+    "Загружено смен: "+shifts.length
   );
 
   return;
