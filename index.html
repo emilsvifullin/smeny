@@ -667,7 +667,7 @@ body.date-picker-open .sheet{
 
 .date-calendar-title{
   min-width:0;
-  padding:8px 24px 8px 10px;
+  padding:8px 24px;
   position:relative;
 
   border:0;
@@ -675,6 +675,8 @@ body.date-picker-open .sheet{
   background:transparent;
 
   text-align:center;
+  text-indent:.13em;
+
   font-size:13px;
   font-weight:600;
   letter-spacing:.13em;
@@ -991,14 +993,13 @@ body.month-picker-open{
   left:50%;
   top:50%;
 
-  transform:
-    translate(-50%,-50%);
+  transform:translate(-50%,-50%);
 
   width:max-content;
   max-width:calc(100% - 160px);
 
-  padding-left:.19em;
   text-align:center;
+  text-indent:.19em;
 
   font-size:10px;
   font-weight:700;
@@ -1013,11 +1014,13 @@ body.month-picker-open{
 .picker-toolbar-btn{
   position:relative;
   z-index:1;
-  
-  min-width:0;
+
+  width:72px;
+  flex:none;
   padding:9px 0;
 
   border:0;
+  border-radius:10px;
   background:transparent;
 
   font-size:14.5px;
@@ -1034,6 +1037,12 @@ body.month-picker-open{
   color:var(--gold);
   font-weight:600;
 }
+
+.picker-toolbar-btn.touch-active{
+  opacity:.55;
+  background:transparent !important;
+  box-shadow:none !important;
+}
   
 .month-picker-head{
   display:grid;
@@ -1045,9 +1054,12 @@ body.month-picker-open{
 
 .month-year{
   text-align:center;
+
   font-size:18px;
   font-weight:600;
   letter-spacing:.08em;
+  text-indent:.08em;
+  font-variant-numeric:tabular-nums;
 }
 
 .month-year-btn{
