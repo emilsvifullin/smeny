@@ -1,12 +1,20 @@
-const VERSION = "4";
+const VERSION = "5";
 const CACHE_NAME = `shifts-cache-v${VERSION}`;
 const APP_FILE = "./index.html";
+
+const APP_FILES = [
+  "./index.html",
+  "./manifest.webmanifest",
+  "./icon-192.png",
+  "./icon-512.png",
+  "./icon-maskable-512.png"
+];
 
 self.addEventListener("install", event => {
   event.waitUntil(
     caches
       .open(CACHE_NAME)
-      .then(cache => cache.add(APP_FILE))
+      .then(cache => cache.addAll(APP_FILES))
       .then(() => self.skipWaiting())
   );
 });
