@@ -1,7 +1,7 @@
 {
   "id": "./",
   "name": "Shift Register",
-  "short_name": "Смены",
+  "short_name": "Shift Register",
   "description": "Учёт смен и предварительный расчёт выплат сотрудников ПВЗ",
   "lang": "ru",
   "start_url": "./",
