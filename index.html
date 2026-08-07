@@ -75,9 +75,31 @@
 <div class="point-veil" id="pointVeil" aria-hidden="true"></div>
 
 <div class="point-picker" id="pointPicker" role="dialog" aria-modal="true" aria-labelledby="pointPickerTitle" aria-hidden="true">
-  <div class="point-picker-head" id="pointPickerHead">
+
+  <div class="point-picker-handle" id="pointPickerHandle">
     <div class="point-picker-grab"></div>
-    <div class="point-picker-title" id="pointPickerTitle">Выберите пункт</div>
+  </div>
+
+  <div class="picker-toolbar">
+    <button
+      type="button"
+      class="picker-toolbar-btn cancel"
+      id="pointCancel"
+    >
+      Отмена
+    </button>
+
+    <div class="picker-toolbar-title" id="pointPickerTitle">
+      Выберите пункт
+    </div>
+
+    <button
+      type="button"
+      class="picker-toolbar-btn done"
+      id="pointDone"
+    >
+      Готово
+    </button>
   </div>
 
   <div class="point-list" id="pointList"></div>
