@@ -13,8 +13,30 @@
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="apple-touch-icon" href="./icon-192.png">
 <link rel="icon" href="./icon-192.png">
+
 <title>Shift Register</title>
+
 <link rel="stylesheet" href="./styles.css">
+
+<link
+  rel="modulepreload"
+  href="./src/config.js"
+>
+
+<link
+  rel="modulepreload"
+  href="./src/domain.js"
+>
+
+<link
+  rel="modulepreload"
+  href="./src/storage.js"
+>
+
+<script
+  type="module"
+  src="./src/app.js"
+></script>
 </head>
 <body class="app-booting">
 
@@ -383,6 +405,5 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script type="module" src="./src/app.js"></script>
 </body>
 </html>
