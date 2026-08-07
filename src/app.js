@@ -1476,7 +1476,7 @@ monthSwipeArea.addEventListener("pointerdown",e=>{
     document.body.classList.contains("sheet-open") ||
     document.body.classList.contains("point-picker-open") ||
     document.body.classList.contains("month-picker-open") ||
-    e.target.closest("button,input,select,textarea,a")
+    e.target.closest("input,select,textarea,a,.nav,.tabs,.fab")
   ){
     return;
   }
