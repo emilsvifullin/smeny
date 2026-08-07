@@ -3112,7 +3112,12 @@ dateGrid.onclick=e=>{
 };
 
 dateGrid.addEventListener("pointerdown",e=>{
-  if(!e.isPrimary) return;
+  if(
+    !e.isPrimary ||
+    e.pointerType==="mouse"
+  ){
+    return;
+  }
 
   dateGrid.classList.remove("date-swiping");
 
