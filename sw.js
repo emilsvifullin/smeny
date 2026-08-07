@@ -1,4 +1,4 @@
-const VERSION="6.0.1";
+const VERSION="6.0.2";
 const CACHE_NAME=`shift-register-v${VERSION}`;
 const INDEX_FILE="./index.html";
 const ASSETS=[
