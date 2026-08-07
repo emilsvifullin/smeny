@@ -533,6 +533,12 @@ body.sheet-open{
   touch-action:none;
   user-select:none;
   -webkit-user-select:none;
+  cursor:grab;
+}
+
+.sheet .grab:active,
+.sheet .shead:active{
+  cursor:grabbing;
 }
 .grab{width:34px;height:4px;border-radius:2px;background:var(--line2);margin:9px auto 0}
 .shead{position:sticky;top:0;z-index:2;display:flex;align-items:center;padding:12px 18px;background:var(--sheet);border-bottom:1px solid var(--line)}
