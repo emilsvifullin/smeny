@@ -2738,6 +2738,29 @@ document.getElementById("dateJumpNextYear").onclick=()=>{
   changeDateJumpYear(1);
 };
 
+document.getElementById("dateJumpCurrent").onclick=()=>{
+  const currentMonth=
+    ymOf(new Date());
+
+  const direction=
+    currentMonth>dateCalendarCursor
+      ? 1
+      : currentMonth<dateCalendarCursor
+        ? -1
+        : 0;
+
+  closeDateJump();
+
+  if(direction===0){
+    return;
+  }
+
+  changeDateCalendarMonth(
+    currentMonth,
+    direction
+  );
+};
+
 document.getElementById("dateJumpMonths").onclick=e=>{
   const month=
     e.target.closest(
