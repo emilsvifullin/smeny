@@ -1644,6 +1644,26 @@ textarea{
   view-transition-name:month-period;
 }
 
+nav.tabs{
+  view-transition-name:bottom-tabs;
+}
+
+::view-transition-group(bottom-tabs){
+  animation:none;
+  z-index:1000;
+}
+
+::view-transition-old(bottom-tabs){
+  animation:none;
+  opacity:0;
+}
+
+::view-transition-new(bottom-tabs){
+  animation:none;
+  opacity:1;
+  mix-blend-mode:normal;
+}
+
 /*
   Убираем стандартный crossfade всей
   страницы. Двигаются только месяц
