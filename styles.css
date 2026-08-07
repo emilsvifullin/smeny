@@ -1829,8 +1829,7 @@ textarea{
 
 /* Следующий месяц */
 
-html[data-month-motion="next"]
-::view-transition-old(month-content){
+html[data-month-motion="next"]::view-transition-old(month-content){
   animation:
     month-content-out-next
     var(--motion-month)
@@ -1838,8 +1837,7 @@ html[data-month-motion="next"]
     both;
 }
 
-html[data-month-motion="next"]
-::view-transition-new(month-content){
+html[data-month-motion="next"]::view-transition-new(month-content){
   animation:
     month-content-in-next
     var(--motion-month)
@@ -1847,8 +1845,7 @@ html[data-month-motion="next"]
     both;
 }
 
-html[data-month-motion="next"]
-::view-transition-old(month-period){
+html[data-month-motion="next"]::view-transition-old(month-period){
   animation:
     month-period-out-next
     var(--motion-month)
@@ -1856,8 +1853,7 @@ html[data-month-motion="next"]
     both;
 }
 
-html[data-month-motion="next"]
-::view-transition-new(month-period){
+html[data-month-motion="next"]::view-transition-new(month-period){
   animation:
     month-period-in-next
     var(--motion-month)
@@ -1867,8 +1863,7 @@ html[data-month-motion="next"]
 
 /* Предыдущий месяц */
 
-html[data-month-motion="prev"]
-::view-transition-old(month-content){
+html[data-month-motion="prev"]::view-transition-old(month-content){
   animation:
     month-content-out-prev
     var(--motion-month)
@@ -1876,8 +1871,7 @@ html[data-month-motion="prev"]
     both;
 }
 
-html[data-month-motion="prev"]
-::view-transition-new(month-content){
+html[data-month-motion="prev"]::view-transition-new(month-content){
   animation:
     month-content-in-prev
     var(--motion-month)
@@ -1885,8 +1879,7 @@ html[data-month-motion="prev"]
     both;
 }
 
-html[data-month-motion="prev"]
-::view-transition-old(month-period){
+html[data-month-motion="prev"]::view-transition-old(month-period){
   animation:
     month-period-out-prev
     var(--motion-month)
@@ -1894,8 +1887,7 @@ html[data-month-motion="prev"]
     both;
 }
 
-html[data-month-motion="prev"]
-::view-transition-new(month-period){
+html[data-month-motion="prev"]::view-transition-new(month-period){
   animation:
     month-period-in-prev
     var(--motion-month)
