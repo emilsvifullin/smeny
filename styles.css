@@ -171,6 +171,9 @@ main{
   padding:6px 16px 0;
   max-width:620px;
   margin:0 auto;
+
+  touch-action:pan-y;
+  overscroll-behavior-x:none;
 }
 
 /* типографика */
