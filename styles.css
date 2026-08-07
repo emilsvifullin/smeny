@@ -1457,61 +1457,49 @@ button:disabled{
 @media (hover:hover) and (pointer:fine){
 
   /*
-    Обычное нажатие кнопок:
-    эффект существует только пока держим ЛКМ.
+    Точно такой же эффект,
+    как button.touch-active на мобильном.
   */
-  .nav button:not(.period):active,
-  .point-option:active,
-  .date-jump-year-btn:active,
-  .date-jump-month:active,
-  .date-calendar-nav:active,
-  .date-day:active,
-  .date-today:active,
-  .month-year-btn:active,
-  .month-option:active,
-  .month-today:active,
-  .picker-toolbar-btn:active,
-  .point-row:active,
-  .seg button:active,
-  .empty-add:active,
-  .btn:active,
-  .app-confirm-btn:active{
-    background:var(--tint2);
-  }
-
-  /*
-    Строка существующей смены
-    и заголовок календаря.
-  */
-  .sh:active,
-  .date-calendar-title:active{
-    background:var(--tint);
-  }
-
-  /*
-    Нижние вкладки.
-    Работает и для уже выбранной вкладки.
-  */
+  button:active,
   nav.tabs button:active{
-    opacity:.62;
+    box-shadow:
+      inset 0 0 0 999px var(--tint2) !important;
   }
 
   /*
-    Большой выбор месяца сверху
-    и текстовые Отмена / Готово.
-    Без прямоугольного фона.
+    Строка существующей смены.
+  */
+  .sh:active{
+    box-shadow:
+      inset 0 0 0 999px var(--tint) !important;
+  }
+
+  /*
+    Верхний месяц и текстовые
+    Отмена / Готово.
   */
   .period:active,
   .lnk:active{
-    background:transparent !important;
     opacity:.55;
+    box-shadow:none !important;
   }
 
   /*
-    Круглая кнопка +.
+    Отмена / Готово внутри
+    календарей и выбора месяца.
   */
-  .fab:active{
-    filter:brightness(1.25);
+  .picker-toolbar-btn:active{
+    opacity:.55;
+    background:transparent !important;
+    box-shadow:none !important;
+  }
+
+  /*
+    Кнопка + Добавить смену.
+  */
+  .empty-add:active{
+    opacity:.7;
+    box-shadow:none !important;
   }
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
