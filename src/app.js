@@ -2804,38 +2804,52 @@ document.getElementById("dateJumpNextYear").onclick=()=>{
   changeDateJumpYear(1);
 };
 
-document.getElementById("dateJumpCancel").onclick=()=>{
-  closeDateJump();
-};
-
-document.getElementById("dateJumpDone").onclick=()=>{
-  if(!dateJumpValue){
-    return;
-  }
-
-  const nextCursor=
-    dateJumpValue;
-
-  const direction=
-    nextCursor>dateCalendarCursor
-      ? 1
-      : nextCursor<dateCalendarCursor
-        ? -1
-        : 0;
-
-  closeDateJump();
-
-  if(direction===0){
-    return;
-  }
-
-  changeDateCalendarMonth(
-    nextCursor,
-    direction
+const dateJumpCancelButton=
+  document.getElementById(
+    "dateJumpCancel"
   );
-};
 
-document.getElementById("dateJumpCurrent").onclick=()=>{
+if(dateJumpCancelButton){
+  dateJumpCancelButton.onclick=()=>{
+    closeDateJump();
+  };
+}
+
+const dateJumpDoneButton=
+  document.getElementById(
+    "dateJumpDone"
+  );
+
+if(dateJumpDoneButton){
+  dateJumpDoneButton.onclick=()=>{
+    if(!dateJumpValue){
+      return;
+    }
+
+    const nextCursor=
+      dateJumpValue;
+
+    const direction=
+      nextCursor>dateCalendarCursor
+        ? 1
+        : nextCursor<dateCalendarCursor
+          ? -1
+          : 0;
+
+    closeDateJump();
+
+    if(direction===0){
+      return;
+    }
+
+    changeDateCalendarMonth(
+      nextCursor,
+      direction
+    );
+  };
+}
+
+document.getElementById("dateJumpCurrent")?.addEventListener("click",()=>{
   if(dateJumpYearTransitionRunning){
     return;
   }
@@ -2893,7 +2907,7 @@ document.getElementById("dateJumpCurrent").onclick=()=>{
       dateJumpYearTransitionRunning=false;
     }
   });
-};
+});
 
 document.getElementById("dateJumpMonths").onclick=e=>{
   const month=
