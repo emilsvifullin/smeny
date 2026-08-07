@@ -990,23 +990,23 @@ function openPointPicker(){
   picker.setAttribute("aria-hidden","false");
   veil.setAttribute("aria-hidden","false");
 
-pointPickerValue=draft.point;
+  pointPickerValue=draft.point;
 
-list.innerHTML=POINTS.map(point=>`
-  <button
-    type="button"
-    class="point-option ${point===pointPickerValue?"on":""}"
-    data-point="${esc(point)}"
-  >
-    <span class="point-check">
-      ${point===pointPickerValue?"✓":""}
-    </span>
+  list.innerHTML=POINTS.map(point=>`
+    <button
+      type="button"
+      class="point-option ${point===pointPickerValue?"on":""}"
+      data-point="${esc(point)}"
+    >
+      <span class="point-check">
+        ${point===pointPickerValue?"✓":""}
+      </span>
 
-    <span class="point-name">
-      ${esc(point)}
-    </span>
-  </button>
-`).join("");
+      <span class="point-name">
+        ${esc(point)}
+      </span>
+    </button>
+  `).join("");
 
   document.body.classList.add("point-picker-open");
   veil.classList.add("on");
@@ -2106,11 +2106,20 @@ const pointPickerHandle=
 
 let pointDrag=null;
 
-pointPickerHandle.addEventListener(
-  "pointerdown",
-  event=>{
-  if(!event.isPrimary || !pointPicker.classList.contains("on")) return;
-  pointDrag={id:event.pointerId,startY:event.clientY,distance:0};
+pointPickerHandle.addEventListener("pointerdown",event=>{
+  if(
+    !event.isPrimary ||
+    !pointPicker.classList.contains("on")
+  ){
+    return;
+  }
+
+  pointDrag={
+    id:event.pointerId,
+    startY:event.clientY,
+    distance:0
+  };
+
   pointPicker.style.transition="none";
   pointPickerHandle.setPointerCapture(event.pointerId);
   event.preventDefault();
