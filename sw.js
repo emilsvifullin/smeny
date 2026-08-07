@@ -1,6 +1,7 @@
-const VERSION="6.0.3";
-const CACHE_NAME=`shift-register-v${VERSION}`;
+const CACHE_NAME="shift-register-runtime-v1";
+
 const INDEX_FILE="./index.html";
+
 const ASSETS=[
   "./",
   INDEX_FILE,
@@ -16,96 +17,153 @@ const ASSETS=[
 ];
 
 self.addEventListener("install",event=>{
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache=>cache.addAll(ASSETS))
-  );
-});
+  event.waitUntil((async()=>{
+    const cache=await caches.open(CACHE_NAME);
 
-self.addEventListener("message",event=>{
-  if(event.data?.type==="SKIP_WAITING"){
-    self.skipWaiting();
-  }
+    try{
+      await cache.addAll(ASSETS);
+    }catch(error){
+      console.error("Не удалось предварительно заполнить кеш",error);
+    }
+
+    /*
+      Новый service worker становится активным сам.
+      Страница при этом насильно НЕ перезагружается.
+    */
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener("activate",event=>{
   event.waitUntil((async()=>{
     const names=await caches.keys();
+
     await Promise.all(
       names
-        .filter(name=>name.startsWith("shift-register-v") && name!==CACHE_NAME)
+        .filter(name=>name!==CACHE_NAME)
+        .filter(name=>
+          name.startsWith("shift-register-")
+        )
         .map(name=>caches.delete(name))
     );
+
     await self.clients.claim();
   })());
 });
 
-function timeoutFetch(request,timeoutMs=4000){
+function fetchWithTimeout(request,timeoutMs=5000){
   const controller=new AbortController();
-  const timer=setTimeout(()=>controller.abort(),timeoutMs);
-  return fetch(request,{cache:"no-store",signal:controller.signal})
-    .finally(()=>clearTimeout(timer));
+
+  const timer=setTimeout(
+    ()=>controller.abort(),
+    timeoutMs
+  );
+
+  return fetch(
+    request,
+    {
+      cache:"no-store",
+      signal:controller.signal
+    }
+  ).finally(
+    ()=>clearTimeout(timer)
+  );
 }
 
-function isCanonicalNavigation(url){
-  const scope=new URL(self.registration.scope);
-  const root=scope.pathname.endsWith("/") ? scope.pathname : scope.pathname+"/";
-  return url.origin===scope.origin &&
-    (url.pathname===root || url.pathname===root+"index.html");
-}
+async function networkFirst(request){
+  const cache=
+    await caches.open(CACHE_NAME);
 
-async function navigationResponse(request){
   try{
-    const response=await timeoutFetch(request);
-    const url=new URL(request.url);
-    const contentType=response.headers.get("content-type") || "";
+    const response=
+      await fetchWithTimeout(request);
 
-    if(response.ok && contentType.includes("text/html") && isCanonicalNavigation(url)){
-      const cache=await caches.open(CACHE_NAME);
-      await cache.put(INDEX_FILE,response.clone());
+    if(response.ok){
+      await cache.put(
+        request,
+        response.clone()
+      );
     }
 
     return response;
   }catch{
-    const cache=await caches.open(CACHE_NAME);
-    return (await cache.match(INDEX_FILE)) || Response.error();
+    const cached=
+      await cache.match(
+        request,
+        {ignoreSearch:true}
+      );
+
+    return cached || Response.error();
   }
 }
 
-async function assetResponse(request,event){
-  const cache=await caches.open(CACHE_NAME);
-  const cached=await cache.match(request,{ignoreSearch:true});
+async function navigationResponse(request){
+  const cache=
+    await caches.open(CACHE_NAME);
 
-  const refresh=fetch(request).then(async response=>{
-    if(response.ok) await cache.put(request,response.clone());
+  try{
+    const response=
+      await fetchWithTimeout(request);
+
+    if(response.ok){
+      const contentType=
+        response.headers.get("content-type") || "";
+
+      if(contentType.includes("text/html")){
+        await cache.put(
+          INDEX_FILE,
+          response.clone()
+        );
+      }
+    }
+
     return response;
-  }).catch(()=>null);
-
-  if(cached){
-    event.waitUntil(refresh);
-    return cached;
+  }catch{
+    return (
+      await cache.match(INDEX_FILE)
+    ) || Response.error();
   }
-
-  return (await refresh) || Response.error();
 }
 
 self.addEventListener("fetch",event=>{
   const request=event.request;
-  if(request.method!=="GET") return;
 
-  const url=new URL(request.url);
-  const scope=new URL(self.registration.scope);
-  if(url.origin!==scope.origin) return;
-
-  if(request.mode==="navigate"){
-    event.respondWith(navigationResponse(request));
+  if(request.method!=="GET"){
     return;
   }
 
-  const assetPaths=new Set(
-    ASSETS.map(path=>new URL(path,self.registration.scope).pathname)
-  );
+  const url=
+    new URL(request.url);
+
+  const scope=
+    new URL(self.registration.scope);
+
+  if(url.origin!==scope.origin){
+    return;
+  }
+
+  if(request.mode==="navigate"){
+    event.respondWith(
+      navigationResponse(request)
+    );
+
+    return;
+  }
+
+  const assetPaths=
+    new Set(
+      ASSETS.map(
+        path=>
+          new URL(
+            path,
+            self.registration.scope
+          ).pathname
+      )
+    );
 
   if(assetPaths.has(url.pathname)){
-    event.respondWith(assetResponse(request,event));
+    event.respondWith(
+      networkFirst(request)
+    );
   }
 });
