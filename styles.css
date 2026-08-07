@@ -1648,20 +1648,28 @@ nav.tabs{
   view-transition-name:bottom-tabs;
 }
 
-::view-transition-group(bottom-tabs){
+.bottom-controls > button{
+  view-transition-name:bottom-add;
+}
+
+::view-transition-group(bottom-tabs),
+::view-transition-group(bottom-add){
   animation:none;
   z-index:1000;
 }
 
-::view-transition-old(bottom-tabs){
-  animation:none;
-  opacity:0;
-}
-
+::view-transition-old(bottom-tabs),
 ::view-transition-new(bottom-tabs){
   animation:none;
-  opacity:1;
   mix-blend-mode:normal;
+  border-radius:999px;
+}
+
+::view-transition-old(bottom-add),
+::view-transition-new(bottom-add){
+  animation:none;
+  mix-blend-mode:normal;
+  border-radius:999px;
 }
 
 /*
