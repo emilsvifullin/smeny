@@ -449,9 +449,9 @@ nav.tabs button.on{
   padding:0;
   cursor:pointer;
 
-  border:1px solid var(--gold-line);
-  background:#FFFFFF;
-  color:var(--gold);
+  border:1px solid var(--line2);
+  background:var(--tabs);
+  color:var(--ink2);
 
   backdrop-filter:blur(18px);
   -webkit-backdrop-filter:blur(18px);
