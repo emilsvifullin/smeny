@@ -86,8 +86,15 @@ body{
   background-attachment:fixed;
   padding-bottom:calc(120px + env(safe-area-inset-bottom));
   min-height:100vh;
-  touch-action:pan-y;
+    touch-action:pan-y;
 }
+
+body.app-booting > header,
+body.app-booting > main,
+body.app-booting > .bottom-controls{
+  visibility:hidden;
+}
+
 button,input,select{font-family:inherit}
 
 /* шапка */
