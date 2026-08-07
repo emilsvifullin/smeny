@@ -2876,9 +2876,6 @@ app.addEventListener("click",async event=>{
 
   if(!button) return;
 
-  const button=event.target.closest("button");
-  if(!button) return;
-
   if(button.id==="emptyAdd"){
     openSheet(null);
     return;
