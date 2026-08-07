@@ -209,13 +209,15 @@ main{
 .shift-swipe{
   position:relative;
   overflow:hidden;
+  isolation:isolate;
 
-  background:#d93025;
+  background:var(--surf);
 }
 
 .shift-delete-bg{
   position:absolute;
   inset:0;
+  z-index:0;
 
   display:flex;
   align-items:center;
@@ -240,8 +242,7 @@ main{
 
   opacity:.92;
 
-  transform:
-    scale(.88);
+  transform:scale(.88);
 
   transition:
     transform .16s ease,
@@ -251,9 +252,7 @@ main{
 .shift-swipe.is-delete-ready
 .shift-delete-icon{
   opacity:1;
-
-  transform:
-    scale(1.16);
+  transform:scale(1.16);
 }
 
 .shift-swipe.is-delete-ready
@@ -263,7 +262,7 @@ main{
 
 .sh{
   position:relative;
-  z-index:1;
+  z-index:2;
 
   display:flex;
   align-items:center;
@@ -284,8 +283,7 @@ main{
   user-select:none;
   -webkit-user-select:none;
 
-  transform:
-    translate3d(0,0,0);
+  transform:translate3d(0,0,0);
 
   will-change:transform;
 
