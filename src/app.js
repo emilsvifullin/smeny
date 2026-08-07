@@ -2078,12 +2078,133 @@ monthSwipeArea.addEventListener(
   {passive:true}
 );
 
+let pointerPressGuard=null;
+let suppressMovedPointerClickUntil=0;
+
+document.addEventListener(
+  "pointerdown",
+  e=>{
+    if(
+      !e.isPrimary ||
+      !["touch","pen"].includes(e.pointerType)
+    ){
+      return;
+    }
+
+    /*
+      Поля ввода оставляем полностью
+      нативными: курсор, выделение,
+      перемещение пальца и т. д.
+    */
+    if(
+      e.target instanceof Element &&
+      e.target.closest(
+        "input,textarea,select,[contenteditable='true']"
+      )
+    ){
+      pointerPressGuard=null;
+      suppressMovedPointerClickUntil=0;
+      return;
+    }
+
+    /*
+      Новый настоящий тап всегда очищает
+      старую страховку.
+    */
+    suppressMovedPointerClickUntil=0;
+
+    pointerPressGuard={
+      id:e.pointerId,
+      x:e.clientX,
+      y:e.clientY,
+      moved:false
+    };
+  },
+  true
+);
+
+document.addEventListener(
+  "pointermove",
+  e=>{
+    if(
+      !pointerPressGuard ||
+      e.pointerId!==pointerPressGuard.id
+    ){
+      return;
+    }
+
+    const dx=
+      e.clientX-pointerPressGuard.x;
+
+    const dy=
+      e.clientY-pointerPressGuard.y;
+
+    if(
+      Math.hypot(dx,dy)>=8
+    ){
+      pointerPressGuard.moved=true;
+    }
+  },
+  true
+);
+
+document.addEventListener(
+  "pointerup",
+  e=>{
+    if(
+      !pointerPressGuard ||
+      e.pointerId!==pointerPressGuard.id
+    ){
+      return;
+    }
+
+    const moved=
+      pointerPressGuard.moved;
+
+    pointerPressGuard=null;
+
+    if(moved){
+      suppressMovedPointerClickUntil=
+        performance.now()+650;
+    }
+  },
+  true
+);
+
+document.addEventListener(
+  "pointercancel",
+  e=>{
+    if(
+      !pointerPressGuard ||
+      e.pointerId!==pointerPressGuard.id
+    ){
+      return;
+    }
+
+    pointerPressGuard=null;
+
+    suppressMovedPointerClickUntil=
+      performance.now()+650;
+  },
+  true
+);
+
 document.addEventListener(
   "click",
   e=>{
-    if(!suppressMonthClick){
+    const movedPointerClick=
+      e.detail!==0 &&
+      performance.now()<=
+        suppressMovedPointerClickUntil;
+
+    if(
+      !suppressMonthClick &&
+      !movedPointerClick
+    ){
       return;
     }
+
+    suppressMovedPointerClickUntil=0;
 
     e.preventDefault();
     e.stopImmediatePropagation();
