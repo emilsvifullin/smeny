@@ -1468,115 +1468,230 @@ function resetMonthSwipe(){
   document.body.classList.remove("month-swiping");
 }
 
-monthSwipeArea.addEventListener("pointerdown",e=>{
-  if(
-    !["shifts","stats"].includes(tab) ||
-    !e.isPrimary ||
-    e.pointerType==="mouse" ||
-    document.body.classList.contains("sheet-open") ||
-    document.body.classList.contains("point-picker-open") ||
-    document.body.classList.contains("month-picker-open") ||
-    e.target.closest("input,select,textarea,a,.nav,.tabs,.fab")
-  ){
-    return;
-  }
+function findTouch(list,id){
+  for(let i=0;i<list.length;i++){
+    const touch=list[i];
 
-  monthSwipe={
-    id:e.pointerId,
-    x:e.clientX,
-    y:e.clientY,
-    lastX:e.clientX,
-    lastY:e.clientY,
-    time:performance.now(),
-    axis:null
-  };
-
-  try{
-    monthSwipeArea.setPointerCapture(e.pointerId);
-  }catch{}
-});
-
-monthSwipeArea.addEventListener("pointermove",e=>{
-  if(
-    !monthSwipe ||
-    e.pointerId!==monthSwipe.id
-  ){
-    return;
-  }
-
-  monthSwipe.lastX=e.clientX;
-  monthSwipe.lastY=e.clientY;
-
-  const dx=e.clientX-monthSwipe.x;
-  const dy=e.clientY-monthSwipe.y;
-
-  const absX=Math.abs(dx);
-  const absY=Math.abs(dy);
-
-  if(!monthSwipe.axis && Math.max(absX,absY)>=6){
-    monthSwipe.axis=
-      absX>=absY
-        ? "x"
-        : "y";
-  }
-
-  if(monthSwipe.axis==="x"){
-    document.body.classList.add("month-swiping");
-
-    if(e.cancelable){
-      e.preventDefault();
+    if(touch.identifier===id){
+      return touch;
     }
   }
-});
+
+  return null;
+}
+
+function monthSwipeStartBlocked(target){
+  if(!(target instanceof Element)){
+    return true;
+  }
+
+  return Boolean(
+    target.closest(
+      "input,textarea,select,a,button:not(.sh)"
+    )
+  );
+}
+
+monthSwipeArea.addEventListener(
+  "touchstart",
+  e=>{
+    if(
+      !["shifts","stats"].includes(tab) ||
+      e.touches.length!==1 ||
+      document.body.classList.contains("sheet-open") ||
+      document.body.classList.contains("point-picker-open") ||
+      document.body.classList.contains("month-picker-open") ||
+      monthSwipeStartBlocked(e.target)
+    ){
+      resetMonthSwipe();
+      return;
+    }
+
+    const touch=e.touches[0];
+
+    monthSwipe={
+      id:touch.identifier,
+      x:touch.clientX,
+      y:touch.clientY,
+      lastX:touch.clientX,
+      lastY:touch.clientY,
+      time:performance.now(),
+      axis:null
+    };
+  },
+  {passive:true}
+);
+
+monthSwipeArea.addEventListener(
+  "touchmove",
+  e=>{
+    if(!monthSwipe){
+      return;
+    }
+
+    const touch=
+      findTouch(
+        e.touches,
+        monthSwipe.id
+      );
+
+    if(!touch){
+      return;
+    }
+
+    monthSwipe.lastX=
+      touch.clientX;
+
+    monthSwipe.lastY=
+      touch.clientY;
+
+    const dx=
+      touch.clientX-monthSwipe.x;
+
+    const dy=
+      touch.clientY-monthSwipe.y;
+
+    const absX=
+      Math.abs(dx);
+
+    const absY=
+      Math.abs(dy);
+
+    /*
+      Не определяем направление по первым
+      2–6 пикселям движения пальца.
+
+      Это специально оставляет небольшой
+      dead zone для естественного дрожания
+      пальца на iPhone.
+    */
+    if(monthSwipe.axis===null){
+      if(
+        absX<8 &&
+        absY<8
+      ){
+        return;
+      }
+
+      /*
+        Горизонтальный жест определяем
+        немного охотнее вертикального.
+      */
+      if(
+        absX>=10 &&
+        absX>absY*1.10
+      ){
+        monthSwipe.axis="x";
+      }
+
+      /*
+        Вертикальный scroll блокируем
+        только когда вертикальное намерение
+        уже достаточно очевидно.
+      */
+      else if(
+        absY>=14 &&
+        absY>absX*1.25
+      ){
+        monthSwipe.axis="y";
+      }
+
+      else{
+        return;
+      }
+    }
+
+    if(monthSwipe.axis==="x"){
+      document.body.classList.add(
+        "month-swiping"
+      );
+
+      /*
+        Только после уверенного определения
+        горизонтального свайпа забираем
+        жест у Safari.
+      */
+      if(e.cancelable){
+        e.preventDefault();
+      }
+    }
+  },
+  {passive:false}
+);
 
 function finishMonthSwipe(e){
-  if(
-    !monthSwipe ||
-    e.pointerId!==monthSwipe.id
-  ){
+  if(!monthSwipe){
     return;
   }
 
   const swipe=monthSwipe;
 
+  const touch=
+    findTouch(
+      e.changedTouches,
+      swipe.id
+    );
+
   const endX=
-    Number.isFinite(e.clientX)
-      ? e.clientX
+    touch
+      ? touch.clientX
       : swipe.lastX;
 
   const endY=
-    Number.isFinite(e.clientY)
-      ? e.clientY
+    touch
+      ? touch.clientY
       : swipe.lastY;
 
-  const dx=endX-swipe.x;
-  const dy=endY-swipe.y;
+  const dx=
+    endX-swipe.x;
+
+  const dy=
+    endY-swipe.y;
+
+  const absX=
+    Math.abs(dx);
+
+  const absY=
+    Math.abs(dy);
 
   const duration=
-    performance.now()-swipe.time;
+    Math.max(
+      1,
+      performance.now()-swipe.time
+    );
+
+  const velocity=
+    absX/duration;
 
   resetMonthSwipe();
 
-  try{
-    if(monthSwipeArea.hasPointerCapture(e.pointerId)){
-      monthSwipeArea.releasePointerCapture(e.pointerId);
-    }
-  }catch{}
-
+  /*
+    Финальная страховка от вертикального
+    скролла и диагонального жеста.
+  */
   const horizontal=
-    Math.abs(dx)>=Math.abs(dy);
+    absX>absY*1.08;
 
+  /*
+    Обычный осознанный свайп.
+  */
   const enoughDistance=
-    Math.abs(dx)>=28;
+    absX>=38;
 
+  /*
+    Или короткий, но быстрый flick.
+  */
   const fastSwipe=
-    Math.abs(dx)>=18 &&
-    duration<=280;
+    absX>=22 &&
+    velocity>=0.30;
 
   if(
-    swipe.axis!=="x" ||
+    swipe.axis==="y" ||
     !horizontal ||
-    (!enoughDistance && !fastSwipe)
+    (
+      !enoughDistance &&
+      !fastSwipe
+    )
   ){
     return;
   }
@@ -1591,46 +1706,48 @@ function finishMonthSwipe(e){
     return;
   }
 
+  /*
+    Не даём iOS после свайпа открыть
+    случайно ту смену, на которой
+    закончился палец.
+  */
   suppressMonthClick=true;
 
   cursor=nextCursor;
 
   render();
 
-  window.scrollTo({
-    top:0,
-    left:0,
-    behavior:"instant"
-  });
+  window.scrollTo(0,0);
 
   setTimeout(()=>{
     suppressMonthClick=false;
-  },350);
+  },400);
 }
 
 monthSwipeArea.addEventListener(
-  "pointerup",
-  finishMonthSwipe
+  "touchend",
+  finishMonthSwipe,
+  {passive:true}
 );
 
 monthSwipeArea.addEventListener(
-  "pointercancel",
-  e=>{
-    if(
-      monthSwipe &&
-      e.pointerId===monthSwipe.id
-    ){
-      resetMonthSwipe();
-    }
-  }
+  "touchcancel",
+  resetMonthSwipe,
+  {passive:true}
 );
 
-document.addEventListener("click",e=>{
-  if(!suppressMonthClick) return;
+document.addEventListener(
+  "click",
+  e=>{
+    if(!suppressMonthClick){
+      return;
+    }
 
-  e.preventDefault();
-  e.stopImmediatePropagation();
-},true);
+    e.preventDefault();
+    e.stopImmediatePropagation();
+  },
+  true
+);
 
 ["shifts","stats","data"].forEach(name=>{
   const button=document.getElementById("tab-"+name);
