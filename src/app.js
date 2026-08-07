@@ -1300,16 +1300,119 @@ function closeMonthPicker(){
   },320);
 }
 
+let monthTransitionRunning=false;
+
+function prefersReducedMotion(){
+  return window.matchMedia?.(
+    "(prefers-reduced-motion: reduce)"
+  ).matches===true;
+}
+
+function changeMonth(
+  nextCursor,
+  direction,
+  {scrollTop=false}={}
+){
+  if(
+    nextCursor===cursor ||
+    monthTransitionRunning
+  ){
+    return;
+  }
+
+  const apply=()=>{
+    cursor=nextCursor;
+    render();
+  };
+
+  const finish=()=>{
+    if(scrollTop){
+      window.scrollTo(0,0);
+    }
+  };
+
+  if(
+    typeof document.startViewTransition!=="function" ||
+    prefersReducedMotion()
+  ){
+    apply();
+    finish();
+    return;
+  }
+
+  monthTransitionRunning=true;
+
+  document.documentElement.dataset.monthMotion=
+    direction>0
+      ? "next"
+      : "prev";
+
+  let transition;
+
+  try{
+    transition=
+      document.startViewTransition(
+        apply
+      );
+  }catch{
+    monthTransitionRunning=false;
+
+    delete document.documentElement
+      .dataset.monthMotion;
+
+    apply();
+    finish();
+    return;
+  }
+
+  transition.finished
+    .catch(()=>{})
+    .finally(()=>{
+      monthTransitionRunning=false;
+
+      delete document.documentElement
+        .dataset.monthMotion;
+
+      finish();
+    });
+}
+
 function selectMonth(ym){
-  cursor=ym;
+  const direction=
+    ym>cursor
+      ? 1
+      : ym<cursor
+        ? -1
+        : 0;
+
   closeMonthPicker();
-  render();
-  window.scrollTo(0,0);
+
+  if(direction===0){
+    return;
+  }
+
+  changeMonth(
+    ym,
+    direction,
+    {scrollTop:true}
+  );
 }
 
 /* ========== события ========== */
-document.getElementById("prevM").onclick=()=>{cursor=shiftMonth(cursor,-1);render();};
-document.getElementById("nextM").onclick=()=>{cursor=shiftMonth(cursor,1);render();};
+document.getElementById("prevM").onclick=()=>{
+  changeMonth(
+    shiftMonth(cursor,-1),
+    -1
+  );
+};
+
+document.getElementById("nextM").onclick=()=>{
+  changeMonth(
+    shiftMonth(cursor,1),
+    1
+  );
+};
+
 document.getElementById("period").onclick=openMonthPicker;
 
 
@@ -1503,6 +1606,7 @@ monthSwipeArea.addEventListener(
   e=>{
     if(
       !["shifts","stats"].includes(tab) ||
+      monthTransitionRunning ||
       e.touches.length!==1 ||
       document.body.classList.contains("sheet-open") ||
       document.body.classList.contains("point-picker-open") ||
@@ -1719,11 +1823,11 @@ function finishMonthSwipe(e){
   */
   suppressMonthClick=true;
 
-  cursor=nextCursor;
-
-  render();
-
-  window.scrollTo(0,0);
+  changeMonth(
+    nextCursor,
+    dx<0 ? 1 : -1,
+    {scrollTop:true}
+  );
 
   setTimeout(()=>{
     suppressMonthClick=false;
