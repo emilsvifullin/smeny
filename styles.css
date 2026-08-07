@@ -206,19 +206,109 @@ main{
 .total .t{font-weight:600}.total .v{font-weight:600;font-size:16px}
 
 /* смена */
+.shift-swipe{
+  position:relative;
+  overflow:hidden;
+
+  border-top:1px solid var(--line);
+
+  background:var(--rust);
+}
+
+.shift-swipe:first-child{
+  border-top:none;
+}
+
 .sh{
+  position:relative;
+  z-index:2;
+
+  width:100%;
+
   display:flex;
   align-items:center;
   gap:14px;
+
   padding:12px 16px;
-  border-top:1px solid var(--line);
+
+  border:0;
+  background:var(--surf);
+  color:var(--ink);
+
   cursor:pointer;
+
   user-select:none;
   -webkit-user-select:none;
+
+  transform:translateX(0);
+
+  transition:
+    transform .24s cubic-bezier(.22,.72,.22,1);
 }
 
-.sh:first-child{
-  border-top:none;
+.shift-swipe.is-open .sh{
+  transform:translateX(-84px);
+}
+
+.shift-delete{
+  position:absolute;
+  top:0;
+  right:0;
+  bottom:0;
+  z-index:1;
+
+  width:84px;
+
+  display:grid;
+  place-items:center;
+
+  border:0;
+
+  background:var(--rust);
+  color:#fff;
+
+  cursor:pointer;
+}
+
+.shift-delete-icon{
+  position:relative;
+
+  width:19px;
+  height:22px;
+
+  border:2px solid currentColor;
+  border-top:0;
+  border-radius:0 0 3px 3px;
+}
+
+.shift-delete-icon::before{
+  content:"";
+
+  position:absolute;
+  left:-4px;
+  top:-6px;
+
+  width:23px;
+  height:2px;
+
+  border-radius:2px;
+
+  background:currentColor;
+}
+
+.shift-delete-icon::after{
+  content:"";
+
+  position:absolute;
+  left:5px;
+  top:-10px;
+
+  width:7px;
+  height:4px;
+
+  border:2px solid currentColor;
+  border-bottom:0;
+  border-radius:3px 3px 0 0;
 }
 
 .sh .day{
