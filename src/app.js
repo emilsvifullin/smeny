@@ -2965,6 +2965,7 @@ const datePickerHandle=
   document.getElementById("datePickerHandle");
 
 let datePickerDrag=null;
+let datePickerDragFrame=0;
 
 datePickerHandle.addEventListener("pointerdown",e=>{
   if(
@@ -2998,17 +2999,26 @@ datePickerHandle.addEventListener("pointermove",e=>{
     return;
   }
 
-  const distance=Math.max(
+  datePickerDrag.distance=Math.max(
     0,
     e.clientY-datePickerDrag.startY
   );
 
-  datePickerDrag.distance=distance;
+  if(!datePickerDragFrame){
+    datePickerDragFrame=
+      requestAnimationFrame(()=>{
+        datePickerDragFrame=0;
 
-  datePickerElement.style.setProperty(
-    "--date-drag",
-    distance+"px"
-  );
+        if(!datePickerDrag){
+          return;
+        }
+
+        datePickerElement.style.setProperty(
+          "--date-drag",
+          datePickerDrag.distance+"px"
+        );
+      });
+  }
 
   e.preventDefault();
 });
