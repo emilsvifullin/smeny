@@ -256,43 +256,71 @@
     </button>
   </div>
 
-  <div class="date-jump" id="dateJump">
+    <div class="date-jump" id="dateJump">
+    <div class="picker-toolbar">
+      <button
+        type="button"
+        class="picker-toolbar-btn cancel"
+        id="dateJumpCancel"
+      >
+        Отмена
+      </button>
+
+      <div class="picker-toolbar-title">
+        Выберите месяц
+      </div>
+
+      <button
+        type="button"
+        class="picker-toolbar-btn done"
+        id="dateJumpDone"
+      >
+        Готово
+      </button>
+    </div>
+
     <div class="date-jump-year">
-  <button
-    type="button"
-    class="date-calendar-nav"
-    id="dateJumpPrevYear"
-    aria-label="Предыдущий год"
-  >
-    <svg viewBox="0 0 20 20" aria-hidden="true">
-      <path d="M13 4L7 10L13 16"></path>
-    </svg>
-  </button>
+      <button
+        type="button"
+        class="date-calendar-nav"
+        id="dateJumpPrevYear"
+        aria-label="Предыдущий год"
+      >
+        <svg viewBox="0 0 20 20" aria-hidden="true">
+          <path d="M13 4L7 10L13 16"></path>
+        </svg>
+      </button>
 
-  <div class="date-jump-year-value" id="dateJumpYear"></div>
+      <div
+        class="date-jump-year-value"
+        id="dateJumpYear"
+      ></div>
 
-  <button
-    type="button"
-    class="date-calendar-nav"
-    id="dateJumpNextYear"
-    aria-label="Следующий год"
-  >
-    <svg viewBox="0 0 20 20" aria-hidden="true">
-      <path d="M7 4L13 10L7 16"></path>
-    </svg>
-  </button>
-</div>
+      <button
+        type="button"
+        class="date-calendar-nav"
+        id="dateJumpNextYear"
+        aria-label="Следующий год"
+      >
+        <svg viewBox="0 0 20 20" aria-hidden="true">
+          <path d="M7 4L13 10L7 16"></path>
+        </svg>
+      </button>
+    </div>
 
-    <div class="date-jump-months" id="dateJumpMonths"></div>
+    <div
+      class="date-jump-months"
+      id="dateJumpMonths"
+    ></div>
 
-<button
-  type="button"
-  class="month-today"
-  id="dateJumpCurrent"
->
-  Текущий месяц
-</button>
-</div>
+    <button
+      type="button"
+      class="month-today"
+      id="dateJumpCurrent"
+    >
+      Текущий месяц
+    </button>
+  </div>
 
 <div
   class="date-jump-dismiss"
