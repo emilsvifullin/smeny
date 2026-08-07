@@ -3259,7 +3259,12 @@ shiftSheet.addEventListener("pointerdown",event=>{
     !shiftSheet.classList.contains("on")
   ) return;
 
-  sheetDrag={id:event.pointerId,startY:event.clientY,distance:0};
+  sheetDrag={
+  id:event.pointerId,
+  startY:event.clientY,
+  distance:0,
+  started:performance.now()
+};
   shiftSheet.style.transition="none";
   shiftSheet.setPointerCapture(event.pointerId);
   event.preventDefault();
@@ -3273,22 +3278,62 @@ shiftSheet.addEventListener("pointermove",event=>{
 });
 
 function finishSheetDrag(event){
-  if(!sheetDrag || event.pointerId!==sheetDrag.id) return;
-  const {id,distance}=sheetDrag;
+  if(
+    !sheetDrag ||
+    event.pointerId!==sheetDrag.id
+  ){
+    return;
+  }
+
+  const {
+    id,
+    distance,
+    started
+  }=sheetDrag;
+
+  const duration=Math.max(
+    1,
+    performance.now()-started
+  );
+
+  const fastSwipe=
+    distance>=28 &&
+    distance/duration>=0.45;
+
+  const shouldClose=
+    distance>=80 ||
+    fastSwipe;
+
   sheetDrag=null;
 
-  if(shiftSheet.hasPointerCapture(id)) shiftSheet.releasePointerCapture(id);
-  shiftSheet.style.transition="transform .28s cubic-bezier(.32,.72,0,1)";
-
-  if(distance>=90){
-    closeSheet();
-  }else{
-    shiftSheet.style.setProperty("--sheet-drag","0px");
-    setTimeout(()=>{
-      shiftSheet.style.removeProperty("transition");
-      shiftSheet.style.removeProperty("--sheet-drag");
-    },300);
+  if(
+    shiftSheet.hasPointerCapture(id)
+  ){
+    shiftSheet.releasePointerCapture(id);
   }
+
+  shiftSheet.style.transition=
+    "transform .28s cubic-bezier(.32,.72,0,1)";
+
+  if(shouldClose){
+    closeSheet();
+    return;
+  }
+
+  shiftSheet.style.setProperty(
+    "--sheet-drag",
+    "0px"
+  );
+
+  setTimeout(()=>{
+    shiftSheet.style.removeProperty(
+      "transition"
+    );
+
+    shiftSheet.style.removeProperty(
+      "--sheet-drag"
+    );
+  },300);
 }
 
 shiftSheet.addEventListener("pointerup",finishSheetDrag);
