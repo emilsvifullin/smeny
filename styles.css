@@ -1455,7 +1455,12 @@ button:disabled{
 .dot{width:7px;height:7px;border-radius:4px;background:var(--gold);flex:none;box-shadow:0 0 0 3px var(--gold-soft)}
 .dot.off{background:var(--rust);box-shadow:0 0 0 3px var(--rust-line)}
 @media (hover:hover) and (pointer:fine){
-  .nav button:active,
+
+  /*
+    Обычное нажатие кнопок:
+    эффект существует только пока держим ЛКМ.
+  */
+  .nav button:not(.period):active,
   .point-option:active,
   .date-jump-year-btn:active,
   .date-jump-month:active,
@@ -1465,19 +1470,46 @@ button:disabled{
   .month-year-btn:active,
   .month-option:active,
   .month-today:active,
-  .btn:active{
+  .picker-toolbar-btn:active,
+  .point-row:active,
+  .seg button:active,
+  .empty-add:active,
+  .btn:active,
+  .app-confirm-btn:active{
     background:var(--tint2);
   }
 
+  /*
+    Строка существующей смены
+    и заголовок календаря.
+  */
   .sh:active,
   .date-calendar-title:active{
     background:var(--tint);
   }
 
-  .period:active{
+  /*
+    Нижние вкладки.
+    Работает и для уже выбранной вкладки.
+  */
+  nav.tabs button:active{
+    opacity:.62;
+  }
+
+  /*
+    Большой выбор месяца сверху
+    и текстовые Отмена / Готово.
+    Без прямоугольного фона.
+  */
+  .period:active,
+  .lnk:active{
+    background:transparent !important;
     opacity:.55;
   }
 
+  /*
+    Круглая кнопка +.
+  */
   .fab:active{
     filter:brightness(1.25);
   }
