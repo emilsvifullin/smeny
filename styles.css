@@ -783,7 +783,7 @@ body.point-picker-open .sheet{
   border-radius:22px;
   box-shadow:var(--shadow);
 
-    transform:translate3d(
+  transform:translate3d(
     0,
     calc(100% + 24px + env(safe-area-inset-bottom)),
     0
