@@ -636,8 +636,13 @@ body.point-picker-open .sheet{
   background:var(--line2);
 }
 
+.point-picker .picker-toolbar{
+  margin-left:12px;
+  margin-right:12px;
+}
+
 .point-list{
-  max-height:calc(78vh - 60px);
+  max-height:calc(78vh - 62px);
   overflow-y:auto;
   -webkit-overflow-scrolling:touch;
   overscroll-behavior:contain;
