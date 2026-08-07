@@ -1608,7 +1608,6 @@ textarea{
 button:focus-visible,
 .period:focus-visible,
 .sh:focus-visible,
-input:focus-visible,
 textarea:focus-visible,
 select:focus-visible{
   outline:2px solid var(--gold);
