@@ -119,7 +119,7 @@ header{
   stroke-linejoin:round;
 }
 
-.period{
+.nav button.period{
   flex:1;
   position:relative;
   min-width:0;
