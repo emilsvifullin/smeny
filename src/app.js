@@ -2156,14 +2156,63 @@ document.getElementById("monthGrid").onclick=e=>{
 };
 
 document.getElementById("monthToday").onclick=()=>{
-  monthPickerValue=
+  if(monthPickerYearTransitionRunning){
+    return;
+  }
+
+  const currentMonth=
     ymOf(new Date());
 
-  monthPickerYear=Number(
-    monthPickerValue.slice(0,4)
-  );
+  const currentYear=
+    Number(
+      currentMonth.slice(0,4)
+    );
 
-  drawMonthPicker();
+  if(currentYear===monthPickerYear){
+    monthPickerValue=
+      currentMonth;
+
+    drawMonthPicker();
+    return;
+  }
+
+  monthPickerYearTransitionRunning=true;
+
+  animatePickerYearChange({
+    container:
+      document.getElementById(
+        "monthPicker"
+      ),
+
+    grid:
+      document.getElementById(
+        "monthGrid"
+      ),
+
+    label:
+      document.getElementById(
+        "monthPickerYear"
+      ),
+
+    direction:
+      currentYear>monthPickerYear
+        ? 1
+        : -1,
+
+    apply:()=>{
+      monthPickerYear=
+        currentYear;
+
+      monthPickerValue=
+        currentMonth;
+
+      drawMonthPicker();
+    },
+
+    onFinish:()=>{
+      monthPickerYearTransitionRunning=false;
+    }
+  });
 };
 
 document.getElementById("monthCancel").onclick=()=>{
