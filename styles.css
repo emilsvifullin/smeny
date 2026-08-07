@@ -122,12 +122,30 @@ header{
 .period{
   flex:1;
   position:relative;
+  min-width:0;
+  min-height:34px;
+  padding:0 10px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border:0;
+  border-radius:0;
+  outline:0;
+  background:transparent;
+  box-shadow:none;
+
+  appearance:none;
+  -webkit-appearance:none;
+
   text-align:center;
   font-size:12px;
   font-weight:600;
   letter-spacing:.19em;
   text-transform:uppercase;
   color:var(--ink);
+
   user-select:none;
   -webkit-user-select:none;
 }
