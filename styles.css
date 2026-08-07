@@ -1858,3 +1858,8 @@ html[data-month-motion="prev"]::view-transition-new(month-period){
     transform:translate3d(0,0,0);
   }
 }
+
+#monthGrid,
+#dateJumpMonths{
+  touch-action:pan-y;
+}
