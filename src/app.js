@@ -54,8 +54,6 @@ let storageRevision=null;
 let loadError=null;
 let hasBackup=false;
 let syncConflict=false;
-let waitingServiceWorker=null;
-let updateReloadRequested=false;
 let sheetPreviousFocus=null;
 let pointPreviousFocus=null;
 let monthPreviousFocus=null;
@@ -651,10 +649,6 @@ function viewData(){
     ? `<button class="btn" id="doRestoreBackup">Вернуть предыдущую сохранённую версию</button>`
     : "";
 
-  const updateAction=waitingServiceWorker
-    ? `<div class="ml">Обновление</div><button class="btn gold" id="doUpdateApp">Установить обновление</button><div class="note">Перед обновлением черновик будет сохранён в этой вкладке.</div>`
-    : "";
-
   return `
     <div class="ml">Состояние</div>
     <div class="card">
@@ -681,7 +675,6 @@ function viewData(){
       <div class="note">После удаления предыдущую сохранённую версию можно восстановить из раздела «Данные».</div>
     `}
 
-    ${updateAction}
     <div class="developer-credit">Shift Register ${APP_VERSION} · правила ${RULES_VERSION} · разработчик emilsvifullin</div>
   `;
 }
@@ -2468,14 +2461,6 @@ app.addEventListener("click",async event=>{
     toast("Все смены удалены");
     return;
   }
-
-  if(button.id==="doUpdateApp"){
-    if(!waitingServiceWorker) return;
-    saveUIState();
-    updateReloadRequested=true;
-    waitingServiceWorker.postMessage({type:"SKIP_WAITING"});
-    toast("Устанавливается обновление…");
-  }
 });
 
 let scrollTimer;
@@ -2499,61 +2484,54 @@ window.addEventListener("pageshow",()=>{
 });
 
 if("serviceWorker" in navigator){
-  const surfaceWaitingWorker=registration=>{
-    if(!registration?.waiting) return;
-    waitingServiceWorker=registration.waiting;
-    if(tab==="data") render();
-    else toast("Доступно обновление приложения. Установите его в разделе «Данные».",4200);
-  };
-
-  navigator.serviceWorker.addEventListener("controllerchange",()=>{
-    if(!updateReloadRequested) return;
-    saveUIState();
-    location.reload();
-  });
-
   window.addEventListener("load",async()=>{
     try{
-      const registration=await navigator.serviceWorker.register("./sw.js",{
-        updateViaCache:"none"
-      });
-
-      surfaceWaitingWorker(registration);
-
-      registration.addEventListener("updatefound",()=>{
-        const worker=registration.installing;
-        if(!worker) return;
-
-        worker.addEventListener("statechange",()=>{
-          if(worker.state==="installed" && navigator.serviceWorker.controller){
-            surfaceWaitingWorker(registration);
+      const registration=
+        await navigator.serviceWorker.register(
+          "./sw.js",
+          {
+            updateViaCache:"none"
           }
-        });
-      });
+        );
 
+      /*
+        Проверяем только сам service worker.
+        CSS/JS при обычном открытии всё равно
+        берутся network-first.
+      */
       await registration.update();
-      surfaceWaitingWorker(registration);
     }catch(error){
-      console.error("Service worker не зарегистрирован:",error);
+      console.error(
+        "Service worker не зарегистрирован:",
+        error
+      );
     }
   });
 
-  document.addEventListener("visibilitychange",async()=>{
-    if(document.visibilityState==="hidden"){
-      saveUIState();
-      return;
-    }
-
-    try{
-      const registration=await navigator.serviceWorker.getRegistration();
-      if(registration){
-        await registration.update();
-        surfaceWaitingWorker(registration);
+  document.addEventListener(
+    "visibilitychange",
+    async()=>{
+      if(
+        document.visibilityState!=="visible"
+      ){
+        saveUIState();
+        return;
       }
-    }catch(error){
-      console.error("Не удалось проверить обновление:",error);
+
+      try{
+        const registration=
+          await navigator.serviceWorker
+            .getRegistration();
+
+        await registration?.update();
+      }catch(error){
+        console.error(
+          "Не удалось проверить service worker:",
+          error
+        );
+      }
     }
-  });
+  );
 }
 
 let touchActiveState=null;
