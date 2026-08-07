@@ -1925,21 +1925,12 @@ function changeDateJumpYear(direction){
 
     direction,
 
-    apply:()=>{
-  const month=
-    (
-      dateJumpValue ||
-      dateCalendarCursor
-    ).slice(5,7);
+        apply:()=>{
+      dateJumpYear=
+        nextYear;
 
-  dateJumpYear=
-    nextYear;
-
-  dateJumpValue=
-    nextYear+"-"+month;
-
-  drawDateJump();
-},
+      drawDateJump();
+    },
 
     onFinish:()=>{
       dateJumpYearTransitionRunning=false;
