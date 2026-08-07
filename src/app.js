@@ -1454,7 +1454,7 @@ monthPickerHandle.addEventListener("pointercancel",e=>{
 let monthSwipe=null;
 let suppressMonthClick=false;
 
-const monthSwipeArea=document.getElementById("app");
+const monthSwipeArea=document;
 
 function resetMonthSwipe(){
   monthSwipe=null;
