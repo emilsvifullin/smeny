@@ -1614,6 +1614,19 @@ select:focus-visible{
   outline-offset:2px;
 }
 
+/*
+  Desktop:
+  фокус остаётся технически,
+  но визуальные рамки не показываем.
+*/
+@media (hover:hover) and (pointer:fine){
+  *:focus,
+  *:focus-visible{
+    outline:none !important;
+    outline-offset:0 !important;
+  }
+}
+
 @media (prefers-reduced-motion:reduce){
   html:focus-within{scroll-behavior:auto}
 }
