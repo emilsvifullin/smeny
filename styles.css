@@ -544,9 +544,50 @@ body.sheet-open{
 /* поля */
 label.row{display:flex;cursor:text}
 label.row .t{flex:none;width:112px;color:var(--ink2);font-size:14.5px}
-input,select{width:100%;padding:0;border:none;outline:none;background:transparent;color:var(--ink);font-size:16px;text-align:right;font-variant-numeric:tabular-nums}
-input::placeholder{color:var(--ink3)}
-select{appearance:none;text-align-last:right;direction:rtl}
+input,
+select{
+  width:100%;
+  padding:0;
+  border:0;
+  outline:0;
+  box-shadow:none;
+  background:transparent;
+  color:var(--ink);
+  font-size:16px;
+  text-align:right;
+  font-variant-numeric:tabular-nums;
+}
+
+input:focus,
+input:focus-visible{
+  border:0;
+  outline:0;
+  box-shadow:none;
+}
+
+input[type="number"]{
+  appearance:textfield;
+  -webkit-appearance:textfield;
+  -moz-appearance:textfield;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button{
+  margin:0;
+  -webkit-appearance:none;
+  appearance:none;
+}
+
+input::placeholder{
+  color:var(--ink3);
+}
+
+select{
+  appearance:none;
+  text-align-last:right;
+  direction:rtl;
+}
+
 select option{direction:ltr;background:var(--surf);color:var(--ink)}
 /* свой выбор пункта */
 .point-row{
