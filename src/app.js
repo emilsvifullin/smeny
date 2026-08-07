@@ -1461,7 +1461,14 @@ monthPickerHandle.addEventListener("pointercancel",e=>{
 let monthSwipe=null;
 let suppressMonthClick=false;
 
-document.addEventListener("pointerdown",e=>{
+const monthSwipeArea=document.getElementById("app");
+
+function resetMonthSwipe(){
+  monthSwipe=null;
+  document.body.classList.remove("month-swiping");
+}
+
+monthSwipeArea.addEventListener("pointerdown",e=>{
   if(
     !["shifts","stats"].includes(tab) ||
     !e.isPrimary ||
@@ -1478,11 +1485,18 @@ document.addEventListener("pointerdown",e=>{
     id:e.pointerId,
     x:e.clientX,
     y:e.clientY,
-    time:performance.now()
+    lastX:e.clientX,
+    lastY:e.clientY,
+    time:performance.now(),
+    axis:null
   };
+
+  try{
+    monthSwipeArea.setPointerCapture(e.pointerId);
+  }catch{}
 });
 
-document.addEventListener("pointermove",e=>{
+monthSwipeArea.addEventListener("pointermove",e=>{
   if(
     !monthSwipe ||
     e.pointerId!==monthSwipe.id
@@ -1490,55 +1504,126 @@ document.addEventListener("pointermove",e=>{
     return;
   }
 
+  monthSwipe.lastX=e.clientX;
+  monthSwipe.lastY=e.clientY;
+
   const dx=e.clientX-monthSwipe.x;
   const dy=e.clientY-monthSwipe.y;
 
-  if(
-    Math.abs(dx)>8 &&
-    Math.abs(dx)>Math.abs(dy)
-  ){
+  const absX=Math.abs(dx);
+  const absY=Math.abs(dy);
+
+  if(!monthSwipe.axis && Math.max(absX,absY)>=6){
+    monthSwipe.axis=
+      absX>=absY
+        ? "x"
+        : "y";
+  }
+
+  if(monthSwipe.axis==="x"){
     document.body.classList.add("month-swiping");
+
+    if(e.cancelable){
+      e.preventDefault();
+    }
   }
 });
 
-document.addEventListener("pointerup",e=>{
-  if(!monthSwipe || e.pointerId!==monthSwipe.id) return;
+function finishMonthSwipe(e){
+  if(
+    !monthSwipe ||
+    e.pointerId!==monthSwipe.id
+  ){
+    return;
+  }
 
-  document.body.classList.remove("month-swiping");
+  const swipe=monthSwipe;
 
-  const dx=e.clientX-monthSwipe.x;
-  const dy=e.clientY-monthSwipe.y;
-  const duration=performance.now()-monthSwipe.time;
+  const endX=
+    Number.isFinite(e.clientX)
+      ? e.clientX
+      : swipe.lastX;
 
-  monthSwipe=null;
+  const endY=
+    Number.isFinite(e.clientY)
+      ? e.clientY
+      : swipe.lastY;
+
+  const dx=endX-swipe.x;
+  const dy=endY-swipe.y;
+
+  const duration=
+    performance.now()-swipe.time;
+
+  resetMonthSwipe();
+
+  try{
+    if(monthSwipeArea.hasPointerCapture(e.pointerId)){
+      monthSwipeArea.releasePointerCapture(e.pointerId);
+    }
+  }catch{}
 
   const horizontal=
-    Math.abs(dx)>Math.abs(dy)*1.2;
+    Math.abs(dx)>=Math.abs(dy);
 
   const enoughDistance=
-    Math.abs(dx)>=35;
+    Math.abs(dx)>=28;
 
   const fastSwipe=
-    Math.abs(dx)>=20 &&
-    duration<=220;
+    Math.abs(dx)>=18 &&
+    duration<=280;
 
-  if(!horizontal || (!enoughDistance && !fastSwipe)) return;
+  if(
+    swipe.axis!=="x" ||
+    !horizontal ||
+    (!enoughDistance && !fastSwipe)
+  ){
+    return;
+  }
+
+  const nextCursor=
+    shiftMonth(
+      cursor,
+      dx<0 ? 1 : -1
+    );
+
+  if(nextCursor===cursor){
+    return;
+  }
 
   suppressMonthClick=true;
 
-  cursor=shiftMonth(cursor,dx<0 ? 1 : -1);
+  cursor=nextCursor;
+
   render();
-  window.scrollTo(0,0);
+
+  window.scrollTo({
+    top:0,
+    left:0,
+    behavior:"instant"
+  });
 
   setTimeout(()=>{
     suppressMonthClick=false;
-  },300);
-});
+  },350);
+}
 
-document.addEventListener("pointercancel",()=>{
-  monthSwipe=null;
-  document.body.classList.remove("month-swiping");
-});
+monthSwipeArea.addEventListener(
+  "pointerup",
+  finishMonthSwipe
+);
+
+monthSwipeArea.addEventListener(
+  "pointercancel",
+  e=>{
+    if(
+      monthSwipe &&
+      e.pointerId===monthSwipe.id
+    ){
+      resetMonthSwipe();
+    }
+  }
+);
 
 document.addEventListener("click",e=>{
   if(!suppressMonthClick) return;
