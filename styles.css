@@ -450,7 +450,7 @@ nav.tabs button.on{
   cursor:pointer;
 
   border:1px solid var(--gold-line);
-  background:var(--gold-soft);
+  background:#FFFFFF;
   color:var(--gold);
 
   backdrop-filter:blur(18px);
