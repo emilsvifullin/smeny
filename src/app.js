@@ -515,17 +515,47 @@ function viewShifts(){
     const shkLabel=result.fixed ? "Оклад" : `${shift.shk==="" ? "—" : nf(shift.shk)} ШК`;
 
     html+=`
-      <button type="button" class="sh" data-edit="${esc(shift.id)}" aria-label="${esc(dateLabel(shift.date))}, ${esc(shift.point)}, ${money(result.total)}">
-        <span class="day"><span class="d">${Number(parts[2])}</span><span class="w">${WD[new Date(shift.date+"T12:00:00").getDay()]}</span></span>
-        <span class="mid">
-          <span class="p">${esc(shift.point)}</span>
-          <span class="meta">
-            <span>${shkLabel} · ${nf(result.rate)} ₽</span>
-            ${tags.join("")}
+      <div
+        class="shift-swipe"
+        data-shift-swipe="${esc(shift.id)}"
+      >
+        <button
+          type="button"
+          class="shift-delete"
+          data-delete-shift="${esc(shift.id)}"
+          aria-label="Удалить смену ${esc(dateLabel(shift.date))}"
+        >
+          <span
+            class="shift-delete-icon"
+            aria-hidden="true"
+          ></span>
+        </button>
+
+        <button
+          type="button"
+          class="sh"
+          data-edit="${esc(shift.id)}"
+          aria-label="${esc(dateLabel(shift.date))}, ${esc(shift.point)}, ${money(result.total)}"
+        >
+          <span class="day">
+            <span class="d">${Number(parts[2])}</span>
+            <span class="w">${WD[new Date(shift.date+"T12:00:00").getDay()]}</span>
           </span>
-        </span>
-        <span class="amt">${money(result.total)}</span>
-      </button>`;
+
+          <span class="mid">
+            <span class="p">${esc(shift.point)}</span>
+
+            <span class="meta">
+              <span>${shkLabel} · ${nf(result.rate)} ₽</span>
+              ${tags.join("")}
+            </span>
+          </span>
+
+          <span class="amt">
+            ${money(result.total)}
+          </span>
+        </button>
+      </div>`;
   }
 
   return html+`</div>`;
@@ -1492,7 +1522,7 @@ function monthSwipeStartBlocked(target){
 
   return Boolean(
     target.closest(
-      "input,textarea,select,a,button:not(.sh)"
+      "input,textarea,select,a,button:not(.sh),.shift-swipe"
     )
   );
 }
@@ -2399,9 +2429,336 @@ sheetBody.addEventListener("click",e=>{
   moveFieldCaretToEnd(e.target);
 });
 
-app.addEventListener("click",async event=>{
-  const row=event.target.closest("[data-edit]");
+let shiftSwipe=null;
+let openShiftSwipe=null;
+let suppressShiftClick=false;
+
+const SHIFT_DELETE_WIDTH=84;
+
+function closeOpenShiftSwipe(){
+  if(!openShiftSwipe){
+    return;
+  }
+
+  openShiftSwipe.classList.remove("is-open");
+
+  const row=
+    openShiftSwipe.querySelector(".sh");
+
   if(row){
+    row.style.removeProperty("transform");
+    row.style.removeProperty("transition");
+  }
+
+  openShiftSwipe=null;
+}
+
+function findShiftTouch(list,id){
+  for(let i=0;i<list.length;i++){
+    const touch=list[i];
+
+    if(touch.identifier===id){
+      return touch;
+    }
+  }
+
+  return null;
+}
+
+app.addEventListener(
+  "touchstart",
+  event=>{
+    if(
+      tab!=="shifts" ||
+      event.touches.length!==1
+    ){
+      return;
+    }
+
+    const wrapper=
+      event.target.closest(".shift-swipe");
+
+    if(!wrapper){
+      closeOpenShiftSwipe();
+      return;
+    }
+
+    if(
+      event.target.closest(".shift-delete")
+    ){
+      return;
+    }
+
+    if(
+      openShiftSwipe &&
+      openShiftSwipe!==wrapper
+    ){
+      closeOpenShiftSwipe();
+    }
+
+    const touch=event.touches[0];
+
+    shiftSwipe={
+      id:touch.identifier,
+      wrapper,
+      row:wrapper.querySelector(".sh"),
+      x:touch.clientX,
+      y:touch.clientY,
+      lastX:touch.clientX,
+      lastY:touch.clientY,
+      startOffset:
+        wrapper.classList.contains("is-open")
+          ? -SHIFT_DELETE_WIDTH
+          : 0,
+      axis:null,
+      moved:false
+    };
+
+    if(shiftSwipe.row){
+      shiftSwipe.row.style.transition="none";
+    }
+  },
+  {passive:true}
+);
+
+app.addEventListener(
+  "touchmove",
+  event=>{
+    if(!shiftSwipe){
+      return;
+    }
+
+    const touch=
+      findShiftTouch(
+        event.touches,
+        shiftSwipe.id
+      );
+
+    if(!touch){
+      return;
+    }
+
+    shiftSwipe.lastX=touch.clientX;
+    shiftSwipe.lastY=touch.clientY;
+
+    const dx=
+      touch.clientX-shiftSwipe.x;
+
+    const dy=
+      touch.clientY-shiftSwipe.y;
+
+    const absX=Math.abs(dx);
+    const absY=Math.abs(dy);
+
+    if(shiftSwipe.axis===null){
+      if(
+        absX<8 &&
+        absY<8
+      ){
+        return;
+      }
+
+      if(
+        absX>=10 &&
+        absX>absY*1.15
+      ){
+        shiftSwipe.axis="x";
+      }else if(
+        absY>=12 &&
+        absY>absX
+      ){
+        shiftSwipe.axis="y";
+        return;
+      }else{
+        return;
+      }
+    }
+
+    if(shiftSwipe.axis!=="x"){
+      return;
+    }
+
+    shiftSwipe.moved=true;
+
+    let offset=
+      shiftSwipe.startOffset+dx;
+
+    offset=Math.max(
+      -SHIFT_DELETE_WIDTH,
+      Math.min(0,offset)
+    );
+
+    if(shiftSwipe.row){
+      shiftSwipe.row.style.transform=
+        `translateX(${offset}px)`;
+    }
+
+    if(event.cancelable){
+      event.preventDefault();
+    }
+  },
+  {passive:false}
+);
+
+function finishShiftSwipe(event){
+  if(!shiftSwipe){
+    return;
+  }
+
+  const swipe=shiftSwipe;
+
+  const touch=
+    findShiftTouch(
+      event.changedTouches,
+      swipe.id
+    );
+
+  const endX=
+    touch
+      ? touch.clientX
+      : swipe.lastX;
+
+  const dx=
+    endX-swipe.x;
+
+  shiftSwipe=null;
+
+  if(swipe.row){
+    swipe.row.style.removeProperty("transform");
+    swipe.row.style.removeProperty("transition");
+  }
+
+  if(
+    swipe.axis!=="x" ||
+    !swipe.moved
+  ){
+    return;
+  }
+
+  suppressShiftClick=true;
+
+  const wasOpen=
+    swipe.wrapper.classList.contains("is-open");
+
+  let shouldOpen;
+
+  if(wasOpen){
+    shouldOpen=dx<-18;
+  }else{
+    shouldOpen=dx<=-32;
+  }
+
+  if(shouldOpen){
+    if(
+      openShiftSwipe &&
+      openShiftSwipe!==swipe.wrapper
+    ){
+      closeOpenShiftSwipe();
+    }
+
+    swipe.wrapper.classList.add("is-open");
+    openShiftSwipe=swipe.wrapper;
+  }else{
+    swipe.wrapper.classList.remove("is-open");
+
+    if(openShiftSwipe===swipe.wrapper){
+      openShiftSwipe=null;
+    }
+  }
+
+  setTimeout(()=>{
+    suppressShiftClick=false;
+  },350);
+}
+
+app.addEventListener(
+  "touchend",
+  finishShiftSwipe,
+  {passive:true}
+);
+
+app.addEventListener(
+  "touchcancel",
+  ()=>{
+    if(!shiftSwipe){
+      return;
+    }
+
+    const swipe=shiftSwipe;
+    shiftSwipe=null;
+
+    if(swipe.row){
+      swipe.row.style.removeProperty("transform");
+      swipe.row.style.removeProperty("transition");
+    }
+  },
+  {passive:true}
+);
+
+app.addEventListener("click",async event=>{
+  if(suppressShiftClick){
+    event.preventDefault();
+    return;
+  }
+
+  const deleteButton=
+    event.target.closest("[data-delete-shift]");
+
+  if(deleteButton){
+    const id=
+      deleteButton.dataset.deleteShift;
+
+    const shift=
+      shifts.find(item=>item.id===id);
+
+    if(!shift){
+      closeOpenShiftSwipe();
+      return;
+    }
+
+    const confirmed=await appConfirm(
+      `Удалить смену ${dateLabel(shift.date)}?`,
+      {
+        okText:"Удалить",
+        danger:true
+      }
+    );
+
+    if(!confirmed){
+      return;
+    }
+
+    const nextShifts=
+      shifts.filter(item=>item.id!==id);
+
+    if(!await save(nextShifts)){
+      return;
+    }
+
+    shifts=nextShifts;
+    openShiftSwipe=null;
+
+    render();
+
+    toast("Смена удалена");
+    return;
+  }
+
+  const row=
+    event.target.closest("[data-edit]");
+
+  if(row){
+    const wrapper=
+      row.closest(".shift-swipe");
+
+    if(
+      wrapper &&
+      wrapper.classList.contains("is-open")
+    ){
+      closeOpenShiftSwipe();
+      return;
+    }
+
     openSheet(row.dataset.edit);
     return;
   }
