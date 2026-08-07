@@ -1626,3 +1626,375 @@ select:focus-visible{
 textarea{
   font-size:16px;
 }
+
+/* ===== unified motion ===== */
+
+:root{
+  --motion-ease:
+    cubic-bezier(.22,.72,.22,1);
+
+  --motion-sheet-ease:
+    cubic-bezier(.32,.72,0,1);
+
+  --motion-backdrop:260ms;
+  --motion-picker:300ms;
+  --motion-sheet:320ms;
+  --motion-month:320ms;
+}
+
+/* Затемнения окон */
+
+.veil,
+.point-veil,
+.date-veil,
+.month-veil{
+  transition:
+    opacity
+    var(--motion-backdrop)
+    var(--motion-ease);
+}
+
+/* Основная шторка смены */
+
+.sheet{
+  transform:
+    translate3d(
+      0,
+      110vh,
+      0
+    );
+
+  transition:
+    transform
+      var(--motion-sheet)
+      var(--motion-sheet-ease),
+    visibility
+      0s
+      linear
+      var(--motion-sheet);
+
+  will-change:transform;
+
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+}
+
+.sheet.on{
+  transform:
+    translate3d(
+      0,
+      var(--sheet-drag,0px),
+      0
+    );
+
+  transition:
+    transform
+      var(--motion-sheet)
+      var(--motion-sheet-ease),
+    visibility 0s;
+}
+
+/* Выбор ПВЗ */
+
+.point-picker{
+  transform:
+    translate3d(
+      0,
+      calc(100% + 30px),
+      0
+    );
+
+  transition:
+    transform
+      var(--motion-picker)
+      var(--motion-sheet-ease);
+
+  will-change:transform;
+
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+}
+
+.point-picker.on{
+  transform:
+    translate3d(
+      0,
+      var(--point-drag,0px),
+      0
+    );
+}
+
+/* Выбор даты */
+
+.date-picker{
+  transform:
+    translate3d(
+      0,
+      calc(
+        100% +
+        24px +
+        env(safe-area-inset-bottom)
+      ),
+      0
+    );
+
+  transition:
+    transform
+      var(--motion-picker)
+      var(--motion-sheet-ease);
+
+  will-change:transform;
+
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+}
+
+.date-picker.on{
+  transform:
+    translate3d(
+      0,
+      var(--date-drag,0px),
+      0
+    );
+}
+
+/* Выбор месяца */
+
+.month-picker{
+  transform:
+    translate3d(
+      0,
+      calc(
+        100% +
+        24px +
+        env(safe-area-inset-bottom)
+      ),
+      0
+    );
+
+  transition:
+    transform
+      var(--motion-picker)
+      var(--motion-sheet-ease);
+
+  will-change:transform;
+
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+}
+
+.month-picker.on{
+  transform:
+    translate3d(
+      0,
+      var(--month-drag,0px),
+      0
+    );
+}
+
+/* Переход между месяцами */
+
+#app{
+  view-transition-name:
+    month-content;
+}
+
+#period{
+  view-transition-name:
+    month-period;
+}
+
+/*
+  Отключаем стандартное затемнение
+  всей страницы. Анимируются только
+  содержимое месяца и его заголовок.
+*/
+
+::view-transition-old(root){
+  animation:none;
+  opacity:0;
+}
+
+::view-transition-new(root){
+  animation:none;
+  opacity:1;
+}
+
+::view-transition-old(month-content),
+::view-transition-new(month-content),
+::view-transition-old(month-period),
+::view-transition-new(month-period){
+  mix-blend-mode:normal;
+}
+
+/* Следующий месяц */
+
+html[data-month-motion="next"]
+::view-transition-old(month-content){
+  animation:
+    month-content-out-next
+    var(--motion-month)
+    var(--motion-ease)
+    both;
+}
+
+html[data-month-motion="next"]
+::view-transition-new(month-content){
+  animation:
+    month-content-in-next
+    var(--motion-month)
+    var(--motion-ease)
+    both;
+}
+
+html[data-month-motion="next"]
+::view-transition-old(month-period){
+  animation:
+    month-period-out-next
+    var(--motion-month)
+    var(--motion-ease)
+    both;
+}
+
+html[data-month-motion="next"]
+::view-transition-new(month-period){
+  animation:
+    month-period-in-next
+    var(--motion-month)
+    var(--motion-ease)
+    both;
+}
+
+/* Предыдущий месяц */
+
+html[data-month-motion="prev"]
+::view-transition-old(month-content){
+  animation:
+    month-content-out-prev
+    var(--motion-month)
+    var(--motion-ease)
+    both;
+}
+
+html[data-month-motion="prev"]
+::view-transition-new(month-content){
+  animation:
+    month-content-in-prev
+    var(--motion-month)
+    var(--motion-ease)
+    both;
+}
+
+html[data-month-motion="prev"]
+::view-transition-old(month-period){
+  animation:
+    month-period-out-prev
+    var(--motion-month)
+    var(--motion-ease)
+    both;
+}
+
+html[data-month-motion="prev"]
+::view-transition-new(month-period){
+  animation:
+    month-period-in-prev
+    var(--motion-month)
+    var(--motion-ease)
+    both;
+}
+
+@keyframes month-content-out-next{
+  from{
+    opacity:1;
+    transform:translate3d(0,0,0);
+  }
+
+  to{
+    opacity:0;
+    transform:translate3d(-28px,0,0);
+  }
+}
+
+@keyframes month-content-in-next{
+  from{
+    opacity:0;
+    transform:translate3d(28px,0,0);
+  }
+
+  to{
+    opacity:1;
+    transform:translate3d(0,0,0);
+  }
+}
+
+@keyframes month-content-out-prev{
+  from{
+    opacity:1;
+    transform:translate3d(0,0,0);
+  }
+
+  to{
+    opacity:0;
+    transform:translate3d(28px,0,0);
+  }
+}
+
+@keyframes month-content-in-prev{
+  from{
+    opacity:0;
+    transform:translate3d(-28px,0,0);
+  }
+
+  to{
+    opacity:1;
+    transform:translate3d(0,0,0);
+  }
+}
+
+@keyframes month-period-out-next{
+  from{
+    opacity:1;
+    transform:translate3d(0,0,0);
+  }
+
+  to{
+    opacity:0;
+    transform:translate3d(-10px,0,0);
+  }
+}
+
+@keyframes month-period-in-next{
+  from{
+    opacity:0;
+    transform:translate3d(10px,0,0);
+  }
+
+  to{
+    opacity:1;
+    transform:translate3d(0,0,0);
+  }
+}
+
+@keyframes month-period-out-prev{
+  from{
+    opacity:1;
+    transform:translate3d(0,0,0);
+  }
+
+  to{
+    opacity:0;
+    transform:translate3d(10px,0,0);
+  }
+}
+
+@keyframes month-period-in-prev{
+  from{
+    opacity:0;
+    transform:translate3d(-10px,0,0);
+  }
+
+  to{
+    opacity:1;
+    transform:translate3d(0,0,0);
+  }
+}
