@@ -1299,140 +1299,16 @@ function closeMonthPicker(){
   },320);
 }
 
-let monthTransitionRunning=false;
-
-function prefersReducedMotion(){
-  return window.matchMedia?.(
-    "(prefers-reduced-motion: reduce)"
-  ).matches===true;
-}
-
-function clampScrollY(value){
-  const maxScroll=
-    Math.max(
-      0,
-      document.documentElement.scrollHeight-
-      window.innerHeight
-    );
-
-  return Math.min(
-    Math.max(0,value),
-    maxScroll
-  );
-}
-
-function changeMonth(
-  nextCursor,
-  direction
-){
-  if(
-    nextCursor===cursor ||
-    monthTransitionRunning
-  ){
-    return;
-  }
-
-  const previousScroll=
-    window.scrollY;
-
-  cursor=nextCursor;
-  render();
-
-  window.scrollTo(
-    0,
-    clampScrollY(
-      previousScroll
-    )
-  );
-
-  /*
-    Для стрелок и выбора месяца оставляем
-    короткое мягкое появление нового экрана.
-
-    Свайп пальцем использует отдельную
-    интерактивную механику ниже.
-  */
-  if(
-    prefersReducedMotion() ||
-    typeof app.animate!=="function"
-  ){
-    return;
-  }
-
-  monthTransitionRunning=true;
-
-  const startX=
-    direction>0
-      ? 18
-      : -18;
-
-  try{
-    const animation=
-      app.animate(
-        [
-          {
-            opacity:.72,
-            transform:
-              `translate3d(${startX}px,0,0)`
-          },
-          {
-            opacity:1,
-            transform:
-              "translate3d(0,0,0)"
-          }
-        ],
-        {
-          duration:220,
-          easing:
-            "cubic-bezier(.22,.72,.22,1)"
-        }
-      );
-
-    animation.finished
-      .catch(()=>{})
-      .finally(()=>{
-        monthTransitionRunning=false;
-      });
-  }catch{
-    monthTransitionRunning=false;
-  }
-}
-
 function selectMonth(ym){
-  const direction=
-    ym>cursor
-      ? 1
-      : ym<cursor
-        ? -1
-        : 0;
-
+  cursor=ym;
   closeMonthPicker();
-
-  if(direction===0){
-    return;
-  }
-
-  changeMonth(
-    ym,
-    direction
-  );
+  render();
+  window.scrollTo(0,0);
 }
 
 /* ========== события ========== */
-document.getElementById("prevM").onclick=()=>{
-  changeMonth(
-    shiftMonth(cursor,-1),
-    -1
-  );
-};
-
-document.getElementById("nextM").onclick=()=>{
-  changeMonth(
-    shiftMonth(cursor,1),
-    1
-  );
-};
-
+document.getElementById("prevM").onclick=()=>{cursor=shiftMonth(cursor,-1);render();};
+document.getElementById("nextM").onclick=()=>{cursor=shiftMonth(cursor,1);render();};
 document.getElementById("period").onclick=openMonthPicker;
 
 
@@ -1592,21 +1468,9 @@ let suppressMonthClick=false;
 
 const monthSwipeArea=document;
 
-const MONTH_SWIPE_MIN_DISTANCE=64;
-const MONTH_SWIPE_FAST_DISTANCE=28;
-const MONTH_SWIPE_FAST_VELOCITY=.34;
-
 function resetMonthSwipe(){
-  const swipe=monthSwipe;
   monthSwipe=null;
-
-  document.body.classList.remove(
-    "month-swiping"
-  );
-
-  if(swipe?.visualReady){
-    restoreMonthSwipeVisual(swipe);
-  }
+  document.body.classList.remove("month-swiping");
 }
 
 function findTouch(list,id){
@@ -1633,468 +1497,11 @@ function monthSwipeStartBlocked(target){
   );
 }
 
-/*
-  Рисуем соседний месяц только для
-  предварительного показа во время свайпа.
-
-  Глобальный cursor обязательно возвращаем
-  обратно в finally.
-*/
-function renderMonthPreview(ym){
-  const previousCursor=cursor;
-
-  try{
-    cursor=ym;
-
-    const html=
-      tab==="shifts"
-        ? viewShifts()
-        : viewStats();
-
-    /*
-      Боковые страницы не интерактивны.
-      Заодно убираем возможный повтор id
-      кнопки пустого месяца.
-    */
-    return html.replace(
-      /\sid="emptyAdd"/g,
-      ""
-    );
-  }finally{
-    cursor=previousCursor;
-  }
-}
-
-/*
-  Если текущий месяц длинный, а соседний
-  короткий, вычисляем ближайшую реальную
-  позицию прокрутки соседнего месяца.
-
-  Благодаря этому при свайпе из низа июля
-  август не будет сначала пустым экраном,
-  а затем телепортироваться наверх.
-*/
-function measureMonthPreviewOffset(
-  panel,
-  viewportOffset
-){
-  const headerHeight=
-    document
-      .querySelector("header")
-      ?.getBoundingClientRect()
-      .height || 0;
-
-  const bottomHeight=
-    document
-      .querySelector(".bottom-controls")
-      ?.getBoundingClientRect()
-      .height || 0;
-
-  const visibleHeight=
-    Math.max(
-      220,
-      window.innerHeight-
-      headerHeight-
-      bottomHeight-
-      24
-    );
-
-  const maxOffset=
-    Math.max(
-      0,
-      panel.scrollHeight-
-      visibleHeight
-    );
-
-  return Math.min(
-    viewportOffset,
-    maxOffset
-  );
-}
-
-function applyMonthDrag(swipe,x){
-  if(!swipe?.panels){
-    return;
-  }
-
-  swipe.panels.current.style.transform=
-    `translate3d(${x}px,0,0)`;
-
-  swipe.panels.prev.style.transform=
-    `translate3d(${x-swipe.width}px,${swipe.prevY}px,0)`;
-
-  swipe.panels.next.style.transform=
-    `translate3d(${x+swipe.width}px,${swipe.nextY}px,0)`;
-}
-
-/*
-  Через requestAnimationFrame не заставляем
-  Safari делать несколько transform за один
-  экранный кадр.
-*/
-function queueMonthDrag(swipe,x){
-  swipe.dragX=x;
-
-  if(swipe.raf){
-    return;
-  }
-
-  swipe.raf=requestAnimationFrame(()=>{
-    swipe.raf=0;
-
-    if(swipe.visualReady){
-      applyMonthDrag(
-        swipe,
-        swipe.dragX
-      );
-    }
-  });
-}
-
-function prepareMonthSwipeVisual(swipe){
-  if(swipe.visualReady){
-    return;
-  }
-
-  const rect=
-    app.getBoundingClientRect();
-
-  swipe.width=
-    Math.max(1,rect.width);
-
-  swipe.originalHtml=
-    app.innerHTML;
-
-  swipe.prevCursor=
-    shiftMonth(cursor,-1);
-
-  swipe.nextCursor=
-    shiftMonth(cursor,1);
-
-  const prevHtml=
-    swipe.prevCursor===cursor
-      ? ""
-      : renderMonthPreview(
-          swipe.prevCursor
-        );
-
-  const nextHtml=
-    swipe.nextCursor===cursor
-      ? ""
-      : renderMonthPreview(
-          swipe.nextCursor
-        );
-
-  /*
-    Пока палец движется горизонтально,
-    высоту текущего месяца фиксируем.
-
-    Поэтому длинный соседний месяц не
-    растягивает страницу прямо во время
-    жеста.
-  */
-  app.style.height=
-    Math.max(1,rect.height)+"px";
-
-  app.classList.add(
-    "month-swipe-active"
-  );
-
-  app.innerHTML=`
-    <div
-      class="month-swipe-panel month-swipe-prev"
-      aria-hidden="true"
-      inert
-    >${prevHtml}</div>
-
-    <div
-      class="month-swipe-panel month-swipe-current"
-    >${swipe.originalHtml}</div>
-
-    <div
-      class="month-swipe-panel month-swipe-next"
-      aria-hidden="true"
-      inert
-    >${nextHtml}</div>
-  `;
-
-  swipe.panels={
-    prev:
-      app.querySelector(
-        ".month-swipe-prev"
-      ),
-
-    current:
-      app.querySelector(
-        ".month-swipe-current"
-      ),
-
-    next:
-      app.querySelector(
-        ".month-swipe-next"
-      )
-  };
-
-  const viewportOffset=
-    Math.max(
-      0,
-      -app.getBoundingClientRect().top
-    );
-
-  /*
-    Базовая часть scrollY, которая не
-    относится к прокрутке внутри main.
-  */
-  swipe.scrollBase=
-    window.scrollY-
-    viewportOffset;
-
-  swipe.prevScrollOffset=
-    swipe.prevCursor===cursor
-      ? viewportOffset
-      : measureMonthPreviewOffset(
-          swipe.panels.prev,
-          viewportOffset
-        );
-
-  swipe.nextScrollOffset=
-    swipe.nextCursor===cursor
-      ? viewportOffset
-      : measureMonthPreviewOffset(
-          swipe.panels.next,
-          viewportOffset
-        );
-
-  swipe.prevY=
-    viewportOffset-
-    swipe.prevScrollOffset;
-
-  swipe.nextY=
-    viewportOffset-
-    swipe.nextScrollOffset;
-
-  swipe.visualReady=true;
-  swipe.dragX=0;
-
-  applyMonthDrag(
-    swipe,
-    0
-  );
-}
-
-function clearMonthSwipeVisual(swipe){
-  if(swipe?.raf){
-    cancelAnimationFrame(
-      swipe.raf
-    );
-
-    swipe.raf=0;
-  }
-
-  app.classList.remove(
-    "month-swipe-active",
-    "month-swipe-settling"
-  );
-
-  app.style.removeProperty(
-    "height"
-  );
-
-  app.style.removeProperty(
-    "--month-snap-ms"
-  );
-}
-
-function restoreMonthSwipeVisual(swipe){
-  if(!swipe?.visualReady){
-    return;
-  }
-
-  clearMonthSwipeVisual(swipe);
-
-  app.innerHTML=
-    swipe.originalHtml;
-}
-
-function settleMonthSwipe(
-  swipe,
-  {
-    targetCursor=null,
-    direction=0
-  }={}
-){
-  if(!swipe?.visualReady){
-    document.body.classList.remove(
-      "month-swiping"
-    );
-
-    monthTransitionRunning=false;
-    return;
-  }
-
-  if(swipe.raf){
-    cancelAnimationFrame(
-      swipe.raf
-    );
-
-    swipe.raf=0;
-  }
-
-  /*
-    Сначала обязательно фиксируем последнее
-    реальное положение пальца.
-  */
-  applyMonthDrag(
-    swipe,
-    swipe.dragX || 0
-  );
-
-  const accepted=
-    Boolean(
-      targetCursor &&
-      direction
-    );
-
-  const finalX=
-    accepted
-      ? (
-          direction>0
-            ? -swipe.width
-            : swipe.width
-        )
-      : 0;
-
-  const remaining=
-    Math.abs(
-      finalX-
-      (swipe.dragX || 0)
-    );
-
-  /*
-    Чем ближе палец уже подвёл экран
-    к конечной точке, тем короче остаточная
-    анимация.
-
-    Диапазон примерно 170–260 мс.
-  */
-  const duration=
-    prefersReducedMotion()
-      ? 0
-      : Math.round(
-          170+
-          Math.min(
-            1,
-            remaining/
-            swipe.width
-          )*90
-        );
-
-  let completed=false;
-
-  const complete=()=>{
-    if(completed){
-      return;
-    }
-
-    completed=true;
-
-    document.body.classList.remove(
-      "month-swiping"
-    );
-
-    monthTransitionRunning=false;
-
-    if(!accepted){
-      restoreMonthSwipeVisual(
-        swipe
-      );
-
-      return;
-    }
-
-    const targetOffset=
-      direction>0
-        ? swipe.nextScrollOffset
-        : swipe.prevScrollOffset;
-
-    const desiredScroll=
-      swipe.scrollBase+
-      targetOffset;
-
-    clearMonthSwipeVisual(
-      swipe
-    );
-
-    cursor=targetCursor;
-    render();
-
-    requestAnimationFrame(()=>{
-      window.scrollTo(
-        0,
-        clampScrollY(
-          desiredScroll
-        )
-      );
-    });
-  };
-
-  monthTransitionRunning=true;
-
-  if(duration===0){
-    applyMonthDrag(
-      swipe,
-      finalX
-    );
-
-    complete();
-    return;
-  }
-
-  app.style.setProperty(
-    "--month-snap-ms",
-    duration+"ms"
-  );
-
-  app.classList.add(
-    "month-swipe-settling"
-  );
-
-  /*
-    Разделяем последний drag-кадр и начало
-    snap-анимации, чтобы Safari не склеил их
-    в один скачок.
-  */
-  void app.offsetWidth;
-
-  applyMonthDrag(
-    swipe,
-    finalX
-  );
-
-  swipe.panels.current
-    .addEventListener(
-      "transitionend",
-      complete,
-      {once:true}
-    );
-
-  /*
-    Fallback на случай, если Safari по
-    какой-то причине не пришлёт
-    transitionend.
-  */
-  setTimeout(
-    complete,
-    duration+80
-  );
-}
-
 monthSwipeArea.addEventListener(
   "touchstart",
   e=>{
     if(
       !["shifts","stats"].includes(tab) ||
-      monthTransitionRunning ||
       e.touches.length!==1 ||
       document.body.classList.contains("sheet-open") ||
       document.body.classList.contains("point-picker-open") ||
@@ -2114,10 +1521,7 @@ monthSwipeArea.addEventListener(
       lastX:touch.clientX,
       lastY:touch.clientY,
       time:performance.now(),
-      axis:null,
-      visualReady:false,
-      dragX:0,
-      raf:0
+      axis:null
     };
   },
   {passive:true}
@@ -2147,12 +1551,10 @@ monthSwipeArea.addEventListener(
       touch.clientY;
 
     const dx=
-      touch.clientX-
-      monthSwipe.x;
+      touch.clientX-monthSwipe.x;
 
     const dy=
-      touch.clientY-
-      monthSwipe.y;
+      touch.clientY-monthSwipe.y;
 
     const absX=
       Math.abs(dx);
@@ -2161,11 +1563,12 @@ monthSwipeArea.addEventListener(
       Math.abs(dy);
 
     /*
-      Старую dead zone оставляем.
+      Не определяем направление по первым
+      2–6 пикселям движения пальца.
 
-      Первые несколько пикселей нужны,
-      чтобы отличить горизонтальный свайп
-      от обычной вертикальной прокрутки.
+      Это специально оставляет небольшой
+      dead zone для естественного дрожания
+      пальца на iPhone.
     */
     if(monthSwipe.axis===null){
       if(
@@ -2175,65 +1578,47 @@ monthSwipeArea.addEventListener(
         return;
       }
 
+      /*
+        Горизонтальный жест определяем
+        немного охотнее вертикального.
+      */
       if(
         absX>=10 &&
         absX>absY*1.10
       ){
         monthSwipe.axis="x";
+      }
 
-        prepareMonthSwipeVisual(
-          monthSwipe
-        );
-      }else if(
+      /*
+        Вертикальный scroll блокируем
+        только когда вертикальное намерение
+        уже достаточно очевидно.
+      */
+      else if(
         absY>=14 &&
         absY>absX*1.25
       ){
         monthSwipe.axis="y";
-      }else{
+      }
+
+      else{
         return;
       }
     }
 
-    if(monthSwipe.axis!=="x"){
-      return;
-    }
+    if(monthSwipe.axis==="x"){
+      document.body.classList.add(
+        "month-swiping"
+      );
 
-    document.body.classList.add(
-      "month-swiping"
-    );
-
-    /*
-      После определения X экран уже идёт
-      строго за пальцем 1:1.
-    */
-    let dragX=dx;
-
-    /*
-      На крайнем доступном месяце вместо
-      перехода за границу делаем лёгкую
-      резиновую отдачу.
-    */
-    if(
-      dragX>0 &&
-      monthSwipe.prevCursor===cursor
-    ){
-      dragX*=.24;
-    }
-
-    if(
-      dragX<0 &&
-      monthSwipe.nextCursor===cursor
-    ){
-      dragX*=.24;
-    }
-
-    queueMonthDrag(
-      monthSwipe,
-      dragX
-    );
-
-    if(e.cancelable){
-      e.preventDefault();
+      /*
+        Только после уверенного определения
+        горизонтального свайпа забираем
+        жест у Safari.
+      */
+      if(e.cancelable){
+        e.preventDefault();
+      }
     }
   },
   {passive:false}
@@ -2245,7 +1630,6 @@ function finishMonthSwipe(e){
   }
 
   const swipe=monthSwipe;
-  monthSwipe=null;
 
   const touch=
     findTouch(
@@ -2275,98 +1659,74 @@ function finishMonthSwipe(e){
   const absY=
     Math.abs(dy);
 
-  if(
-    swipe.axis!=="x" ||
-    !swipe.visualReady
-  ){
-    document.body.classList.remove(
-      "month-swiping"
-    );
-
-    restoreMonthSwipeVisual(
-      swipe
-    );
-
-    return;
-  }
-
   const duration=
     Math.max(
       1,
-      performance.now()-
-      swipe.time
+      performance.now()-swipe.time
     );
 
   const velocity=
     absX/duration;
 
+  resetMonthSwipe();
+
+  /*
+    Финальная страховка от вертикального
+    скролла и диагонального жеста.
+  */
   const horizontal=
     absX>absY*1.08;
 
   /*
-    При интерактивном свайпе порог делаем
-    немного больше прежних 38 px:
-    пользователь уже видит, насколько
-    далеко увёл страницу.
+    Обычный осознанный свайп.
   */
-  const distanceNeeded=
-    Math.min(
-      110,
-      Math.max(
-        MONTH_SWIPE_MIN_DISTANCE,
-        swipe.width*.22
-      )
-    );
-
   const enoughDistance=
-    absX>=distanceNeeded;
-
-  const fastSwipe=
-    absX>=
-      MONTH_SWIPE_FAST_DISTANCE &&
-    velocity>=
-      MONTH_SWIPE_FAST_VELOCITY;
-
-  const direction=
-    dx<0
-      ? 1
-      : -1;
-
-  const targetCursor=
-    direction>0
-      ? swipe.nextCursor
-      : swipe.prevCursor;
-
-  const available=
-    targetCursor!==cursor;
-
-  const accepted=
-    horizontal &&
-    available &&
-    (
-      enoughDistance ||
-      fastSwipe
-    );
+    absX>=38;
 
   /*
-    Не даём последующему click открыть
-    карточку смены, с которой начался свайп.
+    Или короткий, но быстрый flick.
+  */
+  const fastSwipe=
+    absX>=22 &&
+    velocity>=0.30;
+
+  if(
+    swipe.axis==="y" ||
+    !horizontal ||
+    (
+      !enoughDistance &&
+      !fastSwipe
+    )
+  ){
+    return;
+  }
+
+  const nextCursor=
+    shiftMonth(
+      cursor,
+      dx<0 ? 1 : -1
+    );
+
+  if(nextCursor===cursor){
+    return;
+  }
+
+  /*
+    Не даём iOS после свайпа открыть
+    случайно ту смену, на которой
+    закончился палец.
   */
   suppressMonthClick=true;
 
-  settleMonthSwipe(
-    swipe,
-    accepted
-      ? {
-          targetCursor,
-          direction
-        }
-      : {}
-  );
+  cursor=nextCursor;
+
+  render();
+
+  window.scrollTo(0,0);
 
   setTimeout(()=>{
     suppressMonthClick=false;
-  },420);
+  },400);
 }
 
 monthSwipeArea.addEventListener(
@@ -2377,39 +1737,7 @@ monthSwipeArea.addEventListener(
 
 monthSwipeArea.addEventListener(
   "touchcancel",
-  ()=>{
-    if(!monthSwipe){
-      return;
-    }
-
-    const swipe=monthSwipe;
-    monthSwipe=null;
-
-    if(
-      swipe.axis==="x" &&
-      swipe.visualReady
-    ){
-      suppressMonthClick=true;
-
-      settleMonthSwipe(
-        swipe
-      );
-
-      setTimeout(()=>{
-        suppressMonthClick=false;
-      },320);
-
-      return;
-    }
-
-    document.body.classList.remove(
-      "month-swiping"
-    );
-
-    restoreMonthSwipeVisual(
-      swipe
-    );
-  },
+  resetMonthSwipe,
   {passive:true}
 );
 
