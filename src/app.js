@@ -757,15 +757,24 @@ function openSheet(id,restoredDraft=null,restoredScrollTop=0){
     sheet.scrollTop=Math.max(0,restoredScrollTop);
     void sheet.offsetHeight;
     requestAnimationFrame(()=>{
-      sheet.style.removeProperty("transition");
-      veil.style.removeProperty("transition");
-      document.getElementById("sheetCancel").focus();
-    });
+  sheet.style.removeProperty("transition");
+  veil.style.removeProperty("transition");
+
+  sheet.focus({
+    preventScroll:true
+  });
+});
   }else{
     requestAnimationFrame(()=>{
-      sheet.scrollTop=Math.max(0,restoredScrollTop);
-      document.getElementById("sheetCancel").focus();
-    });
+  sheet.scrollTop=Math.max(
+    0,
+    restoredScrollTop
+  );
+
+  sheet.focus({
+    preventScroll:true
+  });
+});
   }
 
   saveUIState();
