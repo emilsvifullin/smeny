@@ -1647,17 +1647,480 @@ document.getElementById("nextM").onclick=()=>{
 
 document.getElementById("period").onclick=openMonthPicker;
 
+let monthPickerYearTransitionRunning=false;
+let dateJumpYearTransitionRunning=false;
+
+function animatePickerYearChange({
+  container,
+  grid,
+  label,
+  direction,
+  apply,
+  onFinish
+}){
+  const finish=()=>{
+    if(onFinish){
+      onFinish();
+    }
+  };
+
+  if(
+    prefersReducedMotion() ||
+    typeof grid.animate!=="function"
+  ){
+    apply();
+    finish();
+    return;
+  }
+
+  let oldGrid=null;
+  let oldLabel=null;
+  let animations=[];
+  let applied=false;
+
+  try{
+    oldGrid=
+      makeDateCalendarGhost(
+        grid,
+        container
+      );
+
+    oldLabel=
+      makeDateCalendarGhost(
+        label,
+        container
+      );
+
+    apply();
+    applied=true;
+
+    grid.style.pointerEvents="none";
+
+    const oldGridX=
+      direction>0
+        ? -28
+        : 28;
+
+    const newGridX=
+      -oldGridX;
+
+    const oldLabelX=
+      direction>0
+        ? -10
+        : 10;
+
+    const newLabelX=
+      -oldLabelX;
+
+    const options={
+      duration:320,
+      easing:
+        "cubic-bezier(.22,.72,.22,1)",
+      fill:"both"
+    };
+
+    animations=[
+      oldGrid.animate(
+        [
+          {
+            opacity:1,
+            transform:
+              "translate3d(0,0,0)"
+          },
+          {
+            opacity:0,
+            transform:
+              `translate3d(${oldGridX}px,0,0)`
+          }
+        ],
+        options
+      ),
+
+      grid.animate(
+        [
+          {
+            opacity:0,
+            transform:
+              `translate3d(${newGridX}px,0,0)`
+          },
+          {
+            opacity:1,
+            transform:
+              "translate3d(0,0,0)"
+          }
+        ],
+        options
+      ),
+
+      oldLabel.animate(
+        [
+          {
+            opacity:1,
+            transform:
+              "translate3d(0,0,0)"
+          },
+          {
+            opacity:0,
+            transform:
+              `translate3d(${oldLabelX}px,0,0)`
+          }
+        ],
+        options
+      ),
+
+      label.animate(
+        [
+          {
+            opacity:0,
+            transform:
+              `translate3d(${newLabelX}px,0,0)`
+          },
+          {
+            opacity:1,
+            transform:
+              "translate3d(0,0,0)"
+          }
+        ],
+        options
+      )
+    ];
+
+    Promise.allSettled(
+      animations.map(
+        animation=>animation.finished
+      )
+    ).finally(()=>{
+      animations.forEach(
+        animation=>animation.cancel()
+      );
+
+      oldGrid?.remove();
+      oldLabel?.remove();
+
+      grid.style.removeProperty(
+        "pointer-events"
+      );
+
+      finish();
+    });
+  }catch{
+    animations.forEach(
+      animation=>animation.cancel()
+    );
+
+    oldGrid?.remove();
+    oldLabel?.remove();
+
+    grid.style.removeProperty(
+      "pointer-events"
+    );
+
+    if(!applied){
+      apply();
+    }
+
+    finish();
+  }
+}
+
+function changeMonthPickerYear(direction){
+  if(monthPickerYearTransitionRunning){
+    return;
+  }
+
+  const nextYear=
+    Math.min(
+      MAX_YEAR,
+      Math.max(
+        MIN_YEAR,
+        monthPickerYear+direction
+      )
+    );
+
+  if(nextYear===monthPickerYear){
+    return;
+  }
+
+  monthPickerYearTransitionRunning=true;
+
+  animatePickerYearChange({
+    container:
+      document.getElementById(
+        "monthPicker"
+      ),
+
+    grid:
+      document.getElementById(
+        "monthGrid"
+      ),
+
+    label:
+      document.getElementById(
+        "monthPickerYear"
+      ),
+
+    direction,
+
+    apply:()=>{
+      monthPickerYear=nextYear;
+      drawMonthPicker();
+    },
+
+    onFinish:()=>{
+      monthPickerYearTransitionRunning=false;
+    }
+  });
+}
+
+function changeDateJumpYear(direction){
+  if(dateJumpYearTransitionRunning){
+    return;
+  }
+
+  const nextYear=
+    Math.min(
+      MAX_YEAR,
+      Math.max(
+        MIN_YEAR,
+        dateJumpYear+direction
+      )
+    );
+
+  if(nextYear===dateJumpYear){
+    return;
+  }
+
+  dateJumpYearTransitionRunning=true;
+
+  animatePickerYearChange({
+    container:
+      document.getElementById(
+        "dateJump"
+      ),
+
+    grid:
+      document.getElementById(
+        "dateJumpMonths"
+      ),
+
+    label:
+      document.getElementById(
+        "dateJumpYear"
+      ),
+
+    direction,
+
+    apply:()=>{
+      dateJumpYear=nextYear;
+      drawDateJump();
+    },
+
+    onFinish:()=>{
+      dateJumpYearTransitionRunning=false;
+    }
+  });
+}
+
+function bindYearSwipe(
+  element,
+  changeYear
+){
+  let swipe=null;
+
+  element.addEventListener(
+    "pointerdown",
+    e=>{
+      if(
+        !e.isPrimary ||
+        !["touch","pen"].includes(
+          e.pointerType
+        )
+      ){
+        return;
+      }
+
+      swipe={
+        id:e.pointerId,
+        x:e.clientX,
+        y:e.clientY,
+        time:performance.now(),
+        axis:null
+      };
+
+      try{
+        element.setPointerCapture(
+          e.pointerId
+        );
+      }catch{}
+    }
+  );
+
+  element.addEventListener(
+    "pointermove",
+    e=>{
+      if(
+        !swipe ||
+        e.pointerId!==swipe.id
+      ){
+        return;
+      }
+
+      const dx=
+        e.clientX-swipe.x;
+
+      const dy=
+        e.clientY-swipe.y;
+
+      const absX=
+        Math.abs(dx);
+
+      const absY=
+        Math.abs(dy);
+
+      if(swipe.axis===null){
+        if(
+          absX<8 &&
+          absY<8
+        ){
+          return;
+        }
+
+        if(
+          absX>=10 &&
+          absX>absY*1.10
+        ){
+          swipe.axis="x";
+        }else if(
+          absY>=14 &&
+          absY>absX*1.25
+        ){
+          swipe.axis="y";
+          return;
+        }else{
+          return;
+        }
+      }
+
+      if(swipe.axis!=="x"){
+        return;
+      }
+
+      if(e.cancelable){
+        e.preventDefault();
+      }
+    }
+  );
+
+  const finish=e=>{
+    if(
+      !swipe ||
+      e.pointerId!==swipe.id
+    ){
+      return;
+    }
+
+    const current=swipe;
+    swipe=null;
+
+    try{
+      if(
+        element.hasPointerCapture(
+          e.pointerId
+        )
+      ){
+        element.releasePointerCapture(
+          e.pointerId
+        );
+      }
+    }catch{}
+
+    const dx=
+      e.clientX-current.x;
+
+    const dy=
+      e.clientY-current.y;
+
+    const absX=
+      Math.abs(dx);
+
+    const absY=
+      Math.abs(dy);
+
+    const duration=
+      Math.max(
+        1,
+        performance.now()-current.time
+      );
+
+    const velocity=
+      absX/duration;
+
+    const horizontal=
+      absX>absY*1.08;
+
+    const enoughDistance=
+      absX>=35;
+
+    const fastSwipe=
+      absX>=22 &&
+      velocity>=0.30;
+
+    if(
+      current.axis!=="x" ||
+      !horizontal ||
+      (
+        !enoughDistance &&
+        !fastSwipe
+      )
+    ){
+      return;
+    }
+
+    changeYear(
+      dx<0
+        ? 1
+        : -1
+    );
+  };
+
+  element.addEventListener(
+    "pointerup",
+    finish
+  );
+
+  element.addEventListener(
+    "pointercancel",
+    e=>{
+      if(
+        !swipe ||
+        e.pointerId!==swipe.id
+      ){
+        return;
+      }
+
+      swipe=null;
+    }
+  );
+}
+
+bindYearSwipe(
+  document.getElementById("monthGrid"),
+  changeMonthPickerYear
+);
+
+bindYearSwipe(
+  document.getElementById("dateJumpMonths"),
+  changeDateJumpYear
+);
 
 document.getElementById("monthVeil").onclick=closeMonthPicker;
 
 document.getElementById("monthYearPrev").onclick=()=>{
-  monthPickerYear=Math.max(MIN_YEAR,monthPickerYear-1);
-  drawMonthPicker();
+  changeMonthPickerYear(-1);
 };
 
 document.getElementById("monthYearNext").onclick=()=>{
-  monthPickerYear=Math.min(MAX_YEAR,monthPickerYear+1);
-  drawMonthPicker();
+  changeMonthPickerYear(1);
 };
 
 document.getElementById("monthGrid").onclick=e=>{
@@ -2268,13 +2731,11 @@ document.getElementById("datePickerMonth").onclick=()=>{
 };
 
 document.getElementById("dateJumpPrevYear").onclick=()=>{
-  dateJumpYear=Math.max(MIN_YEAR,dateJumpYear-1);
-  drawDateJump();
+  changeDateJumpYear(-1);
 };
 
 document.getElementById("dateJumpNextYear").onclick=()=>{
-  dateJumpYear=Math.min(MAX_YEAR,dateJumpYear+1);
-  drawDateJump();
+  changeDateJumpYear(1);
 };
 
 document.getElementById("dateJumpMonths").onclick=e=>{
