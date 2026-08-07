@@ -348,14 +348,33 @@ async function load(){
     try{hasBackup=Boolean(store.getBackupRaw());}catch{hasBackup=false;}
   }
 
-  render();
+    render();
 
-  const savedDraft=pendingUI.draft;
-  if(!loadError && pendingUI.sheetOpen===true && isRecoverableDraft(savedDraft)){
-    openSheet(savedDraft.id,savedDraft,pendingUI.sheetScrollTop || 0);
+  const savedDraft=
+    pendingUI.draft;
+
+  if(
+    !loadError &&
+    pendingUI.sheetOpen===true &&
+    isRecoverableDraft(savedDraft)
+  ){
+    openSheet(
+      savedDraft.id,
+      savedDraft,
+      pendingUI.sheetScrollTop || 0
+    );
   }
 
-  requestAnimationFrame(()=>window.scrollTo(0,pendingUI.scrollY || 0));
+  requestAnimationFrame(()=>{
+    window.scrollTo(
+      0,
+      pendingUI.scrollY || 0
+    );
+
+    document.body.classList.remove(
+      "app-booting"
+    );
+  });
 }
 
 async function save(nextShifts=shifts){
