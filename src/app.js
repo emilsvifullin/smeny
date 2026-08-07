@@ -490,6 +490,7 @@ function viewShifts(){
   const list=inMonth(cursor);
   if(!list.length){
     return `
+      <div class="ml">${shiftsWord(0)}</div>
       <div class="card">
         <div class="empty">
           <div>В этом месяце смен пока нет.</div>
