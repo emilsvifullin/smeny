@@ -206,97 +206,19 @@ main{
 .total .t{font-weight:600}.total .v{font-weight:600;font-size:16px}
 
 /* смена */
-.shift-swipe{
-  position:relative;
-  overflow:hidden;
-  isolation:isolate;
-
-  background:var(--surf);
-}
-
-.shift-delete-bg{
-  position:absolute;
-  inset:0;
-  z-index:0;
-
-  display:flex;
-  align-items:center;
-  justify-content:flex-end;
-
-  padding-right:28px;
-
-  background:#d93025;
-
-  pointer-events:none;
-}
-
-.shift-delete-icon{
-  width:29px;
-  height:29px;
-
-  fill:none;
-  stroke:#fff;
-  stroke-width:2;
-  stroke-linecap:round;
-  stroke-linejoin:round;
-
-  opacity:.92;
-
-  transform:scale(.88);
-
-  transition:
-    transform .16s ease,
-    opacity .16s ease;
-}
-
-.shift-swipe.is-delete-ready
-.shift-delete-icon{
-  opacity:1;
-  transform:scale(1.16);
-}
-
-.shift-swipe.is-delete-ready
-.shift-delete-bg{
-  background:#c5221f;
-}
-
 .sh{
-  position:relative;
-  z-index:2;
-
   display:flex;
   align-items:center;
   gap:14px;
-
-  width:100%;
-
   padding:12px 16px;
-
-  border:0;
   border-top:1px solid var(--line);
-
-  background:var(--surf);
-  color:var(--ink);
-
   cursor:pointer;
-
   user-select:none;
   -webkit-user-select:none;
-
-  transform:translate3d(0,0,0);
-
-  will-change:transform;
-
-  backface-visibility:hidden;
-  -webkit-backface-visibility:hidden;
 }
 
-.shift-swipe:first-child .sh{
+.sh:first-child{
   border-top:none;
-}
-
-.shift-swipe.is-deleting{
-  pointer-events:none;
 }
 
 .sh .day{
