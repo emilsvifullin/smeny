@@ -866,6 +866,238 @@ function drawDateJump(){
     }).join("");
 }
 
+let dateCalendarTransitionRunning=false;
+
+function makeDateCalendarGhost(
+  element,
+  picker
+){
+  const rect=
+    element.getBoundingClientRect();
+
+  const pickerRect=
+    picker.getBoundingClientRect();
+
+  const ghost=
+    element.cloneNode(true);
+
+  ghost.removeAttribute("id");
+  ghost.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+  ghost.setAttribute(
+    "inert",
+    ""
+  );
+
+  ghost.style.position="absolute";
+
+  ghost.style.left=
+    rect.left-pickerRect.left+"px";
+
+  ghost.style.top=
+    rect.top-pickerRect.top+"px";
+
+  ghost.style.width=
+    rect.width+"px";
+
+  ghost.style.height=
+    rect.height+"px";
+
+  ghost.style.margin="0";
+  ghost.style.zIndex="5";
+  ghost.style.pointerEvents="none";
+
+  picker.appendChild(ghost);
+
+  return ghost;
+}
+
+function changeDateCalendarMonth(
+  nextCursor,
+  direction,
+  {value}={}
+){
+  if(
+    !nextCursor ||
+    dateCalendarTransitionRunning
+  ){
+    return;
+  }
+
+  if(
+    nextCursor===dateCalendarCursor
+  ){
+    if(value!==undefined){
+      datePickerValue=value;
+      drawDatePicker();
+    }
+
+    return;
+  }
+
+  const grid=
+    document.getElementById(
+      "dateGrid"
+    );
+
+  const title=
+    document.getElementById(
+      "datePickerMonth"
+    );
+
+  const picker=
+    document.getElementById(
+      "datePicker"
+    );
+
+  const apply=()=>{
+    dateCalendarCursor=
+      nextCursor;
+
+    if(value!==undefined){
+      datePickerValue=value;
+    }
+
+    drawDatePicker();
+  };
+
+  if(
+    prefersReducedMotion() ||
+    typeof grid.animate!=="function"
+  ){
+    apply();
+    return;
+  }
+
+  dateCalendarTransitionRunning=true;
+
+  const oldGrid=
+    makeDateCalendarGhost(
+      grid,
+      picker
+    );
+
+  const oldTitle=
+    makeDateCalendarGhost(
+      title,
+      picker
+    );
+
+  apply();
+
+  grid.style.pointerEvents="none";
+
+  const oldX=
+    direction>0
+      ? -28
+      : 28;
+
+  const newX=
+    -oldX;
+
+  const oldTitleX=
+    direction>0
+      ? -10
+      : 10;
+
+  const newTitleX=
+    -oldTitleX;
+
+  const options={
+    duration:320,
+    easing:
+      "cubic-bezier(.22,.72,.22,1)",
+    fill:"both"
+  };
+
+  const animations=[
+    oldGrid.animate(
+      [
+        {
+          opacity:1,
+          transform:
+            "translate3d(0,0,0)"
+        },
+        {
+          opacity:0,
+          transform:
+            `translate3d(${oldX}px,0,0)`
+        }
+      ],
+      options
+    ),
+
+    grid.animate(
+      [
+        {
+          opacity:0,
+          transform:
+            `translate3d(${newX}px,0,0)`
+        },
+        {
+          opacity:1,
+          transform:
+            "translate3d(0,0,0)"
+        }
+      ],
+      options
+    ),
+
+    oldTitle.animate(
+      [
+        {
+          opacity:1,
+          transform:
+            "translate3d(0,0,0)"
+        },
+        {
+          opacity:0,
+          transform:
+            `translate3d(${oldTitleX}px,0,0)`
+        }
+      ],
+      options
+    ),
+
+    title.animate(
+      [
+        {
+          opacity:0,
+          transform:
+            `translate3d(${newTitleX}px,0,0)`
+        },
+        {
+          opacity:1,
+          transform:
+            "translate3d(0,0,0)"
+        }
+      ],
+      options
+    )
+  ];
+
+  Promise.allSettled(
+    animations.map(
+      animation=>animation.finished
+    )
+  ).finally(()=>{
+    animations.forEach(
+      animation=>animation.cancel()
+    );
+
+    oldGrid.remove();
+    oldTitle.remove();
+
+    grid.style.removeProperty(
+      "pointer-events"
+    );
+
+    dateCalendarTransitionRunning=false;
+  });
+}
+
 function openDateJump(){
   dateJumpYear=Number(dateCalendarCursor.slice(0,4));
 
@@ -1891,13 +2123,23 @@ document.getElementById("pointVeil").onclick=closePointPicker;
 document.getElementById("dateVeil").onclick=closeDatePicker;
 
 document.getElementById("datePrev").onclick=()=>{
-  dateCalendarCursor=shiftMonth(dateCalendarCursor,-1);
-  drawDatePicker();
+  changeDateCalendarMonth(
+    shiftMonth(
+      dateCalendarCursor,
+      -1
+    ),
+    -1
+  );
 };
 
 document.getElementById("dateNext").onclick=()=>{
-  dateCalendarCursor=shiftMonth(dateCalendarCursor,1);
-  drawDatePicker();
+  changeDateCalendarMonth(
+    shiftMonth(
+      dateCalendarCursor,
+      1
+    ),
+    1
+  );
 };
 
 document.getElementById("datePickerMonth").onclick=()=>{
@@ -1915,14 +2157,33 @@ document.getElementById("dateJumpNextYear").onclick=()=>{
 };
 
 document.getElementById("dateJumpMonths").onclick=e=>{
-  const month=e.target.closest("[data-calendar-month]");
+  const month=
+    e.target.closest(
+      "[data-calendar-month]"
+    );
 
   if(!month) return;
 
-  dateCalendarCursor=month.dataset.calendarMonth;
+  const nextCursor=
+    month.dataset.calendarMonth;
+
+  const direction=
+    nextCursor>dateCalendarCursor
+      ? 1
+      : nextCursor<dateCalendarCursor
+        ? -1
+        : 0;
 
   closeDateJump();
-  drawDatePicker();
+
+  if(direction===0){
+    return;
+  }
+
+  changeDateCalendarMonth(
+    nextCursor,
+    direction
+  );
 };
 
 const datePickerElement=
@@ -2052,16 +2313,38 @@ const dateGrid=document.getElementById("dateGrid");
 dateGrid.onclick=e=>{
   if(dateSwipeBlockClick) return;
 
-  const day=e.target.closest("[data-date]");
+  const day=
+    e.target.closest(
+      "[data-date]"
+    );
 
   if(!day) return;
 
-  datePickerValue=day.dataset.date;
+  const value=
+    day.dataset.date;
 
-  dateCalendarCursor=
-    datePickerValue.slice(0,7);
+  const nextCursor=
+    value.slice(0,7);
 
   closeDateJump();
+
+  if(
+    nextCursor!==
+    dateCalendarCursor
+  ){
+    changeDateCalendarMonth(
+      nextCursor,
+      nextCursor>dateCalendarCursor
+        ? 1
+        : -1,
+      {value}
+    );
+
+    return;
+  }
+
+  datePickerValue=value;
+
   drawDatePicker();
 };
 
@@ -2110,16 +2393,27 @@ function finishDateSwipe(e){
     Math.abs(dx)>=35 &&
     Math.abs(dx)>Math.abs(dy)*1.15;
 
-  if(accepted){
-    dateCalendarCursor=shiftMonth(
+if(accepted){
+  const direction=
+    dx<0
+      ? 1
+      : -1;
+
+  const nextCursor=
+    shiftMonth(
       dateCalendarCursor,
-      dx<0 ? 1 : -1
+      direction
     );
 
-    closeDateJump();
-    drawDatePicker();
-    dateSwipeBlockClick=true;
-  }
+  closeDateJump();
+
+  changeDateCalendarMonth(
+    nextCursor,
+    direction
+  );
+
+  dateSwipeBlockClick=true;
+}
 
   setTimeout(()=>{
     dateSwipeBlockClick=false;
@@ -2138,12 +2432,31 @@ dateGrid.addEventListener("pointercancel",e=>{
 });
 
 document.getElementById("dateToday").onclick=()=>{
-  datePickerValue=localYMD();
+  const value=
+    localYMD();
 
-  dateCalendarCursor=
-    datePickerValue.slice(0,7);
+  const nextCursor=
+    value.slice(0,7);
 
   closeDateJump();
+
+  if(
+    nextCursor!==
+    dateCalendarCursor
+  ){
+    changeDateCalendarMonth(
+      nextCursor,
+      nextCursor>dateCalendarCursor
+        ? 1
+        : -1,
+      {value}
+    );
+
+    return;
+  }
+
+  datePickerValue=value;
+
   drawDatePicker();
 };
 
