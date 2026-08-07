@@ -972,6 +972,7 @@ function selectDate(ymd){
 }
 
 let pointPickerHideTimer;
+let pointPickerValue="";
 
 function openPointPicker(){
   if(!draft) return;
@@ -989,12 +990,23 @@ function openPointPicker(){
   picker.setAttribute("aria-hidden","false");
   veil.setAttribute("aria-hidden","false");
 
-  list.innerHTML=POINTS.map(point=>`
-    <button type="button" class="point-option ${point===draft.point?"on":""}" data-point="${esc(point)}">
-      <span class="point-check">${point===draft.point?"✓":""}</span>
-      <span class="point-name">${esc(point)}</span>
-    </button>
-  `).join("");
+pointPickerValue=draft.point;
+
+list.innerHTML=POINTS.map(point=>`
+  <button
+    type="button"
+    class="point-option ${point===pointPickerValue?"on":""}"
+    data-point="${esc(point)}"
+  >
+    <span class="point-check">
+      ${point===pointPickerValue?"✓":""}
+    </span>
+
+    <span class="point-name">
+      ${esc(point)}
+    </span>
+  </button>
+`).join("");
 
   document.body.classList.add("point-picker-open");
   veil.classList.add("on");
@@ -2086,20 +2098,25 @@ function finishSheetDrag(event){
 
 shiftSheet.addEventListener("pointerup",finishSheetDrag);
 shiftSheet.addEventListener("pointercancel",finishSheetDrag);
-const pointPicker=document.getElementById("pointPicker");
-const pointPickerHead=document.getElementById("pointPickerHead");
+const pointPicker=
+  document.getElementById("pointPicker");
+
+const pointPickerHandle=
+  document.getElementById("pointPickerHandle");
 
 let pointDrag=null;
 
-pointPickerHead.addEventListener("pointerdown",event=>{
+pointPickerHandle.addEventListener(
+  "pointerdown",
+  event=>{
   if(!event.isPrimary || !pointPicker.classList.contains("on")) return;
   pointDrag={id:event.pointerId,startY:event.clientY,distance:0};
   pointPicker.style.transition="none";
-  pointPickerHead.setPointerCapture(event.pointerId);
+  pointPickerHandle.setPointerCapture(event.pointerId);
   event.preventDefault();
 });
 
-pointPickerHead.addEventListener("pointermove",event=>{
+pointPickerHandle.addEventListener("pointermove",event=>{
   if(!pointDrag || event.pointerId!==pointDrag.id) return;
   pointDrag.distance=Math.max(0,event.clientY-pointDrag.startY);
   pointPicker.style.setProperty("--point-drag",pointDrag.distance+"px");
@@ -2111,7 +2128,7 @@ function finishPointDrag(event){
   const {id,distance}=pointDrag;
   pointDrag=null;
 
-  if(pointPickerHead.hasPointerCapture(id)) pointPickerHead.releasePointerCapture(id);
+  if(pointPickerHandle.hasPointerCapture(id)) pointPickerHandle.releasePointerCapture(id);
   pointPicker.style.removeProperty("transition");
 
   if(distance>=80){
@@ -2122,8 +2139,8 @@ function finishPointDrag(event){
   }
 }
 
-pointPickerHead.addEventListener("pointerup",finishPointDrag);
-pointPickerHead.addEventListener("pointercancel",finishPointDrag);
+pointPickerHandle.addEventListener("pointerup",finishPointDrag);
+pointPickerHandle.addEventListener("pointercancel",finishPointDrag);
 document.getElementById("sheetSave").onclick=async()=>{
   const button=document.getElementById("sheetSave");
 
@@ -2223,34 +2240,91 @@ document.getElementById("sheetBody").addEventListener("click",async e=>{
   }
 });
 
-document.getElementById("pointList").addEventListener("click",e=>{
-  const option=e.target.closest("[data-point]");
+document
+  .getElementById("pointList")
+  .addEventListener(
+    "click",
+    e=>{
+      const option=
+        e.target.closest("[data-point]");
 
-  if(!option || !draft) return;
+      if(!option || !draft){
+        return;
+      }
 
-  const wasFixed=FIXED_POINTS.has(draft.point);
+      pointPickerValue=
+        option.dataset.point;
 
-  readForm();
+      document
+        .querySelectorAll(
+          "#pointList .point-option"
+        )
+        .forEach(button=>{
+          const selected=
+            button.dataset.point===
+            pointPickerValue;
 
-  draft.point=option.dataset.point;
+          button.classList.toggle(
+            "on",
+            selected
+          );
 
-  const nowFixed=FIXED_POINTS.has(draft.point);
+          const check=
+            button.querySelector(
+              ".point-check"
+            );
 
-  if(nowFixed){
-    draft.shk=0;
-  }
+          if(check){
+            check.textContent=
+              selected ? "✓" : "";
+          }
+        });
+    }
+  );
 
-  else if(wasFixed){
-    draft.shk="";
-  }
+document
+  .getElementById("pointCancel")
+  .onclick=()=>{
+    closePointPicker();
+  };
 
-  closePointPicker();
+document
+  .getElementById("pointDone")
+  .onclick=()=>{
+    if(
+      !draft ||
+      !pointPickerValue
+    ){
+      return;
+    }
 
-  const isEdit=shifts.some(x=>x.id===draft.id);
+    const wasFixed=
+      FIXED_POINTS.has(draft.point);
 
-  drawSheet(isEdit);
-  saveUIState();
-});
+    readForm();
+
+    draft.point=
+      pointPickerValue;
+
+    const nowFixed=
+      FIXED_POINTS.has(draft.point);
+
+    if(nowFixed){
+      draft.shk=0;
+    }else if(wasFixed){
+      draft.shk="";
+    }
+
+    closePointPicker();
+
+    const isEdit=
+      shifts.some(
+        x=>x.id===draft.id
+      );
+
+    drawSheet(isEdit);
+    saveUIState();
+  };
 
 document.getElementById("sheetBody").addEventListener("input",e=>{
   if(["f-shk","f-hours","f-bonus","f-fine"].includes(e.target.id)){
