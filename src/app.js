@@ -3031,6 +3031,14 @@ function finishDatePickerDrag(e){
     return;
   }
 
+  if(datePickerDragFrame){
+    cancelAnimationFrame(
+      datePickerDragFrame
+    );
+
+    datePickerDragFrame=0;
+  }
+
   const {
     id,
     distance,
@@ -3081,12 +3089,24 @@ datePickerHandle.addEventListener("pointercancel",e=>{
     return;
   }
 
+  if(datePickerDragFrame){
+    cancelAnimationFrame(
+      datePickerDragFrame
+    );
+
+    datePickerDragFrame=0;
+  }
+
   datePickerDrag=null;
 
-  datePickerElement.style.removeProperty("transition");
+  datePickerElement.style.removeProperty(
+    "transition"
+  );
 
   requestAnimationFrame(()=>{
-    datePickerElement.style.removeProperty("--date-drag");
+    datePickerElement.style.removeProperty(
+      "--date-drag"
+    );
   });
 });
 
