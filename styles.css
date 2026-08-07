@@ -1626,3 +1626,207 @@ select:focus-visible{
 textarea{
   font-size:16px;
 }
+
+/* ===== плавный переход месяца ===== */
+
+:root{
+  --motion-ease:
+    cubic-bezier(.22,.72,.22,1);
+
+  --motion-month:320ms;
+}
+
+#app{
+  view-transition-name:month-content;
+}
+
+#period{
+  view-transition-name:month-period;
+}
+
+/*
+  Убираем стандартный crossfade всей
+  страницы. Двигаются только месяц
+  и название месяца.
+*/
+
+::view-transition-old(root){
+  animation:none;
+  opacity:0;
+}
+
+::view-transition-new(root){
+  animation:none;
+  opacity:1;
+}
+
+::view-transition-old(month-content),
+::view-transition-new(month-content),
+::view-transition-old(month-period),
+::view-transition-new(month-period){
+  mix-blend-mode:normal;
+}
+
+/* Следующий месяц */
+
+html[data-month-motion="next"]::view-transition-old(month-content){
+  animation:
+    month-content-out-next
+    var(--motion-month)
+    var(--motion-ease)
+    both;
+}
+
+html[data-month-motion="next"]::view-transition-new(month-content){
+  animation:
+    month-content-in-next
+    var(--motion-month)
+    var(--motion-ease)
+    both;
+}
+
+html[data-month-motion="next"]::view-transition-old(month-period){
+  animation:
+    month-period-out-next
+    var(--motion-month)
+    var(--motion-ease)
+    both;
+}
+
+html[data-month-motion="next"]::view-transition-new(month-period){
+  animation:
+    month-period-in-next
+    var(--motion-month)
+    var(--motion-ease)
+    both;
+}
+
+/* Предыдущий месяц */
+
+html[data-month-motion="prev"]::view-transition-old(month-content){
+  animation:
+    month-content-out-prev
+    var(--motion-month)
+    var(--motion-ease)
+    both;
+}
+
+html[data-month-motion="prev"]::view-transition-new(month-content){
+  animation:
+    month-content-in-prev
+    var(--motion-month)
+    var(--motion-ease)
+    both;
+}
+
+html[data-month-motion="prev"]::view-transition-old(month-period){
+  animation:
+    month-period-out-prev
+    var(--motion-month)
+    var(--motion-ease)
+    both;
+}
+
+html[data-month-motion="prev"]::view-transition-new(month-period){
+  animation:
+    month-period-in-prev
+    var(--motion-month)
+    var(--motion-ease)
+    both;
+}
+
+@keyframes month-content-out-next{
+  from{
+    opacity:1;
+    transform:translate3d(0,0,0);
+  }
+
+  to{
+    opacity:0;
+    transform:translate3d(-28px,0,0);
+  }
+}
+
+@keyframes month-content-in-next{
+  from{
+    opacity:0;
+    transform:translate3d(28px,0,0);
+  }
+
+  to{
+    opacity:1;
+    transform:translate3d(0,0,0);
+  }
+}
+
+@keyframes month-content-out-prev{
+  from{
+    opacity:1;
+    transform:translate3d(0,0,0);
+  }
+
+  to{
+    opacity:0;
+    transform:translate3d(28px,0,0);
+  }
+}
+
+@keyframes month-content-in-prev{
+  from{
+    opacity:0;
+    transform:translate3d(-28px,0,0);
+  }
+
+  to{
+    opacity:1;
+    transform:translate3d(0,0,0);
+  }
+}
+
+@keyframes month-period-out-next{
+  from{
+    opacity:1;
+    transform:translate3d(0,0,0);
+  }
+
+  to{
+    opacity:0;
+    transform:translate3d(-10px,0,0);
+  }
+}
+
+@keyframes month-period-in-next{
+  from{
+    opacity:0;
+    transform:translate3d(10px,0,0);
+  }
+
+  to{
+    opacity:1;
+    transform:translate3d(0,0,0);
+  }
+}
+
+@keyframes month-period-out-prev{
+  from{
+    opacity:1;
+    transform:translate3d(0,0,0);
+  }
+
+  to{
+    opacity:0;
+    transform:translate3d(10px,0,0);
+  }
+}
+
+@keyframes month-period-in-prev{
+  from{
+    opacity:0;
+    transform:translate3d(-10px,0,0);
+  }
+
+  to{
+    opacity:1;
+    transform:translate3d(0,0,0);
+  }
+}
