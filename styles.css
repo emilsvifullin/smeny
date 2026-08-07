@@ -783,15 +783,24 @@ body.point-picker-open .sheet{
   border-radius:22px;
   box-shadow:var(--shadow);
 
-  transform:translateY(
-    calc(100% + 24px + env(safe-area-inset-bottom))
+    transform:translate3d(
+    0,
+    calc(100% + 24px + env(safe-area-inset-bottom)),
+    0
   );
 
-  transition:transform .3s cubic-bezier(.32,.72,0,1);
+  will-change:transform;
+
+  transition:
+    transform .3s cubic-bezier(.32,.72,0,1);
 }
 
 .date-picker.on{
-  transform:translateY(var(--date-drag, 0px));
+  transform:translate3d(
+    0,
+    var(--date-drag, 0px),
+    0
+  );
 }
 
 body.date-picker-open{
