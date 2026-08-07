@@ -1644,32 +1644,29 @@ textarea{
   view-transition-name:month-period;
 }
 
-nav.tabs{
-  view-transition-name:bottom-tabs;
+.bottom-controls{
+  view-transition-name:bottom-controls;
 }
 
-.bottom-controls > button{
-  view-transition-name:bottom-add;
+nav.tabs,
+#fab{
+  view-transition-name:none;
 }
 
-::view-transition-group(bottom-tabs),
-::view-transition-group(bottom-add){
+::view-transition-group(bottom-controls){
   animation:none;
   z-index:1000;
 }
 
-::view-transition-old(bottom-tabs),
-::view-transition-new(bottom-tabs){
+::view-transition-old(bottom-controls){
   animation:none;
-  mix-blend-mode:normal;
-  border-radius:999px;
+  opacity:0;
 }
 
-::view-transition-old(bottom-add),
-::view-transition-new(bottom-add){
+::view-transition-new(bottom-controls){
   animation:none;
+  opacity:1;
   mix-blend-mode:normal;
-  border-radius:999px;
 }
 
 /*
