@@ -784,6 +784,7 @@ let datePickerHideTimer;
 let dateCalendarCursor="";
 let datePickerValue="";
 let dateJumpYear=0;
+let dateJumpValue="";
 let dateSwipe=null;
 let dateSwipeBlockClick=false;
 
@@ -857,7 +858,7 @@ function drawDateJump(){
       return `
         <button
           type="button"
-          class="date-jump-month ${ym===dateCalendarCursor?"on":""}"
+          class="date-jump-month ${ym===dateJumpValue?"on":""}"
           data-calendar-month="${ym}"
         >
           ${month}
@@ -1099,16 +1100,30 @@ function changeDateCalendarMonth(
 }
 
 function openDateJump(){
-  dateJumpYear=Number(dateCalendarCursor.slice(0,4));
+  dateJumpValue=
+    dateCalendarCursor;
+
+  dateJumpYear=
+    Number(
+      dateJumpValue.slice(0,4)
+    );
 
   drawDateJump();
 
-  document.getElementById("dateJump").classList.add("on");
-  document.getElementById("datePicker").classList.add("jump-open");
+  document
+    .getElementById("dateJump")
+    .classList.add("on");
+
+  document
+    .getElementById("datePicker")
+    .classList.add("jump-open");
 
   document
     .getElementById("datePickerMonth")
-    .setAttribute("aria-expanded","true");
+    .setAttribute(
+      "aria-expanded",
+      "true"
+    );
 }
 
 function closeDateJump(){
@@ -1911,9 +1926,20 @@ function changeDateJumpYear(direction){
     direction,
 
     apply:()=>{
-      dateJumpYear=nextYear;
-      drawDateJump();
-    },
+  const month=
+    (
+      dateJumpValue ||
+      dateCalendarCursor
+    ).slice(5,7);
+
+  dateJumpYear=
+    nextYear;
+
+  dateJumpValue=
+    nextYear+"-"+month;
+
+  drawDateJump();
+},
 
     onFinish:()=>{
       dateJumpYearTransitionRunning=false;
@@ -2738,39 +2764,17 @@ document.getElementById("dateJumpNextYear").onclick=()=>{
   changeDateJumpYear(1);
 };
 
-document.getElementById("dateJumpCurrent").onclick=()=>{
-  const currentMonth=
-    ymOf(new Date());
-
-  const direction=
-    currentMonth>dateCalendarCursor
-      ? 1
-      : currentMonth<dateCalendarCursor
-        ? -1
-        : 0;
-
+document.getElementById("dateJumpCancel").onclick=()=>{
   closeDateJump();
+};
 
-  if(direction===0){
+document.getElementById("dateJumpDone").onclick=()=>{
+  if(!dateJumpValue){
     return;
   }
 
-  changeDateCalendarMonth(
-    currentMonth,
-    direction
-  );
-};
-
-document.getElementById("dateJumpMonths").onclick=e=>{
-  const month=
-    e.target.closest(
-      "[data-calendar-month]"
-    );
-
-  if(!month) return;
-
   const nextCursor=
-    month.dataset.calendarMonth;
+    dateJumpValue;
 
   const direction=
     nextCursor>dateCalendarCursor
@@ -2789,6 +2793,87 @@ document.getElementById("dateJumpMonths").onclick=e=>{
     nextCursor,
     direction
   );
+};
+
+document.getElementById("dateJumpCurrent").onclick=()=>{
+  if(dateJumpYearTransitionRunning){
+    return;
+  }
+
+  const currentMonth=
+    ymOf(new Date());
+
+  const currentYear=
+    Number(
+      currentMonth.slice(0,4)
+    );
+
+  if(currentYear===dateJumpYear){
+    dateJumpValue=
+      currentMonth;
+
+    drawDateJump();
+    return;
+  }
+
+  dateJumpYearTransitionRunning=true;
+
+  animatePickerYearChange({
+    container:
+      document.getElementById(
+        "dateJump"
+      ),
+
+    grid:
+      document.getElementById(
+        "dateJumpMonths"
+      ),
+
+    label:
+      document.getElementById(
+        "dateJumpYear"
+      ),
+
+    direction:
+      currentYear>dateJumpYear
+        ? 1
+        : -1,
+
+    apply:()=>{
+      dateJumpYear=
+        currentYear;
+
+      dateJumpValue=
+        currentMonth;
+
+      drawDateJump();
+    },
+
+    onFinish:()=>{
+      dateJumpYearTransitionRunning=false;
+    }
+  });
+};
+
+document.getElementById("dateJumpMonths").onclick=e=>{
+  const month=
+    e.target.closest(
+      "[data-calendar-month]"
+    );
+
+  if(!month){
+    return;
+  }
+
+  dateJumpValue=
+    month.dataset.calendarMonth;
+
+  dateJumpYear=
+    Number(
+      dateJumpValue.slice(0,4)
+    );
+
+  drawDateJump();
 };
 
 const datePickerElement=
