@@ -614,38 +614,30 @@ body.point-picker-open .sheet{
   overflow:hidden;
 }
 
-.point-picker-head{
+.point-picker-handle{
+  height:18px;
+  display:grid;
+  place-items:center;
+
   touch-action:none;
   user-select:none;
   -webkit-user-select:none;
   cursor:grab;
 }
 
-.point-picker-head:active{
+.point-picker-handle:active{
   cursor:grabbing;
 }
 
 .point-picker-grab{
   width:34px;
   height:4px;
-  margin:9px auto 7px;
   border-radius:2px;
   background:var(--line2);
 }
 
-.point-picker-title{
-  padding:7px 16px 13px;
-  text-align:center;
-
-  font-size:10px;
-  font-weight:700;
-  letter-spacing:.19em;
-  text-transform:uppercase;
-  color:var(--ink3);
-}
-
 .point-list{
-  max-height:calc(78vh - 53px);
+  max-height:calc(78vh - 60px);
   overflow-y:auto;
   -webkit-overflow-scrolling:touch;
   overscroll-behavior:contain;
@@ -722,7 +714,7 @@ body.point-picker-open .sheet{
 
   max-width:604px;
   margin:0 auto;
-  padding:14px 12px 12px;
+  padding:0 12px 12px;
 
   background:var(--sheet);
   border:1px solid var(--line2);
@@ -749,8 +741,8 @@ body.date-picker-open .sheet{
 }
 
 .date-picker-handle{
-  height:26px;
-  margin:-8px -12px 3px;
+  height:18px;
+  margin:0 -12px;
 
   display:grid;
   place-items:center;
@@ -1047,7 +1039,7 @@ body.month-picker-open{
 }
 
 .month-picker-handle{
-  height:26px;
+  height:18px;
   margin:0 -12px 0;
 
   display:grid;
@@ -1071,8 +1063,9 @@ body.month-picker-open{
 }
 
 .picker-toolbar{
-  min-height:42px;
-  margin-bottom:10px;
+  height:38px;
+  min-height:38px;
+  margin-bottom:6px;
 
   position:relative;
   display:flex;
