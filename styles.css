@@ -1193,23 +1193,6 @@ body.month-picker-open{
   transform:translate(-50%,-50%);
 }
 
-#monthYearNext::after,
-#dateJumpNextYear::after{
-  content:"";
-
-  position:absolute;
-  left:50%;
-  top:50%;
-
-  width:2px;
-  height:11px;
-
-  border-radius:2px;
-  background:currentColor;
-
-  transform:translate(-50%,-50%);
-}
-
 .month-grid{
   display:grid;
   grid-template-columns:repeat(3,1fr);
