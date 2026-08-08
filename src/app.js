@@ -636,6 +636,37 @@ function viewStats(){
       ? `${shiftsWord(aggregate.n)}: ${statusParts.join(", ")}`
       : shiftsWord(aggregate.n);
 
+  const paymentBaseLine=(
+    label,
+    amount
+  )=>{
+    if(!amount){
+      return "";
+    }
+
+    return `
+      <div class="s">
+        ${label}:
+        ${money(amount)}
+      </div>
+    `;
+  };
+
+  const bonusLine=amount=>{
+    if(!amount){
+      return "";
+    }
+
+    return `
+      <div class="s">
+        Премии:
+        <span class="pos">
+          + ${money(amount)}
+        </span>
+      </div>
+    `;
+  };
+
   const fineLine=amount=>{
     if(!amount){
       return "";
@@ -648,10 +679,9 @@ function viewStats(){
       <div class="s">
         ${
           correction
-            ? "Корректировка штрафов"
-            : "Штрафы по реестру"
+            ? "Корректировка штрафов:"
+            : "Штрафы:"
         }
-        ·
         <span class="${
           correction
             ? "pos"
@@ -662,72 +692,74 @@ function viewStats(){
               ? "+"
               : "−"
           }
-          ${money(Math.abs(amount))}
+          ${money(
+            Math.abs(amount)
+          )}
         </span>
       </div>
     `;
   };
 
-  const bonusLine=amount=>{
-    if(!amount){
-      return "";
-    }
+  const payment25Lines=[
+    paymentBaseLine(
+      "Авансные ПВЗ",
+      payout.specialAdvance
+    ),
 
-    return `
+    paymentBaseLine(
+      "Остальные ПВЗ",
+      payout.regularFirstBase
+    ),
+
+    bonusLine(
+      payout.bonus25
+    ),
+
+    fineLine(
+      payout.fine25
+    )
+  ].join("");
+
+  const payment10Lines=[
+    paymentBaseLine(
+      "Авансные ПВЗ",
+      payout.specialSecondHalfBase
+    ),
+
+    paymentBaseLine(
+      "Перенос сверх лимита аванса",
+      payout.specialCarry
+    ),
+
+    paymentBaseLine(
+      "Остальные ПВЗ",
+      payout.regularSecondBase
+    ),
+
+    bonusLine(
+      payout.bonus10
+    ),
+
+    fineLine(
+      payout.fine10
+    )
+  ].join("");
+
+  const payment25Content=
+    payment25Lines ||
+    `
       <div class="s">
-        Премии ·
-        <span class="pos">
-          + ${money(amount)}
-        </span>
+        Расчёт за 1–15 ${esc(monthGen(cursor))}
       </div>
     `;
-  };
 
-  let payment25Detail;
-  let payment10Detail;
-
-  if(
-    payout.hasAdvancePoints &&
-    payout.hasRegularPoints
-  ){
-    payment25Detail=
-      `Авансные ПВЗ ${money(payout.specialAdvance)} · остальные ${money(payout.regularFirstBase)}`;
-
-    payment10Detail=
-      `Авансные ПВЗ ${money(payout.specialSecondHalfBase)} · остальные ${money(payout.regularSecondBase)}`;
-  }else if(
-    payout.hasAdvancePoints
-  ){
-    payment25Detail=
-      `Авансные ПВЗ ${money(payout.specialAdvance)}`;
-
-    payment10Detail=
-      `Авансные ПВЗ ${money(payout.specialSecondHalfBase)}`;
-  }else if(
-    payout.hasRegularPoints
-  ){
-    payment25Detail=
-      `Остальные ${money(payout.regularFirstBase)}`;
-
-    payment10Detail=
-      `Остальные ${money(payout.regularSecondBase)}`;
-  }else{
-    payment25Detail=
-      "По данным реестра";
-
-    payment10Detail=
-      `Расчёт за ${monthNom(cursor)}`;
-  }
-
-  const carryLine=
-    payout.specialCarry>0
-      ? `
-        <div class="s">
-          Сверх лимита аванса перенесено:
-          ${money(payout.specialCarry)}
-        </div>
-      `
-      : "";
+  const payment10Content=
+    payment10Lines ||
+    `
+      <div class="s">
+        Окончательный расчёт за ${esc(monthNom(cursor))}
+      </div>
+    `;
 
   const fineTransferNotes=
     payout.otherFinePayments
@@ -818,17 +850,7 @@ function viewStats(){
             25 ${esc(monthGen(cursor))}
           </div>
 
-          <div class="s">
-            ${payment25Detail}
-          </div>
-
-          ${bonusLine(
-            payout.bonus25
-          )}
-
-          ${fineLine(
-            payout.fine25
-          )}
+          ${payment25Content}
         </div>
 
         <div class="v ${
@@ -852,19 +874,7 @@ function viewStats(){
             )}
           </div>
 
-          <div class="s">
-            ${payment10Detail}
-          </div>
-
-          ${carryLine}
-
-          ${bonusLine(
-            payout.bonus10
-          )}
-
-          ${fineLine(
-            payout.fine10
-          )}
+          ${payment10Content}
         </div>
 
         <div class="v ${
