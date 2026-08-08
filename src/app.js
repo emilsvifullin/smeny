@@ -725,9 +725,6 @@ function viewStats(){
       `
       : "";
 
-  const today=
-    localYMD();
-
   const fineTransferNotes=
     payout.otherFinePayments
       .map(item=>{
