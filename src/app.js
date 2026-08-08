@@ -636,9 +636,6 @@ function viewStats(){
       ? `${shiftsWord(aggregate.n)}: ${statusParts.join(", ")}`
       : shiftsWord(aggregate.n);
 
-  const compactShiftsSummary=
-    shiftsSummary.length>55;
-
   const fineLine=amount=>{
     if(!amount){
       return "";
@@ -803,7 +800,7 @@ function viewStats(){
           <small> ₽</small>
         </div>
 
-        <div class="sub${compactShiftsSummary ? " compact" : ""}">
+        <div class="sub">
           ${shiftsSummary}
         </div>
       </div>
