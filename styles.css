@@ -466,6 +466,14 @@ nav.tabs button.on{
   backdrop-filter:blur(18px);
   -webkit-backdrop-filter:blur(18px);
   box-shadow:var(--shadow);
+
+  opacity:1;
+  transform:scale(1);
+
+  transition:
+    opacity .22s ease,
+    transform .28s cubic-bezier(.32,.72,0,1),
+    visibility 0s;
 }
 
 .fab::before,
@@ -1535,7 +1543,15 @@ button:disabled{
 }
 
 #fab.is-hidden{
-  display:none !important;
+  opacity:0 !important;
+  transform:scale(.78) !important;
+  visibility:hidden !important;
+  pointer-events:none !important;
+
+  transition:
+    opacity .18s ease,
+    transform .22s cubic-bezier(.32,.72,0,1),
+    visibility 0s linear .22s;
 }
 
 .sh{
