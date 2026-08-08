@@ -4242,6 +4242,8 @@ document
     draft.point=
       pointPickerValue;
 
+    delete draft.pointId;
+
     const nowFixed=
       FIXED_POINTS.has(draft.point);
 
