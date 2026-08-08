@@ -1987,10 +1987,81 @@ function prefersReducedMotion(){
   ).matches===true;
 }
 
+function makeMonthTransitionGhost(
+  element,
+  zIndex
+){
+  const rect=
+    element.getBoundingClientRect();
+
+  const ghost=
+    element.cloneNode(true);
+
+  ghost.removeAttribute(
+    "id"
+  );
+
+  ghost
+    .querySelectorAll("[id]")
+    .forEach(node=>{
+      node.removeAttribute(
+        "id"
+      );
+    });
+
+  ghost.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+
+  ghost.setAttribute(
+    "inert",
+    ""
+  );
+
+  ghost.style.position=
+    "fixed";
+
+  ghost.style.left=
+    rect.left+"px";
+
+  ghost.style.top=
+    rect.top+"px";
+
+  ghost.style.width=
+    rect.width+"px";
+
+  ghost.style.height=
+    rect.height+"px";
+
+  ghost.style.margin=
+    "0";
+
+  ghost.style.zIndex=
+    String(zIndex);
+
+  ghost.style.pointerEvents=
+    "none";
+
+  ghost.style.willChange=
+    "transform, opacity";
+
+  ghost.style.setProperty(
+    "view-transition-name",
+    "none"
+  );
+
+  document.body.appendChild(
+    ghost
+  );
+
+  return ghost;
+}
+
 function changeMonth(
   nextCursor,
   direction,
-  {scrollTop=false}={}
+  {scrollTop=true}={}
 ){
   if(
     nextCursor===cursor ||
@@ -2000,85 +2071,209 @@ function changeMonth(
     return;
   }
 
-  const fabWasVisible=
-    shouldShowFab(cursor);
-
-  const fabWillBeVisible=
-    shouldShowFab(nextCursor);
-
-  const bottomMotion=
-    fabWasVisible===fabWillBeVisible
-      ? null
-      : fabWillBeVisible
-        ? "show"
-        : "hide";
+  const period=
+    document.getElementById(
+      "period"
+    );
 
   const apply=()=>{
     cursor=nextCursor;
+
+    /*
+      Реальную страницу переводим
+      к началу нового месяца, пока
+      старый экран уже удерживается
+      отдельным fixed-слепком.
+    */
+    if(scrollTop){
+      window.scrollTo(
+        0,
+        0
+      );
+    }
+
     render();
   };
 
-  const finish=()=>{
-    if(scrollTop){
-      window.scrollTo(0,0);
-    }
-  };
-
   if(
-    typeof document.startViewTransition!=="function" ||
-    prefersReducedMotion()
+    prefersReducedMotion() ||
+    typeof app.animate!=="function" ||
+    typeof period.animate!=="function"
   ){
     apply();
-    finish();
     return;
   }
 
   monthTransitionRunning=true;
 
-  document.documentElement.dataset.monthMotion=
+  const oldApp=
+    makeMonthTransitionGhost(
+      app,
+      19
+    );
+
+  const oldPeriod=
+    makeMonthTransitionGhost(
+      period,
+      21
+    );
+
+  const oldContentX=
     direction>0
-      ? "next"
-      : "prev";
+      ? -28
+      : 28;
 
-  if(bottomMotion){
-    document.documentElement.dataset.bottomMotion=
-      bottomMotion;
-  }
+  const newContentX=
+    -oldContentX;
 
-  let transition;
+  const oldPeriodX=
+    direction>0
+      ? -10
+      : 10;
+
+  const newPeriodX=
+    -oldPeriodX;
+
+  /*
+    Скрываем настоящие элементы до
+    момента, когда в них уже будет
+    отрисован новый месяц.
+  */
+  app.style.opacity=
+    "0";
+
+  period.style.opacity=
+    "0";
+
+  let animations=[];
 
   try{
-    transition=
-      document.startViewTransition(
-        apply
-      );
-  }catch{
-    monthTransitionRunning=false;
-
-    delete document.documentElement
-      .dataset.monthMotion;
-
-    delete document.documentElement
-      .dataset.bottomMotion;
-
     apply();
-    finish();
-    return;
-  }
 
-  transition.finished
-    .catch(()=>{})
-    .finally(()=>{
+    const options={
+      duration:320,
+      easing:
+        "cubic-bezier(.22,.72,.22,1)",
+      fill:"both"
+    };
+
+    animations=[
+      oldApp.animate(
+        [
+          {
+            opacity:1,
+            transform:
+              "translate3d(0,0,0)"
+          },
+          {
+            opacity:0,
+            transform:
+              `translate3d(${oldContentX}px,0,0)`
+          }
+        ],
+        options
+      ),
+
+      app.animate(
+        [
+          {
+            opacity:0,
+            transform:
+              `translate3d(${newContentX}px,0,0)`
+          },
+          {
+            opacity:1,
+            transform:
+              "translate3d(0,0,0)"
+          }
+        ],
+        options
+      ),
+
+      oldPeriod.animate(
+        [
+          {
+            opacity:1,
+            transform:
+              "translate3d(0,0,0)"
+          },
+          {
+            opacity:0,
+            transform:
+              `translate3d(${oldPeriodX}px,0,0)`
+          }
+        ],
+        options
+      ),
+
+      period.animate(
+        [
+          {
+            opacity:0,
+            transform:
+              `translate3d(${newPeriodX}px,0,0)`
+          },
+          {
+            opacity:1,
+            transform:
+              "translate3d(0,0,0)"
+          }
+        ],
+        options
+      )
+    ];
+
+    app.style.removeProperty(
+      "opacity"
+    );
+
+    period.style.removeProperty(
+      "opacity"
+    );
+
+    Promise.allSettled(
+      animations.map(
+        animation=>
+          animation.finished
+      )
+    ).finally(()=>{
+      animations.forEach(
+        animation=>
+          animation.cancel()
+      );
+
+      oldApp.remove();
+      oldPeriod.remove();
+
+      app.style.removeProperty(
+        "opacity"
+      );
+
+      period.style.removeProperty(
+        "opacity"
+      );
+
       monthTransitionRunning=false;
-
-      delete document.documentElement
-        .dataset.monthMotion;
-
-      delete document.documentElement
-        .dataset.bottomMotion;
-
-      finish();
     });
+  }catch{
+    animations.forEach(
+      animation=>
+        animation.cancel()
+    );
+
+    oldApp.remove();
+    oldPeriod.remove();
+
+    app.style.removeProperty(
+      "opacity"
+    );
+
+    period.style.removeProperty(
+      "opacity"
+    );
+
+    monthTransitionRunning=false;
+  }
 }
 
 function selectMonth(ym){
