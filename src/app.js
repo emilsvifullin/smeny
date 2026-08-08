@@ -733,8 +733,7 @@ function viewStats(){
     <div class="card">
       <div class="hero">
         <div class="k">
-          Начислено за
-          ${esc(monthNom(cursor))}
+          Начислено
         </div>
 
         <div class="n">
