@@ -1035,7 +1035,7 @@ function viewData(){
     detail="Последнее изменение не сохранено.";
     statusClass="off";
   }else{
-    title=`Данные сохранены: ${shiftsWord(shifts.length)}`;
+    title="Данные сохранены";
     detail="";
   }
 
@@ -1058,13 +1058,13 @@ function viewData(){
 
   return `
     <div class="ml">Хранилище</div>
-    <div class="card">
-      <div class="row">
-        <div class="dot ${statusClass}"></div>
-        <div class="l">
-          <div class="t">${esc(title)}</div>
-          ${detail?`<div class="s wrap">${esc(detail)}</div>`:""}
+    <div class="data-status">
+      <div class="dot ${statusClass}"></div>
+      <div class="data-status-copy">
+        <div class="data-status-title">
+          ${esc(title)}${!detail?`: <span class="data-status-count">${esc(shiftsWord(shifts.length))}</span>`:""}
         </div>
+        ${detail?`<div class="data-status-detail">${esc(detail)}</div>`:""}
       </div>
     </div>
 
