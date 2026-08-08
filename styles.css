@@ -1922,6 +1922,14 @@ select:focus-visible{
   outline-offset:2px;
 }
 
+#sheet:focus,
+#sheet:focus-visible,
+.point-option:focus,
+.point-option:focus-visible{
+  outline:none;
+  outline-offset:0;
+}
+
 nav.tabs button:focus,
 nav.tabs button:focus-visible,
 .seg button:focus,
