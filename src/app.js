@@ -558,57 +558,79 @@ function viewStats(){
   const aggregate=
     payout.all;
 
-  const details=[];
+  const monthShifts=
+    inMonth(cursor);
 
-  if(aggregate.extra){
-    details.push(
-      aggregate.extra+" доп."
+  const today=
+    localYMD();
+
+  const workedShifts=
+    monthShifts.filter(
+      shift=>
+        shift.date<=today
+    );
+
+  const plannedShifts=
+    monthShifts.filter(
+      shift=>
+        shift.date>today
+    );
+
+  const groupDetails=list=>{
+    const details=[];
+
+    const extraCount=
+      list.filter(
+        shift=>
+          shift.type==="extra"
+      ).length;
+
+    const partialCount=
+      list.filter(
+        shift=>
+          shift.partial
+      ).length;
+
+    if(extraCount){
+      details.push(
+        extraCount+" доп."
+      );
+    }
+
+    if(partialCount){
+      details.push(
+        partialShortWord(
+          partialCount
+        )
+      );
+    }
+
+    return details.length
+      ? ` (${details.join(", ")})`
+      : "";
+  };
+
+  const statusParts=[];
+
+  if(workedShifts.length){
+    statusParts.push(
+      `отработано ${workedShifts.length}${groupDetails(workedShifts)}`
     );
   }
 
-  if(aggregate.part){
-    details.push(
-      partialShortWord(
-        aggregate.part
-      )
+  if(plannedShifts.length){
+    statusParts.push(
+      `запланировано ${plannedShifts.length}${groupDetails(plannedShifts)}`
     );
   }
-
-  const summaryParts=[
-    shiftsWord(aggregate.n),
-    ...details
-  ];
 
   const shiftsSummary=
-    summaryParts.join(" · ");
+    statusParts.length
+      ? `${shiftsWord(aggregate.n)}: ${statusParts.join(", ")}`
+      : shiftsWord(aggregate.n);
 
-  let futureText="";
-
-  if(payout.futureCount){
-    if(
-      payout.futureCount===
-      aggregate.n
-    ){
-      futureText=
-        aggregate.n===1
-          ? "Смена запланирована и уже учтена в расчёте."
-          : `Все ${shiftsWord(aggregate.n)} запланированы и уже учтены в расчёте.`;
-    }else{
-      futureText=
-        payout.futureCount===1
-          ? "1 смена запланирована и уже учтена в расчёте."
-          : `${shiftsWord(payout.futureCount)} запланированы и уже учтены в расчёте.`;
-    }
-  }
-
-  const futureNote=
-    futureText
-      ? `
-        <div class="note future-note">
-          ${futureText}
-        </div>
-      `
-      : "";
+  const compactShiftsSummary=
+    shiftsSummary.length>55;
 
   const fineLine=amount=>{
     if(!amount){
@@ -777,13 +799,12 @@ function viewStats(){
           <small> ₽</small>
         </div>
 
-        <div class="sub">
+        <div class="sub${compactShiftsSummary ? " compact" : ""}">
           ${shiftsSummary}
         </div>
       </div>
     </div>
 
-    ${futureNote}
 
     <div class="ml">
       Выплаты
