@@ -1087,7 +1087,7 @@ function closeSheet(){
     sheet.style.removeProperty("transition");
     sheet.style.removeProperty("--sheet-drag");
     if(previousFocus && document.contains(previousFocus)) previousFocus.focus();
-  },320);
+  },400);
 }
 
 let datePickerHideTimer;
@@ -1513,7 +1513,7 @@ function closeDatePicker(){
     picker.style.removeProperty("--date-drag");
     picker.style.removeProperty("transition");
     if(previousFocus && document.contains(previousFocus)) previousFocus.focus();
-  },320);
+  },360);
 }
 
 function selectDate(ymd){
@@ -1600,7 +1600,7 @@ function closePointPicker(){
     if(!picker.classList.contains("on")) picker.style.display="none";
     picker.style.removeProperty("--point-drag");
     if(previousFocus && document.contains(previousFocus)) previousFocus.focus();
-  },320);
+  },360);
 }
 
 function previewCalc(value){
