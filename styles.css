@@ -2058,21 +2058,12 @@ html[data-month-motion="prev"]::view-transition-new(month-period){
 
 /* ===== плавный переход вкладок ===== */
 
-/*
-  Старый экран сразу скрываем.
-  Иначе его snapshot просвечивает
-  под новым экраном во время перехода.
-*/
 html[data-tab-motion="next"]::view-transition-old(month-content),
 html[data-tab-motion="prev"]::view-transition-old(month-content){
   animation:none;
   opacity:0;
 }
 
-/*
-  При движении вправо по таббару
-  новый экран приходит справа.
-*/
 html[data-tab-motion="next"]::view-transition-new(month-content){
   animation:
     tab-content-in-next
@@ -2081,10 +2072,6 @@ html[data-tab-motion="next"]::view-transition-new(month-content){
     both;
 }
 
-/*
-  При движении влево по таббару
-  новый экран приходит слева.
-*/
 html[data-tab-motion="prev"]::view-transition-new(month-content){
   animation:
     tab-content-in-prev
@@ -2093,16 +2080,8 @@ html[data-tab-motion="prev"]::view-transition-new(month-content){
     both;
 }
 
-/*
-  Верхний заголовок месяца при смене
-  вкладки не двигаем и не смешиваем.
-*/
 html[data-tab-motion]::view-transition-old(month-period){
- both;
-}
-
-/*
-  Верхний заголовок месяца при смен  animation:none;
+  animation:none;
   opacity:0;
 }
 
@@ -2114,7 +2093,7 @@ html[data-tab-motion]::view-transition-new(month-period){
 @keyframes tab-content-in-next{
   from{
     opacity:0;
-    transform:translate3d(16px,0,0);
+    transform:translate3d(24px,0,0);
   }
 
   to{
@@ -2126,7 +2105,7 @@ html[data-tab-motion]::view-transition-new(month-period){
 @keyframes tab-content-in-prev{
   from{
     opacity:0;
-    transform:translate3d(-16px,0,0);
+    transform:translate3d(-24px,0,0);
   }
 
   to{
@@ -2134,6 +2113,7 @@ html[data-tab-motion]::view-transition-new(month-period){
     transform:translate3d(0,0,0);
   }
 }
+
 
 #monthGrid,
 #dateJumpMonths{
