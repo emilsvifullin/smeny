@@ -640,6 +640,21 @@ function viewStats(){
     `;
   };
 
+  const bonusLine=amount=>{
+    if(!amount){
+      return "";
+    }
+
+    return `
+      <div class="s">
+        Премии ·
+        <span class="pos">
+          + ${money(amount)}
+        </span>
+      </div>
+    `;
+  };
+
   let payment25Detail;
   let payment10Detail;
 
@@ -648,26 +663,26 @@ function viewStats(){
     payout.hasRegularPoints
   ){
     payment25Detail=
-      `Авансные ПВЗ ${money(payout.specialAdvance)} · остальные ${money(payout.regularFirstGross)}`;
+      `Авансные ПВЗ ${money(payout.specialAdvance)} · остальные ${money(payout.regularFirstBase)}`;
 
     payment10Detail=
-      `Авансные ПВЗ ${money(payout.specialFinalGross)} · остальные ${money(payout.regularSecondGross)}`;
+      `Авансные ПВЗ ${money(payout.specialSecondHalfBase)} · остальные ${money(payout.regularSecondBase)}`;
   }else if(
     payout.hasAdvancePoints
   ){
     payment25Detail=
-      `Аванс · 1–15 ${monthGen(cursor)} · лимит ${money(ADVANCE_CAP)}`;
+      `Авансные ПВЗ ${money(payout.specialAdvance)}`;
 
     payment10Detail=
-      `Окончательный расчёт за ${monthNom(cursor)}`;
+      `Авансные ПВЗ ${money(payout.specialSecondHalfBase)}`;
   }else if(
     payout.hasRegularPoints
   ){
     payment25Detail=
-      `1–15 ${monthGen(cursor)} · с премиями`;
+      `Остальные ${money(payout.regularFirstBase)}`;
 
     payment10Detail=
-      `16–${lastDayOfMonth(cursor)} ${monthGen(cursor)} · с премиями`;
+      `Остальные ${money(payout.regularSecondBase)}`;
   }else{
     payment25Detail=
       "По данным реестра";
@@ -783,6 +798,10 @@ function viewStats(){
             ${payment25Detail}
           </div>
 
+          ${bonusLine(
+            payout.bonus25
+          )}
+
           ${fineLine(
             payout.fine25
           )}
@@ -814,6 +833,10 @@ function viewStats(){
           </div>
 
           ${carryLine}
+
+          ${bonusLine(
+            payout.bonus10
+          )}
 
           ${fineLine(
             payout.fine10
