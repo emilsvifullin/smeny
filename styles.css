@@ -70,9 +70,18 @@
   box-sizing:border-box;
   -webkit-tap-highlight-color:transparent;
 
+  scrollbar-width:none;
+  -ms-overflow-style:none;
+
   user-select:none;
   -webkit-user-select:none;
   -webkit-touch-callout:none;
+}
+
+*::-webkit-scrollbar{
+  width:0;
+  height:0;
+  display:none;
 }
 
 input:focus,
@@ -84,14 +93,8 @@ textarea:focus{
 
 html{
   background:var(--bg);
-
-  scrollbar-width:none;
-  -ms-overflow-style:none;
 }
 
-html::-webkit-scrollbar{
-  display:none;
-}
 body{
   margin:0;
   min-height:100vh;
