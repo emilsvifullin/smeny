@@ -177,11 +177,7 @@ function esc(value){
 }
 
 function hoursWord(hours){
-  const n=Math.floor(hours),last=n%10,lastTwo=n%100;
-  if(hours!==n) return hours+" ч";
-  if(last===1 && lastTwo!==11) return n+" час";
-  if(last>=2 && last<=4 && (lastTwo<10 || lastTwo>=20)) return n+" часа";
-  return n+" часов";
+  return Number(hours)+" ч";
 }
 
 function shiftsWord(n){
