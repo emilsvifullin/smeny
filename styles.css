@@ -488,10 +488,12 @@ nav.tabs{
   position:static;
   transform:none;
 
+  height:50px;
+
   display:flex;
   gap:2px;
   padding:4px;
-  border-radius:24px;
+  border-radius:25px;
 
   background:var(--tabs);
   border:1px solid var(--line2);
@@ -547,8 +549,8 @@ nav.tabs button.on{
   transform:scale(1);
 
   transition:
-    opacity .22s ease,
-    transform .28s cubic-bezier(.32,.72,0,1),
+    opacity .30s ease,
+    transform .36s cubic-bezier(.22,.72,.22,1),
     visibility 0s;
 }
 
@@ -1715,14 +1717,14 @@ button:disabled{
 
 #fab.is-hidden{
   opacity:0 !important;
-  transform:scale(.78) !important;
+  transform:scale(.88) !important;
   visibility:hidden !important;
   pointer-events:none !important;
 
   transition:
-    opacity .18s ease,
-    transform .22s cubic-bezier(.32,.72,0,1),
-    visibility 0s linear .22s;
+    opacity .30s ease,
+    transform .36s cubic-bezier(.22,.72,.22,1),
+    visibility 0s linear .36s;
 }
 
 .sh{
