@@ -742,14 +742,14 @@ export function payouts(ym,shifts,{today}={}){
   const list=
     inMonth(shifts,ym);
 
-  const earned=
+  const futureCount=
     list.filter(
       shift=>
-        shift.date<=currentDay
-    );
+        shift.date>currentDay
+    ).length;
 
-  const futureCount=
-    list.length-earned.length;
+  const earnedCount=
+    list.length-futureCount;
 
   const nextYm=
     nextMonthKey(ym);
@@ -770,7 +770,7 @@ export function payouts(ym,shifts,{today}={}){
   let hasAdvancePoints=false;
   let hasRegularPoints=false;
 
-  for(const shift of earned){
+  for(const shift of list){
     const result=calc(shift);
 
     const day=
@@ -846,10 +846,6 @@ export function payouts(ym,shifts,{today}={}){
     new Map();
 
   for(const shift of shifts){
-    if(shift.date>currentDay){
-      continue;
-    }
-
     const entries=
       normalizeFineEntries(
         shift.fineEntries,
@@ -931,7 +927,7 @@ export function payouts(ym,shifts,{today}={}){
       );
 
   const all=
-    sumUp(earned);
+    sumUp(list);
 
   return {
     all,
@@ -961,7 +957,7 @@ export function payouts(ym,shifts,{today}={}){
     otherFinePayments,
 
     futureCount,
-    earnedCount:earned.length,
+    earnedCount,
     enteredCount:list.length
   };
 }
