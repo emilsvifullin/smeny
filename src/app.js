@@ -473,6 +473,15 @@ syncChannel?.addEventListener("message",event=>{
 
 /* ========== экраны ========== */
 const app = document.getElementById("app");
+
+function shouldShowFab(ym=cursor){
+  return (
+    tab==="shifts" &&
+    inMonth(ym).length>0 &&
+    !loadError
+  );
+}
+
 function render(){
   saveUIState();
 
@@ -489,8 +498,12 @@ function render(){
     button.classList.toggle("is-hidden",tab==="data");
   });
 
-  const showFab=tab==="shifts" && inMonth(cursor).length>0 && !loadError;
-  document.getElementById("fab").classList.toggle("is-hidden",!showFab);
+  const showFab=shouldShowFab(cursor);
+  const bottomControls=document.querySelector(".bottom-controls");
+  const fab=document.getElementById("fab");
+
+  bottomControls.classList.toggle("has-fab",showFab);
+  fab.classList.toggle("is-hidden",!showFab);
 
   ["shifts","stats","data"].forEach(name=>{
     const button=document.getElementById("tab-"+name);
@@ -1987,6 +2000,19 @@ function changeMonth(
     return;
   }
 
+  const fabWasVisible=
+    shouldShowFab(cursor);
+
+  const fabWillBeVisible=
+    shouldShowFab(nextCursor);
+
+  const bottomMotion=
+    fabWasVisible===fabWillBeVisible
+      ? null
+      : fabWillBeVisible
+        ? "show"
+        : "hide";
+
   const apply=()=>{
     cursor=nextCursor;
     render();
@@ -2014,6 +2040,11 @@ function changeMonth(
       ? "next"
       : "prev";
 
+  if(bottomMotion){
+    document.documentElement.dataset.bottomMotion=
+      bottomMotion;
+  }
+
   let transition;
 
   try{
@@ -2027,6 +2058,9 @@ function changeMonth(
     delete document.documentElement
       .dataset.monthMotion;
 
+    delete document.documentElement
+      .dataset.bottomMotion;
+
     apply();
     finish();
     return;
@@ -2039,6 +2073,9 @@ function changeMonth(
 
       delete document.documentElement
         .dataset.monthMotion;
+
+      delete document.documentElement
+        .dataset.bottomMotion;
 
       finish();
     });
