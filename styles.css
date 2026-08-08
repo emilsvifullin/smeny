@@ -2058,14 +2058,21 @@ html[data-month-motion="prev"]::view-transition-new(month-period){
 
 /* ===== плавный переход вкладок ===== */
 
-html[data-tab-motion="next"]::view-transition-old(month-content){
-  animation:
-    tab-content-out-next
-    var(--motion-tab)
-    var(--motion-ease)
-    both;
+/*
+  Старый экран сразу скрываем.
+  Иначе его snapshot просвечивает
+  под новым экраном во время перехода.
+*/
+html[data-tab-motion="next"]::view-transition-old(month-content),
+html[data-tab-motion="prev"]::view-transition-old(month-content){
+  animation:none;
+  opacity:0;
 }
 
+/*
+  При движении вправо по таббару
+  новый экран приходит справа.
+*/
 html[data-tab-motion="next"]::view-transition-new(month-content){
   animation:
     tab-content-in-next
@@ -2074,14 +2081,10 @@ html[data-tab-motion="next"]::view-transition-new(month-content){
     both;
 }
 
-html[data-tab-motion="prev"]::view-transition-old(month-content){
-  animation:
-    tab-content-out-prev
-    var(--motion-tab)
-    var(--motion-ease)
-    both;
-}
-
+/*
+  При движении влево по таббару
+  новый экран приходит слева.
+*/
 html[data-tab-motion="prev"]::view-transition-new(month-content){
   animation:
     tab-content-in-prev
@@ -2090,78 +2093,40 @@ html[data-tab-motion="prev"]::view-transition-new(month-content){
     both;
 }
 
-html[data-tab-motion="next"]::view-transition-old(month-period){
-  animation:
-    month-period-out-next
-    var(--motion-tab)
-    var(--motion-ease)
-    both;
+/*
+  Верхний заголовок месяца при смене
+  вкладки не двигаем и не смешиваем.
+*/
+html[data-tab-motion]::view-transition-old(month-period){
+ both;
 }
 
-html[data-tab-motion="next"]::view-transition-new(month-period){
-  animation:
-    month-period-in-next
-    var(--motion-tab)
-    var(--motion-ease)
-    both;
+/*
+  Верхний заголовок месяца при смен  animation:none;
+  opacity:0;
 }
 
-html[data-tab-motion="prev"]::view-transition-old(month-period){
-  animation:
-    month-period-out-prev
-    var(--motion-tab)
-    var(--motion-ease)
-    both;
-}
-
-html[data-tab-motion="prev"]::view-transition-new(month-period){
-  animation:
-    month-period-in-prev
-    var(--motion-tab)
-    var(--motion-ease)
-    both;
-}
-
-@keyframes tab-content-out-next{
-  from{
-    opacity:1;
-    transform:translate3d(0,0,0);
-  }
-
-  to{
-    opacity:0;
-    transform:translate3d(-18px,0,0);
-  }
+html[data-tab-motion]::view-transition-new(month-period){
+  animation:none;
+  opacity:1;
 }
 
 @keyframes tab-content-in-next{
   from{
     opacity:0;
-    transform:translate3d(18px,0,0);
+    transform:translate3d(16px,0,0);
   }
 
   to{
     opacity:1;
     transform:translate3d(0,0,0);
-  }
-}
-
-@keyframes tab-content-out-prev{
-  from{
-    opacity:1;
-    transform:translate3d(0,0,0);
-  }
-
-  to{
-    opacity:0;
-    transform:translate3d(18px,0,0);
   }
 }
 
 @keyframes tab-content-in-prev{
   from{
     opacity:0;
-    transform:translate3d(-18px,0,0);
+    transform:translate3d(-16px,0,0);
   }
 
   to{
