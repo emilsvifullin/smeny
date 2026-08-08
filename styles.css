@@ -511,6 +511,10 @@ nav.tabs button{
   font-weight:500;
   cursor:pointer;
   white-space:nowrap;
+
+  transition:
+    background-color .20s ease,
+    color .20s ease;
 }
 nav.tabs button.on{
   background:var(--tint2);
@@ -1829,6 +1833,7 @@ textarea{
     cubic-bezier(.22,.72,.22,1);
 
   --motion-month:320ms;
+  --motion-tab:250ms;
 }
 
 #app{
@@ -2043,6 +2048,120 @@ html[data-month-motion="prev"]::view-transition-new(month-period){
   from{
     opacity:0;
     transform:translate3d(-10px,0,0);
+  }
+
+  to{
+    opacity:1;
+    transform:translate3d(0,0,0);
+  }
+}
+
+/* ===== плавный переход вкладок ===== */
+
+html[data-tab-motion="next"]::view-transition-old(month-content){
+  animation:
+    tab-content-out-next
+    var(--motion-tab)
+    var(--motion-ease)
+    both;
+}
+
+html[data-tab-motion="next"]::view-transition-new(month-content){
+  animation:
+    tab-content-in-next
+    var(--motion-tab)
+    var(--motion-ease)
+    both;
+}
+
+html[data-tab-motion="prev"]::view-transition-old(month-content){
+  animation:
+    tab-content-out-prev
+    var(--motion-tab)
+    var(--motion-ease)
+    both;
+}
+
+html[data-tab-motion="prev"]::view-transition-new(month-content){
+  animation:
+    tab-content-in-prev
+    var(--motion-tab)
+    var(--motion-ease)
+    both;
+}
+
+html[data-tab-motion="next"]::view-transition-old(month-period){
+  animation:
+    month-period-out-next
+    var(--motion-tab)
+    var(--motion-ease)
+    both;
+}
+
+html[data-tab-motion="next"]::view-transition-new(month-period){
+  animation:
+    month-period-in-next
+    var(--motion-tab)
+    var(--motion-ease)
+    both;
+}
+
+html[data-tab-motion="prev"]::view-transition-old(month-period){
+  animation:
+    month-period-out-prev
+    var(--motion-tab)
+    var(--motion-ease)
+    both;
+}
+
+html[data-tab-motion="prev"]::view-transition-new(month-period){
+  animation:
+    month-period-in-prev
+    var(--motion-tab)
+    var(--motion-ease)
+    both;
+}
+
+@keyframes tab-content-out-next{
+  from{
+    opacity:1;
+    transform:translate3d(0,0,0);
+  }
+
+  to{
+    opacity:0;
+    transform:translate3d(-18px,0,0);
+  }
+}
+
+@keyframes tab-content-in-next{
+  from{
+    opacity:0;
+    transform:translate3d(18px,0,0);
+  }
+
+  to{
+    opacity:1;
+    transform:translate3d(0,0,0);
+  }
+}
+
+@keyframes tab-content-out-prev{
+  from{
+    opacity:1;
+    transform:translate3d(0,0,0);
+  }
+
+  to{
+    opacity:0;
+    transform:translate3d(18px,0,0);
+  }
+}
+
+@keyframes tab-content-in-prev{
+  from{
+    opacity:0;
+    transform:translate3d(-18px,0,0);
   }
 
   to{
