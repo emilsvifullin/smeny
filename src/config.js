@@ -24,7 +24,6 @@ export const POINT_IDS = new Set(POINT_DEFINITIONS.map(point=>point.id));
 export const POINT_BY_ID = new Map(POINT_DEFINITIONS.map(point=>[point.id,point]));
 export const POINT_BY_NAME = new Map(POINT_DEFINITIONS.map(point=>[point.name,point]));
 
-
 export const FIXED_POINT_IDS = new Set([
   "radialnaya-3k11",
   "korabelnaya-1",
