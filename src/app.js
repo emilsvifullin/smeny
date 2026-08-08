@@ -3646,6 +3646,22 @@ TAB_ORDER.forEach(name=>{
   );
 });
 
+document.getElementById("fab").onclick=()=>openSheet(null);
+document.getElementById("veil").onclick=closeSheet;
+document.getElementById("sheetCancel").onclick=closeSheet;
+document.getElementById("pointVeil").onclick=closePointPicker;
+document.getElementById("dateVeil").onclick=closeDatePicker;
+
+document.getElementById("datePrev").onclick=()=>{
+  changeDateCalendarMonth(
+    shiftMonth(
+      dateCalendarCursor,
+      -1
+    ),
+    -1
+  );
+};
+
 document.getElementById("dateNext").onclick=()=>{
   changeDateCalendarMonth(
     shiftMonth(
