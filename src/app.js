@@ -1866,6 +1866,7 @@ function closeMonthPicker(){
 }
 
 let monthTransitionRunning=false;
+let tabTransitionRunning=false;
 
 function prefersReducedMotion(){
   return window.matchMedia?.(
@@ -1880,7 +1881,8 @@ function changeMonth(
 ){
   if(
     nextCursor===cursor ||
-    monthTransitionRunning
+    monthTransitionRunning ||
+    tabTransitionRunning
   ){
     return;
   }
@@ -3475,46 +3477,174 @@ document.addEventListener(
   true
 );
 
-["shifts","stats","data"].forEach(name=>{
-  const button=document.getElementById("tab-"+name);
+const TAB_ORDER=[
+  "shifts",
+  "stats",
+  "data"
+];
 
-  button.onclick=()=>{
-    tab=name;
+function changeTab(
+  nextTab,
+  {
+    direction=null,
+    focus=false
+  }={}
+){
+  if(
+    !TAB_ORDER.includes(nextTab)
+  ){
+    return;
+  }
+
+  if(nextTab===tab){
+    window.scrollTo(0,0);
+
+    if(focus){
+      document
+        .getElementById(
+          "tab-"+nextTab
+        )
+        ?.focus();
+    }
+
+    return;
+  }
+
+  if(
+    tabTransitionRunning ||
+    monthTransitionRunning
+  ){
+    return;
+  }
+
+  const currentIndex=
+    TAB_ORDER.indexOf(tab);
+
+  const nextIndex=
+    TAB_ORDER.indexOf(nextTab);
+
+  const resolvedDirection=
+    direction ??
+    (
+      nextIndex>currentIndex
+        ? 1
+        : -1
+    );
+
+  const apply=()=>{
+    tab=nextTab;
     render();
     window.scrollTo(0,0);
   };
 
-  button.addEventListener("keydown",e=>{
-    if(!["ArrowLeft","ArrowRight"].includes(e.key)) return;
+  const finish=()=>{
+    if(focus){
+      document
+        .getElementById(
+          "tab-"+nextTab
+        )
+        ?.focus();
+    }
+  };
 
-    e.preventDefault();
+  if(
+    typeof document.startViewTransition!=="function" ||
+    prefersReducedMotion()
+  ){
+    apply();
+    finish();
+    return;
+  }
 
-    const tabs=["shifts","stats","data"];
-    const current=tabs.indexOf(tab);
-    const direction=e.key==="ArrowRight" ? 1 : -1;
-    const next=tabs[(current+direction+tabs.length)%tabs.length];
+  tabTransitionRunning=true;
 
-    tab=next;
-    render();
-    window.scrollTo(0,0);
-    document.getElementById("tab-"+next).focus();
-  });
-});
-document.getElementById("fab").onclick=()=>openSheet(null);
-document.getElementById("veil").onclick=closeSheet;
-document.getElementById("sheetCancel").onclick=closeSheet;
-document.getElementById("pointVeil").onclick=closePointPicker;
-document.getElementById("dateVeil").onclick=closeDatePicker;
+  document.documentElement.dataset.tabMotion=
+    resolvedDirection>0
+      ? "next"
+      : "prev";
 
-document.getElementById("datePrev").onclick=()=>{
-  changeDateCalendarMonth(
-    shiftMonth(
-      dateCalendarCursor,
-      -1
-    ),
-    -1
+  let transition;
+
+  try{
+    transition=
+      document.startViewTransition(
+        apply
+      );
+  }catch{
+    tabTransitionRunning=false;
+
+    delete document.documentElement
+      .dataset.tabMotion;
+
+    apply();
+    finish();
+    return;
+  }
+
+  transition.finished
+    .catch(()=>{})
+    .finally(()=>{
+      tabTransitionRunning=false;
+
+      delete document.documentElement
+        .dataset.tabMotion;
+
+      finish();
+    });
+}
+
+TAB_ORDER.forEach(name=>{
+  const button=
+    document.getElementById(
+      "tab-"+name
+    );
+
+  button.onclick=()=>{
+    changeTab(name);
+  };
+
+  button.addEventListener(
+    "keydown",
+    e=>{
+      if(
+        ![
+          "ArrowLeft",
+          "ArrowRight"
+        ].includes(e.key)
+      ){
+        return;
+      }
+
+      e.preventDefault();
+
+      const current=
+        TAB_ORDER.indexOf(tab);
+
+      const direction=
+        e.key==="ArrowRight"
+          ? 1
+          : -1;
+
+      const next=
+        TAB_ORDER[
+          (
+            current+
+            direction+
+            TAB_ORDER.length
+          )%
+          TAB_ORDER.length
+        ];
+
+      changeTab(
+        next,
+        {
+          direction,
+          focus:true
+        }
+      );
+    }
   );
-};
+});
 
 document.getElementById("dateNext").onclick=()=>{
   changeDateCalendarMonth(
