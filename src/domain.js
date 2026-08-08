@@ -15,6 +15,7 @@ import {
   RULES_VERSION,
   SCHEMA_VERSION,
   TIERS,
+  isAdvancePoint,
   isFixedPoint,
   pointIdForName,
   pointNameForId
@@ -121,6 +122,112 @@ function normalizeHours(value,index,partial){
   }
 
   return hours;
+}
+
+function legacyFineRecordedOn(shiftDate){
+  const ym=shiftDate.slice(0,7);
+  const day=Number(
+    shiftDate.slice(8,10)
+  );
+
+  return day<=15
+    ? `${ym}-03`
+    : `${ym}-18`;
+}
+
+function normalizeFineEntries(
+  value,
+  index,
+  fine,
+  shiftDate
+){
+  const fineAmount=
+    fine===""
+      ? 0
+      : Number(fine);
+
+  if(
+    value===undefined ||
+    value===null
+  ){
+    if(fineAmount===0){
+      return [];
+    }
+
+    return [{
+      amount:fineAmount,
+      recordedOn:
+        legacyFineRecordedOn(
+          shiftDate
+        )
+    }];
+  }
+
+  if(!Array.isArray(value)){
+    throw new DataValidationError(
+      "некорректная история штрафов",
+      {recordIndex:index}
+    );
+  }
+
+  const entries=
+    value.map(entry=>{
+      if(!isPlainObject(entry)){
+        throw new DataValidationError(
+          "некорректная запись истории штрафов",
+          {recordIndex:index}
+        );
+      }
+
+      const amount=
+        Number(entry.amount);
+
+      const recordedOn=
+        entry.recordedOn;
+
+      if(
+        !Number.isSafeInteger(amount) ||
+        amount===0 ||
+        Math.abs(amount)>MAX_MONEY
+      ){
+        throw new DataValidationError(
+          "некорректная сумма в истории штрафов",
+          {recordIndex:index}
+        );
+      }
+
+      if(
+        !isValidDateString(
+          recordedOn
+        )
+      ){
+        throw new DataValidationError(
+          "некорректная дата в истории штрафов",
+          {recordIndex:index}
+        );
+      }
+
+      return {
+        amount,
+        recordedOn
+      };
+    });
+
+  const total=
+    entries.reduce(
+      (sum,entry)=>
+        sum+entry.amount,
+      0
+    );
+
+  if(total!==fineAmount){
+    throw new DataValidationError(
+      "история штрафов не соответствует итоговой сумме",
+      {recordIndex:index}
+    );
+  }
+
+  return entries;
 }
 
 export function snapshotPricing({pointId,point,shk}){
@@ -263,6 +370,14 @@ export function normalizeShiftRecord(source,index=0){
   const bonus=normalizeWhole(migrated.bonus,index,"Премия",{allowEmpty:true,max:MAX_MONEY});
   const fine=normalizeWhole(migrated.fine,index,"Штраф",{allowEmpty:true,max:MAX_MONEY});
 
+  const fineEntries=
+    normalizeFineEntries(
+      migrated.fineEntries,
+      index,
+      fine,
+      migrated.date
+    );
+
   const baseShift={
     v:SCHEMA_VERSION,
     id:migrated.id,
@@ -274,7 +389,8 @@ export function normalizeShiftRecord(source,index=0){
     partial:migrated.partial,
     hours,
     bonus,
-    fine
+    fine,
+    fineEntries
   };
 
   return {
@@ -385,7 +501,11 @@ export function pricingDriversEqual(a,b){
   return aIdentity.pointId===bIdentity.pointId && aShk===bShk;
 }
 
-export function normalizeDraftForSave(value,existingShift=null){
+export function normalizeDraftForSave(
+  value,
+  existingShift=null,
+  {recordedOn}={}
+){
   if(!isPlainObject(value)){
     throw new DataValidationError("черновик смены повреждён");
   }
@@ -410,6 +530,58 @@ export function normalizeDraftForSave(value,existingShift=null){
   const bonus=normalizeWhole(value.bonus,null,"Премия",{allowEmpty:true,max:MAX_MONEY});
   const fine=normalizeWhole(value.fine,null,"Штраф",{allowEmpty:true,max:MAX_MONEY});
 
+  const currentFine=
+    fine===""
+      ? 0
+      : Number(fine);
+
+  const previousFine=
+    existingShift
+      ? (
+          existingShift.fine===""
+            ? 0
+            : Number(existingShift.fine)
+        )
+      : 0;
+
+  let fineEntries=
+    existingShift
+      ? normalizeFineEntries(
+          existingShift.fineEntries,
+          null,
+          existingShift.fine,
+          existingShift.date
+        )
+      : [];
+
+  const fineDelta=
+    currentFine-previousFine;
+
+  if(fineDelta!==0){
+    const entryDate=
+      recordedOn ||
+      new Date()
+        .toLocaleDateString("sv-SE");
+
+    if(
+      !isValidDateString(
+        entryDate
+      )
+    ){
+      throw new DataValidationError(
+        "некорректная дата внесения штрафа"
+      );
+    }
+
+    fineEntries=[
+      ...fineEntries,
+      {
+        amount:fineDelta,
+        recordedOn:entryDate
+      }
+    ];
+  }
+
   const base={
     v:SCHEMA_VERSION,
     id:value.id,
@@ -421,7 +593,8 @@ export function normalizeDraftForSave(value,existingShift=null){
     partial:value.partial,
     hours,
     bonus,
-    fine
+    fine,
+    fineEntries
   };
 
   const pricing=(
@@ -483,40 +656,310 @@ export function sumUp(list){
 }
 
 export function payouts(ym,shifts,{today}={}){
-  const currentDay=today || new Date().toLocaleDateString("sv-SE");
+  const currentDay=
+    today ||
+    new Date()
+      .toLocaleDateString("sv-SE");
+
   if(!isValidDateString(currentDay)){
-    throw new DataValidationError("некорректная текущая дата");
+    throw new DataValidationError(
+      "некорректная текущая дата"
+    );
   }
 
-  const list=inMonth(shifts,ym);
-  const earned=list.filter(shift=>shift.date<=currentDay);
-  const futureCount=list.length-earned.length;
-  const dayOf=shift=>Number(shift.date.slice(8,10));
+  const nextMonthKey=value=>{
+    const [year,month]=
+      value.split("-").map(Number);
 
-  // Бизнес-правило: премии не входят в аванс; штрафы уменьшают начисление.
-  const netWithoutBonus=items=>items.reduce((sum,shift)=>{
+    const date=
+      new Date(
+        year,
+        month,
+        1,
+        12
+      );
+
+    return (
+      date.getFullYear()+
+      "-"+
+      String(
+        date.getMonth()+1
+      ).padStart(2,"0")
+    );
+  };
+
+  const registryPaymentDate=
+    recordedOn=>{
+      const paymentYm=
+        recordedOn.slice(0,7);
+
+      const day=
+        Number(
+          recordedOn.slice(8,10)
+        );
+
+      if(day<3){
+        return `${paymentYm}-10`;
+      }
+
+      if(day<18){
+        return `${paymentYm}-25`;
+      }
+
+      return (
+        `${nextMonthKey(paymentYm)}-10`
+      );
+    };
+
+  const finePaymentDate=
+    (shift,entry)=>{
+      let paymentDate=
+        registryPaymentDate(
+          entry.recordedOn
+        );
+
+      if(
+        isAdvancePoint(
+          shift.pointId ||
+          shift.point
+        )
+      ){
+        const earliest=
+          `${
+            nextMonthKey(
+              shift.date.slice(0,7)
+            )
+          }-10`;
+
+        if(paymentDate<earliest){
+          paymentDate=earliest;
+        }
+      }
+
+      return paymentDate;
+    };
+
+  const list=
+    inMonth(shifts,ym);
+
+  const earned=
+    list.filter(
+      shift=>
+        shift.date<=currentDay
+    );
+
+  const futureCount=
+    list.length-earned.length;
+
+  const nextYm=
+    nextMonthKey(ym);
+
+  const payment25Date=
+    `${ym}-25`;
+
+  const payment10Date=
+    `${nextYm}-10`;
+
+  let specialFirstHalfBase=0;
+  let specialSecondHalfBase=0;
+  let specialBonus=0;
+
+  let regularFirstGross=0;
+  let regularSecondGross=0;
+
+  let hasAdvancePoints=false;
+  let hasRegularPoints=false;
+
+  for(const shift of earned){
     const result=calc(shift);
-    return sum+result.base-result.fine;
-  },0);
 
-  const firstHalf=earned.filter(shift=>dayOf(shift)<=15);
-  const secondHalf=earned.filter(shift=>dayOf(shift)>=16);
-  const byAdvanceDate=earned.filter(shift=>dayOf(shift)<=25);
-  const firstHalfTotal=netWithoutBonus(firstHalf);
-  const secondHalfTotal=netWithoutBonus(secondHalf);
-  const accruedBy25=netWithoutBonus(byAdvanceDate);
-  const advance=Math.min(Math.max(accruedBy25,0),ADVANCE_CAP);
-  const carryToFinal=Math.max(accruedBy25-advance,0);
-  const all=sumUp(earned);
+    const day=
+      Number(
+        shift.date.slice(8,10)
+      );
+
+    if(
+      isAdvancePoint(
+        shift.pointId ||
+        shift.point
+      )
+    ){
+      hasAdvancePoints=true;
+
+      if(day<=15){
+        specialFirstHalfBase+=
+          result.base;
+      }else{
+        specialSecondHalfBase+=
+          result.base;
+      }
+
+      specialBonus+=
+        result.bonus;
+
+      continue;
+    }
+
+    hasRegularPoints=true;
+
+    if(day<=15){
+      regularFirstGross+=
+        result.base+
+        result.bonus;
+    }else{
+      regularSecondGross+=
+        result.base+
+        result.bonus;
+    }
+  }
+
+  const specialAdvance=
+    Math.min(
+      specialFirstHalfBase,
+      ADVANCE_CAP
+    );
+
+  const specialCarry=
+    Math.max(
+      specialFirstHalfBase-
+      specialAdvance,
+      0
+    );
+
+  const specialFinalGross=
+    specialCarry+
+    specialSecondHalfBase+
+    specialBonus;
+
+  const gross25=
+    specialAdvance+
+    regularFirstGross;
+
+  const gross10=
+    specialFinalGross+
+    regularSecondGross;
+
+  const fineByPayment=
+    new Map();
+
+  const selectedFineByPayment=
+    new Map();
+
+  for(const shift of shifts){
+    if(shift.date>currentDay){
+      continue;
+    }
+
+    const entries=
+      normalizeFineEntries(
+        shift.fineEntries,
+        null,
+        shift.fine,
+        shift.date
+      );
+
+    for(const entry of entries){
+      if(
+        entry.recordedOn>
+        currentDay
+      ){
+        continue;
+      }
+
+      const paymentDate=
+        finePaymentDate(
+          shift,
+          entry
+        );
+
+      fineByPayment.set(
+        paymentDate,
+        (
+          fineByPayment.get(
+            paymentDate
+          ) || 0
+        )+
+        entry.amount
+      );
+
+      if(
+        shift.date.slice(0,7)===
+        ym
+      ){
+        selectedFineByPayment.set(
+          paymentDate,
+          (
+            selectedFineByPayment.get(
+              paymentDate
+            ) || 0
+          )+
+          entry.amount
+        );
+      }
+    }
+  }
+
+  const fine25=
+    fineByPayment.get(
+      payment25Date
+    ) || 0;
+
+  const fine10=
+    fineByPayment.get(
+      payment10Date
+    ) || 0;
+
+  const otherFinePayments=
+    Array.from(
+      selectedFineByPayment,
+      ([date,amount])=>({
+        date,
+        amount
+      })
+    )
+      .filter(
+        item=>
+          item.amount!==0 &&
+          item.date!==payment25Date &&
+          item.date!==payment10Date
+      )
+      .sort(
+        (a,b)=>
+          a.date.localeCompare(
+            b.date
+          )
+      );
+
+  const all=
+    sumUp(earned);
 
   return {
-    advance,
-    accruedBy25,
-    carryToFinal,
-    firstHalfTotal,
-    secondHalfTotal,
     all,
-    rest:all.total-advance,
+
+    payment25:
+      gross25-fine25,
+
+    payment10:
+      gross10-fine10,
+
+    gross25,
+    gross10,
+
+    fine25,
+    fine10,
+
+    specialAdvance,
+    specialCarry,
+    specialFinalGross,
+
+    regularFirstGross,
+    regularSecondGross,
+
+    hasAdvancePoints,
+    hasRegularPoints,
+
+    otherFinePayments,
+
     futureCount,
     earnedCount:earned.length,
     enteredCount:list.length
