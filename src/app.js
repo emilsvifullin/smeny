@@ -830,10 +830,6 @@ function viewStats(){
           <div class="t">
             Смены
           </div>
-
-          <div class="s">
-            ${shiftsSummary}
-          </div>
         </div>
 
         <div class="v">
