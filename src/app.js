@@ -585,6 +585,15 @@ function viewStats(){
     );
   }
 
+  if(payout.futureCount){
+    summaryParts.push(
+      "запланировано: "+
+      shiftsWord(
+        payout.futureCount
+      )
+    );
+  }
+
   const shiftsSummary=
     summaryParts.join(" · ");
 
@@ -593,8 +602,8 @@ function viewStats(){
       ? `
         <div class="note future-note">
           ${shiftsWord(payout.futureCount)}
-          с будущей датой пока не входят
-          в начисления.
+          с будущей датой уже включены
+          в расчёт как запланированные.
         </div>
       `
       : "";
