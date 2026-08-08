@@ -519,7 +519,7 @@ nav.tabs button.on{
   pointer-events:none;
 
   transition:
-    transform .32s cubic-bezier(.22,.72,.22,1),
+    transform .32s cubic-bezier(.18,.70,.32,.92),
     visibility 0s linear .32s;
 
   padding-bottom:calc(28px + env(safe-area-inset-bottom));
@@ -536,7 +536,7 @@ nav.tabs button.on{
   pointer-events:auto;
 
   transition:
-    transform .32s cubic-bezier(.22,.72,.22,1),
+    transform .32s cubic-bezier(.18,.70,.32,.92),
     visibility 0s;
 }
 
@@ -680,7 +680,7 @@ select option{direction:ltr;background:var(--surf);color:var(--ink)}
   will-change:transform;
 
   transition:
-    transform .3s cubic-bezier(.22,.72,.22,1);
+    transform .3s cubic-bezier(.18,.70,.32,.92);
 }
 
 .point-picker.on{
@@ -820,7 +820,7 @@ body.point-picker-open .sheet{
   will-change:transform;
 
   transition:
-    transform .3s cubic-bezier(.22,.72,.22,1);
+    transform .3s cubic-bezier(.18,.70,.32,.92);
 }
 
 .date-picker.on{
@@ -1130,7 +1130,7 @@ nav.tabs button.touch-active{
   will-change:transform;
 
   transition:
-    transform .3s cubic-bezier(.22,.72,.22,1);
+    transform .3s cubic-bezier(.18,.70,.32,.92);
 
   padding:0 12px 14px;
 }
