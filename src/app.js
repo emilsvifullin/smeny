@@ -972,6 +972,44 @@ function viewData(){
 }
 
 /* ========== форма ========== */
+function defaultShiftDate(){
+  const today=localYMD();
+
+  if(cursor===today.slice(0,7)){
+    return today;
+  }
+
+  const [year,month]=
+    cursor
+      .split("-")
+      .map(Number);
+
+  const todayDay=
+    Number(
+      today.slice(8,10)
+    );
+
+  const lastDay=
+    new Date(
+      year,
+      month,
+      0,
+      12
+    ).getDate();
+
+  const day=
+    Math.min(
+      todayDay,
+      lastDay
+    );
+
+  return (
+    cursor+
+    "-"+
+    String(day).padStart(2,"0")
+  );
+}
+
 function openSheet(id,restoredDraft=null,restoredScrollTop=0){
   if(loadError){
     tab="data";
@@ -994,7 +1032,7 @@ function openSheet(id,restoredDraft=null,restoredScrollTop=0){
       : {
           v:3,
           id:createShiftId(),
-          date:localYMD(),
+          date:defaultShiftDate(),
           point:POINTS[0],
           type:"main",
           shk:"",
