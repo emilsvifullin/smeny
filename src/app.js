@@ -2603,7 +2603,7 @@ function bindBottomSheetDismiss({
 
   const snapBack=()=>{
     element.style.transition=
-      "transform .24s cubic-bezier(.32,.72,0,1)";
+      "transform .30s cubic-bezier(.32,.72,0,1)";
 
     requestAnimationFrame(()=>{
       element.style.setProperty(
@@ -2624,7 +2624,57 @@ function bindBottomSheetDismiss({
           dragProperty
         );
       }
-    },260);
+    },320);
+  };
+
+  const animateClose=distance=>{
+    const endDistance=
+      element.getBoundingClientRect()
+        .height+40;
+
+    if(
+      prefersReducedMotion() ||
+      typeof element.animate!=="function"
+    ){
+      element.style.removeProperty(
+        "transition"
+      );
+
+      close();
+      return;
+    }
+
+    element.style.removeProperty(
+      "transition"
+    );
+
+    const animation=
+      element.animate(
+        [
+          {
+            transform:
+              `translate3d(0,${distance}px,0)`
+          },
+          {
+            transform:
+              `translate3d(0,${endDistance}px,0)`
+          }
+        ],
+        {
+          duration:300,
+          easing:
+            "cubic-bezier(.32,.72,0,1)",
+          fill:"both"
+        }
+      );
+
+    close();
+
+    animation.finished
+      .catch(()=>{})
+      .finally(()=>{
+        animation.cancel();
+      });
   };
 
   const finishDrag=({
@@ -2666,11 +2716,7 @@ function bindBottomSheetDismiss({
       performance.now()+650;
 
     if(shouldClose){
-      element.style.removeProperty(
-        "transition"
-      );
-
-      close();
+      animateClose(distance);
       return;
     }
 
