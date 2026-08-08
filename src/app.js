@@ -201,6 +201,13 @@ function partialShortWord(n){
   return n+" неполных";
 }
 
+function extraPartialShortWord(n){
+  const last=n%10,lastTwo=n%100;
+  if(last===1 && lastTwo!==11) return n+" доп. неполная";
+  if(last>=2 && last<=4 && (lastTwo<10 || lastTwo>=20)) return n+" доп. неполные";
+  return n+" доп. неполных";
+}
+
 function calc(shift){return domainCalc(shift);}
 function inMonth(ym){return domainInMonth(shifts,ym);}
 function payouts(ym){
@@ -592,386 +599,69 @@ function viewStats(){
         shift.date>today
     );
 
-  const groupDetails=list=>{
-    const details=[];
+const groupDetails=list=>{
+  const details=[];
 
-    const extraCount=
-      list.filter(
-        shift=>
-          shift.type==="extra"
-      ).length;
-
-    const partialCount=
-      list.filter(
-        shift=>
+  const counts=
+    list.reduce(
+      (
+        result,
+        shift
+      )=>{
+        if(
+          shift.type==="extra" &&
           shift.partial
-      ).length;
-
-    if(extraCount){
-      details.push(
-        extraCount+" доп."
-      );
-    }
-
-    if(partialCount){
-      details.push(
-        partialShortWord(
-          partialCount
-        )
-      );
-    }
-
-    return details.length
-      ? ` (${details.join(", ")})`
-      : "";
-  };
-
-  const statusParts=[];
-
-  if(workedShifts.length){
-    statusParts.push(
-      `отработано ${workedShifts.length}${groupDetails(workedShifts)}`
-    );
-  }
-
-  if(plannedShifts.length){
-    statusParts.push(
-      `запланировано ${plannedShifts.length}${groupDetails(plannedShifts)}`
-    );
-  }
-
-  const shiftsSummary=
-    statusParts.length
-      ? `${shiftsWord(aggregate.n)}: ${statusParts.join(", ")}`
-      : shiftsWord(aggregate.n);
-
-  const paymentBaseLine=(
-    label,
-    amount
-  )=>{
-    if(!amount){
-      return "";
-    }
-
-    return `
-      <div class="s">
-        ${label}:
-        ${money(amount)}
-      </div>
-    `;
-  };
-
-  const bonusLine=amount=>{
-    if(!amount){
-      return "";
-    }
-
-    return `
-      <div class="s">
-        Премии:
-        <span class="pos">
-          + ${money(amount)}
-        </span>
-      </div>
-    `;
-  };
-
-  const fineLine=amount=>{
-    if(!amount){
-      return "";
-    }
-
-    const correction=
-      amount<0;
-
-    return `
-      <div class="s">
-        ${
-          correction
-            ? "Корректировка штрафов:"
-            : "Штрафы:"
+        ){
+          result.extraPartial++;
         }
-        <span class="${
-          correction
-            ? "pos"
-            : "neg"
-        }">
-          ${
-            correction
-              ? "+"
-              : "−"
-          }
-          ${money(
-            Math.abs(amount)
-          )}
-        </span>
-      </div>
-    `;
-  };
 
-  const payment25Lines=[
-    paymentBaseLine(
-      "Авансные ПВЗ",
-      payout.specialAdvance
-    ),
+        else if(
+          shift.type==="extra"
+        ){
+          result.extra++;
+        }
 
-    paymentBaseLine(
-      "Остальные ПВЗ",
-      payout.regularFirstBase
-    ),
+        else if(
+          shift.partial
+        ){
+          result.partial++;
+        }
 
-    bonusLine(
-      payout.bonus25
-    ),
+        return result;
+      },
+      {
+        extraPartial:0,
+        extra:0,
+        partial:0
+      }
+    );
 
-    fineLine(
-      payout.fine25
-    )
-  ].join("");
+  if(counts.extraPartial){
+    details.push(
+      extraPartialShortWord(
+        counts.extraPartial
+      )
+    );
+  }
 
-  const payment10Lines=[
-    paymentBaseLine(
-      "Авансные ПВЗ",
-      payout.specialSecondHalfBase
-    ),
+  if(counts.extra){
+    details.push(
+      counts.extra+" доп."
+    );
+  }
 
-    paymentBaseLine(
-      "Перенос сверх лимита аванса",
-      payout.specialCarry
-    ),
+  if(counts.partial){
+    details.push(
+      partialShortWord(
+        counts.partial
+      )
+    );
+  }
 
-    paymentBaseLine(
-      "Остальные ПВЗ",
-      payout.regularSecondBase
-    ),
-
-    bonusLine(
-      payout.bonus10
-    ),
-
-    fineLine(
-      payout.fine10
-    )
-  ].join("");
-
-  const payment25Content=
-    payment25Lines ||
-    `
-      <div class="s">
-        Расчёт за 1–15 ${esc(monthGen(cursor))}
-      </div>
-    `;
-
-  const payment10Content=
-    payment10Lines ||
-    `
-      <div class="s">
-        Окончательный расчёт за ${esc(monthNom(cursor))}
-      </div>
-    `;
-
-  const fineTransferNotes=
-    payout.otherFinePayments
-      .map(item=>{
-        const correction=
-          item.amount<0;
-
-        const alreadyApplied=
-          item.date<=today;
-
-        return `
-          <div class="note">
-            ${
-              correction
-                ? "Корректировка штрафов"
-                : "Штрафы"
-            }
-            за ${esc(monthNom(cursor))}
-            <span class="${
-              correction
-                ? "pos"
-                : "neg"
-            }">
-              ${
-                correction
-                  ? "+"
-                  : "−"
-              }
-              ${money(
-                Math.abs(
-                  item.amount
-                )
-              )}
-            </span>
-            ${
-              alreadyApplied
-                ? "учтены"
-                : "учтутся"
-            }
-            в выплате
-            ${esc(
-              dateLabel(
-                item.date
-              )
-            )}.
-          </div>
-        `;
-      })
-      .join("");
-
-  return `
-    <div class="card">
-      <div class="hero">
-        <div class="k">
-          Начислено
-        </div>
-
-        <div class="n ${
-          String(
-            Math.abs(
-              Math.round(
-                aggregate.total
-              )
-            )
-          ).startsWith("1")
-            ? "starts-one"
-            : ""
-        }">
-          ${nf(aggregate.total)}
-          <small> ₽</small>
-        </div>
-
-        <div class="sub">
-          ${shiftsSummary}
-        </div>
-      </div>
-    </div>
-
-
-    <div class="ml">
-      Выплаты
-    </div>
-
-    <div class="card">
-      <div class="row">
-        <div class="l">
-          <div class="t">
-            25 ${esc(monthGen(cursor))}
-          </div>
-
-          ${payment25Content}
-        </div>
-
-        <div class="v ${
-          payout.payment25<0
-            ? "neg"
-            : ""
-        }">
-          ${money(
-            payout.payment25
-          )}
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="l">
-          <div class="t">
-            10 ${esc(
-              monthGen(
-                payout.nextYm
-              )
-            )}
-          </div>
-
-          ${payment10Content}
-        </div>
-
-        <div class="v ${
-          payout.payment10<0
-            ? "neg"
-            : ""
-        }">
-          ${money(
-            payout.payment10
-          )}
-        </div>
-      </div>
-    </div>
-
-    ${fineTransferNotes}
-
-    <div class="ml">
-      За месяц
-    </div>
-
-    <div class="card">
-      <div class="row">
-        <div class="l">
-          <div class="t">
-            Смены
-          </div>
-        </div>
-
-        <div class="v">
-          ${money(aggregate.base)}
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="l">
-          <div class="t">
-            Премии
-          </div>
-        </div>
-
-        <div class="v pos">
-          ${
-            aggregate.bonus
-              ? "+ "
-              : ""
-          }
-          ${money(
-            aggregate.bonus
-          )}
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="l">
-          <div class="t">
-            Штрафы
-          </div>
-        </div>
-
-        <div class="v neg">
-          ${
-            aggregate.fine
-              ? "− "
-              : ""
-          }
-          ${money(
-            aggregate.fine
-          )}
-        </div>
-      </div>
-
-      <div class="row total">
-        <div class="l">
-          <div class="t">
-            Итого за
-            ${esc(monthNom(cursor))}
-          </div>
-        </div>
-
-        <div class="v">
-          ${money(
-            aggregate.total
-          )}
-        </div>
-      </div>
-    </div>
-  `;
-}
+  return details.length
+    ? ` (${details.join(", ")})`
+    : "";
+};
 
 function viewData(){
   let title;
