@@ -1055,7 +1055,6 @@ body.date-picker-open .sheet{
   border-radius:17px;
   box-shadow:var(--shadow);
 
-  opacity:0;
   visibility:hidden;
   pointer-events:none;
 
@@ -1066,18 +1065,21 @@ body.date-picker-open .sheet{
   transform-origin:
     50% 0;
 
-  will-change:
-    transform,
-    opacity;
+  will-change:transform;
 
   transition:
-    opacity .18s ease,
     transform .26s cubic-bezier(.22,.72,.22,1),
     visibility 0s linear .26s;
 }
 
+.date-jump > *{
+  opacity:0;
+
+  transition:
+    opacity .18s ease;
+}
+
 .date-jump.on{
-  opacity:1;
   visibility:visible;
   pointer-events:auto;
 
@@ -1086,23 +1088,15 @@ body.date-picker-open .sheet{
     scale(1);
 
   transition:
-    opacity .20s ease,
     transform .26s cubic-bezier(.22,.72,.22,1),
     visibility 0s;
 }
 
-.date-picker .date-weekdays,
-.date-picker .date-grid{
-  transition:
-    opacity .12s ease .26s;
-}
-
-.date-picker.jump-open .date-weekdays,
-.date-picker.jump-open .date-grid{
-  opacity:0;
+.date-jump.on > *{
+  opacity:1;
 
   transition:
-    opacity .08s ease;
+    opacity .20s ease;
 }
 
 .date-jump-dismiss{
