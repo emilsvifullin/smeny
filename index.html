@@ -164,53 +164,53 @@
     <div class="month-picker-grab"></div>
   </div>
 
-<div class="picker-toolbar">
-  <button
-    type="button"
-    class="picker-toolbar-btn cancel"
-    id="monthCancel"
-  >
-    Отмена
-  </button>
+  <div class="picker-toolbar">
+    <button
+      type="button"
+      class="picker-toolbar-btn cancel"
+      id="monthCancel"
+    >
+      Отмена
+    </button>
 
-  <div class="picker-toolbar-title">
-    Выберите месяц
+    <div class="picker-toolbar-title">
+      Выберите месяц
+    </div>
+
+    <button
+      type="button"
+      class="picker-toolbar-btn done"
+      id="monthDone"
+    >
+      Готово
+    </button>
   </div>
 
-  <button
-    type="button"
-    class="picker-toolbar-btn done"
-    id="monthDone"
-  >
-    Готово
-  </button>
-</div>
+  <div class="month-picker-head">
+    <button
+      type="button"
+      class="date-calendar-nav"
+      id="monthYearPrev"
+      aria-label="Предыдущий год"
+    >
+      <svg viewBox="0 0 20 20" aria-hidden="true">
+        <path d="M13 4L7 10L13 16"></path>
+      </svg>
+    </button>
 
-<div class="month-picker-head">
-  <button
-    type="button"
-    class="date-calendar-nav"
-    id="monthYearPrev"
-    aria-label="Предыдущий год"
-  >
-    <svg viewBox="0 0 20 20" aria-hidden="true">
-      <path d="M13 4L7 10L13 16"></path>
-    </svg>
-  </button>
+    <div class="month-year" id="monthPickerYear"></div>
 
-  <div class="month-year" id="monthPickerYear"></div>
-
-  <button
-    type="button"
-    class="date-calendar-nav"
-    id="monthYearNext"
-    aria-label="Следующий год"
-  >
-    <svg viewBox="0 0 20 20" aria-hidden="true">
-      <path d="M7 4L13 10L7 16"></path>
-    </svg>
-  </button>
-</div>
+    <button
+      type="button"
+      class="date-calendar-nav"
+      id="monthYearNext"
+      aria-label="Следующий год"
+    >
+      <svg viewBox="0 0 20 20" aria-hidden="true">
+        <path d="M7 4L13 10L7 16"></path>
+      </svg>
+    </button>
+  </div>
 
   <div class="month-grid" id="monthGrid"></div>
 
@@ -286,7 +286,7 @@
     </button>
   </div>
 
-    <div class="date-jump" id="dateJump">
+  <div class="date-jump" id="dateJump">
     <div class="picker-toolbar">
       <button
         type="button"
@@ -352,11 +352,11 @@
     </button>
   </div>
 
-<div
-  class="date-jump-dismiss"
-  id="dateJumpDismiss"
-  aria-hidden="true"
-></div>
+  <div
+    class="date-jump-dismiss"
+    id="dateJumpDismiss"
+    aria-hidden="true"
+  ></div>
 
   <div class="date-weekdays">
     <span>Пн</span>
