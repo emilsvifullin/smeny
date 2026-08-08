@@ -552,78 +552,349 @@ function viewShifts(){
 }
 
 function viewStats(){
-  const payout=payouts(cursor);
-  const aggregate=payout.all;
+  const payout=
+    payouts(cursor);
+
+  const aggregate=
+    payout.all;
+
   const details=[];
 
-  if(aggregate.extra) details.push(aggregate.extra+" доп.");
-  if(aggregate.part) details.push(partialShortWord(aggregate.part));
+  if(aggregate.extra){
+    details.push(
+      aggregate.extra+" доп."
+    );
+  }
 
-  const summaryParts=[shiftsWord(aggregate.n)];
-  if(details.length) summaryParts.push("из них "+details.join(" и "));
-  summaryParts.push(nf(aggregate.shk)+" ШК");
-  const shiftsSummary=summaryParts.join(" · ");
+  if(aggregate.part){
+    details.push(
+      partialShortWord(
+        aggregate.part
+      )
+    );
+  }
 
-  const futureNote=payout.futureCount
-    ? `<div class="note future-note">${shiftsWord(payout.futureCount)} с будущей датой пока не входят в начисления.</div>`
-    : "";
+  const summaryParts=[
+    shiftsWord(aggregate.n)
+  ];
 
-  let html=`
+  if(details.length){
+    summaryParts.push(
+      "из них "+
+      details.join(" и ")
+    );
+  }
+
+  summaryParts.push(
+    nf(aggregate.shk)+" ШК"
+  );
+
+  const shiftsSummary=
+    summaryParts.join(" · ");
+
+  const futureNote=
+    payout.futureCount
+      ? `
+        <div class="note future-note">
+          ${shiftsWord(payout.futureCount)}
+          с будущей датой пока не входят
+          в начисления.
+        </div>
+      `
+      : "";
+
+  const fineLine=amount=>{
+    if(!amount){
+      return "";
+    }
+
+    const correction=
+      amount<0;
+
+    return `
+      <div class="s">
+        ${
+          correction
+            ? "Корректировка штрафов"
+            : "Штрафы по реестру"
+        }
+        ·
+        <span class="${
+          correction
+            ? "pos"
+            : "neg"
+        }">
+          ${
+            correction
+              ? "+"
+              : "−"
+          }
+          ${money(Math.abs(amount))}
+        </span>
+      </div>
+    `;
+  };
+
+  let payment25Detail;
+  let payment10Detail;
+
+  if(
+    payout.hasAdvancePoints &&
+    payout.hasRegularPoints
+  ){
+    payment25Detail=
+      `Авансные ПВЗ ${money(payout.specialAdvance)} · остальные ${money(payout.regularFirstGross)}`;
+
+    payment10Detail=
+      `Авансные ПВЗ ${money(payout.specialFinalGross)} · остальные ${money(payout.regularSecondGross)}`;
+  }else if(
+    payout.hasAdvancePoints
+  ){
+    payment25Detail=
+      `Аванс · 1–15 ${monthGen(cursor)} · лимит ${money(ADVANCE_CAP)}`;
+
+    payment10Detail=
+      `Окончательный расчёт за ${monthNom(cursor)}`;
+  }else if(
+    payout.hasRegularPoints
+  ){
+    payment25Detail=
+      `1–15 ${monthGen(cursor)} · с премиями`;
+
+    payment10Detail=
+      `16–${lastDayOfMonth(cursor)} ${monthGen(cursor)} · с премиями`;
+  }else{
+    payment25Detail=
+      "По данным реестра";
+
+    payment10Detail=
+      `Расчёт за ${monthNom(cursor)}`;
+  }
+
+  const carryLine=
+    payout.specialCarry>0
+      ? `
+        <div class="s">
+          Сверх лимита аванса перенесено:
+          ${money(payout.specialCarry)}
+        </div>
+      `
+      : "";
+
+  const today=
+    localYMD();
+
+  const fineTransferNotes=
+    payout.otherFinePayments
+      .map(item=>{
+        const correction=
+          item.amount<0;
+
+        const alreadyApplied=
+          item.date<=today;
+
+        return `
+          <div class="note">
+            ${
+              correction
+                ? "Корректировка штрафов"
+                : "Штрафы"
+            }
+            за ${esc(monthNom(cursor))}
+            <span class="${
+              correction
+                ? "pos"
+                : "neg"
+            }">
+              ${
+                correction
+                  ? "+"
+                  : "−"
+              }
+              ${money(
+                Math.abs(
+                  item.amount
+                )
+              )}
+            </span>
+            ${
+              alreadyApplied
+                ? "учтены"
+                : "учтутся"
+            }
+            в выплате
+            ${esc(
+              dateLabel(
+                item.date
+              )
+            )}.
+          </div>
+        `;
+      })
+      .join("");
+
+  return `
     <div class="card">
       <div class="hero">
-        <div class="k">Начислено за ${esc(monthNom(cursor))}</div>
-        <div class="n">${nf(aggregate.total)}<small> ₽</small></div>
-        <div class="sub">${shiftsSummary}</div>
-      </div>
-
-      <div class="prog">
-        <div class="top">
-          <span>Начислено к авансу · 25 ${esc(monthGen(cursor))}</span>
-          <span>${money(payout.accruedBy25)}</span>
+        <div class="k">
+          Начислено за
+          ${esc(monthNom(cursor))}
         </div>
 
-        <div class="limit">
-          <div class="limit-row"><span>В аванс</span><span class="limit-value">${money(payout.advance)}</span></div>
-          <div class="limit-row"><span>Перенесено в окончательный расчёт</span><span class="limit-value">${money(payout.carryToFinal)}</span></div>
+        <div class="n">
+          ${nf(aggregate.total)}
+          <small> ₽</small>
         </div>
 
-        <progress class="advance-progress" max="${ADVANCE_CAP}" value="${Math.max(0,payout.advance)}" aria-label="Прогресс аванса"></progress>
+        <div class="sub">
+          ${shiftsSummary}
+        </div>
       </div>
     </div>
+
     ${futureNote}
-  `;
 
-  html+=`
-    <div class="ml">Выплаты</div>
-    <div class="card">
-      <div class="row">
-        <div class="l"><div class="t">Аванс · 25 ${esc(monthGen(cursor))}</div><div class="s">максимальная выплата — ${money(ADVANCE_CAP)}</div></div>
-        <div class="v">${money(payout.advance)}</div>
-      </div>
-      <div class="row">
-        <div class="l"><div class="t">Окончательный расчёт · 10 ${esc(monthGen(payout.nextYm))}</div><div class="s">всё начисленное за ${esc(monthNom(cursor))} за вычетом аванса</div></div>
-        <div class="v">${money(payout.rest)}</div>
-      </div>
-    </div>`;
-
-  html+=`
-    <div class="ml">По периодам</div>
-    <div class="card">
-      <div class="row"><div class="l"><div class="t">1–15 ${esc(monthGen(cursor))}</div></div><div class="v">${money(payout.firstHalfTotal)}</div></div>
-      <div class="row"><div class="l"><div class="t">16–${lastDayOfMonth(cursor)} ${esc(monthGen(cursor))}</div></div><div class="v">${money(payout.secondHalfTotal)}</div></div>
+    <div class="ml">
+      Выплаты
     </div>
-    <div class="note">Оплата за смены с учётом штрафов. Премии показаны отдельно ниже. Неполная смена округляется до целого рубля отдельно по каждой смене.</div>`;
 
-  html+=`
-    <div class="ml">Состав начислений</div>
     <div class="card">
-      <div class="row"><div class="l"><div class="t">Оплата за смены</div><div class="s">${shiftsSummary}</div></div><div class="v">${money(aggregate.base)}</div></div>
-      <div class="row"><div class="l"><div class="t">Премии</div></div><div class="v pos">${aggregate.bonus?"+ ":""}${money(aggregate.bonus)}</div></div>
-      <div class="row"><div class="l"><div class="t">Штрафы</div></div><div class="v neg">${aggregate.fine?"− ":""}${money(aggregate.fine)}</div></div>
-      <div class="row total"><div class="l"><div class="t">Итого за ${esc(monthNom(cursor))}</div></div><div class="v">${money(aggregate.total)}</div></div>
-    </div>`;
+      <div class="row">
+        <div class="l">
+          <div class="t">
+            25 ${esc(monthGen(cursor))}
+          </div>
 
-  return html;
+          <div class="s">
+            ${payment25Detail}
+          </div>
+
+          ${fineLine(
+            payout.fine25
+          )}
+        </div>
+
+        <div class="v ${
+          payout.payment25<0
+            ? "neg"
+            : ""
+        }">
+          ${money(
+            payout.payment25
+          )}
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="l">
+          <div class="t">
+            10 ${esc(
+              monthGen(
+                payout.nextYm
+              )
+            )}
+          </div>
+
+          <div class="s">
+            ${payment10Detail}
+          </div>
+
+          ${carryLine}
+
+          ${fineLine(
+            payout.fine10
+          )}
+        </div>
+
+        <div class="v ${
+          payout.payment10<0
+            ? "neg"
+            : ""
+        }">
+          ${money(
+            payout.payment10
+          )}
+        </div>
+      </div>
+    </div>
+
+    ${fineTransferNotes}
+
+    <div class="ml">
+      За месяц
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <div class="l">
+          <div class="t">
+            Смены
+          </div>
+
+          <div class="s">
+            ${shiftsSummary}
+          </div>
+        </div>
+
+        <div class="v">
+          ${money(aggregate.base)}
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="l">
+          <div class="t">
+            Премии
+          </div>
+        </div>
+
+        <div class="v pos">
+          ${
+            aggregate.bonus
+              ? "+ "
+              : ""
+          }
+          ${money(
+            aggregate.bonus
+          )}
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="l">
+          <div class="t">
+            Штрафы
+          </div>
+        </div>
+
+        <div class="v neg">
+          ${
+            aggregate.fine
+              ? "− "
+              : ""
+          }
+          ${money(
+            aggregate.fine
+          )}
+        </div>
+      </div>
+
+      <div class="row total">
+        <div class="l">
+          <div class="t">
+            Итого за
+            ${esc(monthNom(cursor))}
+          </div>
+        </div>
+
+        <div class="v">
+          ${money(
+            aggregate.total
+          )}
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 function viewData(){
@@ -1482,7 +1753,15 @@ function validateDraft(value){
 }
 
 function normalizedDraft(value){
-  return normalizeDraftForSave(value,shifts.find(item=>item.id===value.id) || null);
+  return normalizeDraftForSave(
+    value,
+    shifts.find(
+      item=>item.id===value.id
+    ) || null,
+    {
+      recordedOn:localYMD()
+    }
+  );
 }
 
 function showValidationError(error){
