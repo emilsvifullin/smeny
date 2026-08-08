@@ -1035,8 +1035,8 @@ function viewData(){
     detail="Последнее изменение не сохранено.";
     statusClass="off";
   }else{
-    title="Данные сохранены";
-    detail=shiftsWord(shifts.length);
+    title=`Данные сохранены: ${shiftsWord(shifts.length)}`;
+    detail="";
   }
 
   const recoveryActions=loadError
@@ -1063,7 +1063,7 @@ function viewData(){
         <div class="dot ${statusClass}"></div>
         <div class="l">
           <div class="t">${esc(title)}</div>
-          <div class="s wrap">${esc(detail)}</div>
+          ${detail?`<div class="s wrap">${esc(detail)}</div>`:""}
         </div>
       </div>
     </div>
