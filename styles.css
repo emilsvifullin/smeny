@@ -2240,6 +2240,10 @@ html[data-month-motion="prev"]::view-transition-new(month-period){
 
 /* ===== плавный переход вкладок ===== */
 
+html[data-tab-motion]::view-transition-group(month-content){
+  animation-duration:0s;
+}
+
 html[data-tab-motion="next"]::view-transition-old(month-content),
 html[data-tab-motion="prev"]::view-transition-old(month-content){
   animation:none;
