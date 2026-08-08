@@ -513,22 +513,30 @@ nav.tabs button.on{
   border-top:1px solid var(--line2);
   border-radius:22px 22px 0 0;
 
-  transform:translateY(110vh);
+  transform:translate3d(0,110vh,0);
+  will-change:transform;
   visibility:hidden;
   pointer-events:none;
+
   transition:
-    transform .32s cubic-bezier(.32,.72,0,1),
+    transform .32s cubic-bezier(.22,.72,.22,1),
     visibility 0s linear .32s;
 
   padding-bottom:calc(28px + env(safe-area-inset-bottom));
 }
 
 .sheet.on{
-  transform:translateY(var(--sheet-drag, 0px));
+  transform:translate3d(
+    0,
+    var(--sheet-drag, 0px),
+    0
+  );
+
   visibility:visible;
   pointer-events:auto;
+
   transition:
-    transform .32s cubic-bezier(.32,.72,0,1),
+    transform .32s cubic-bezier(.22,.72,.22,1),
     visibility 0s;
 }
 
@@ -663,12 +671,24 @@ select option{direction:ltr;background:var(--surf);color:var(--ink)}
 
   box-shadow:var(--shadow);
 
-  transform:translateY(calc(100% + 30px));
-  transition:transform .3s cubic-bezier(.32,.72,0,1);
+  transform:translate3d(
+    0,
+    calc(100% + 30px),
+    0
+  );
+
+  will-change:transform;
+
+  transition:
+    transform .3s cubic-bezier(.22,.72,.22,1);
 }
 
 .point-picker.on{
-  transform:translateY(var(--point-drag, 0px));
+  transform:translate3d(
+    0,
+    var(--point-drag, 0px),
+    0
+  );
 }
 
 body.point-picker-open{
@@ -800,7 +820,7 @@ body.point-picker-open .sheet{
   will-change:transform;
 
   transition:
-    transform .3s cubic-bezier(.32,.72,0,1);
+    transform .3s cubic-bezier(.22,.72,.22,1);
 }
 
 .date-picker.on{
@@ -1101,16 +1121,26 @@ nav.tabs button.touch-active{
   border-radius:22px;
   box-shadow:var(--shadow);
 
-  transform:translateY(
-    calc(100% + 24px + env(safe-area-inset-bottom))
+  transform:translate3d(
+    0,
+    calc(100% + 24px + env(safe-area-inset-bottom)),
+    0
   );
-  transition:transform .3s cubic-bezier(.32,.72,0,1);
+
+  will-change:transform;
+
+  transition:
+    transform .3s cubic-bezier(.22,.72,.22,1);
 
   padding:0 12px 14px;
 }
 
 .month-picker.on{
-  transform:translateY(var(--month-drag, 0px));
+  transform:translate3d(
+    0,
+    var(--month-drag, 0px),
+    0
+  );
 }
 
 body.month-picker-open{
