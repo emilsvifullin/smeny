@@ -2541,104 +2541,474 @@ document.getElementById("monthDone").onclick=()=>{
 const monthPickerElement=
   document.getElementById("monthPicker");
 
-const monthPickerHandle=
-  document.getElementById("monthPickerHandle");
+function bindBottomSheetDismiss({
+  element,
+  dragProperty,
+  close,
+  canStart=()=>true,
+  onBegin=()=>{}
+}){
+  let gesture=null;
+  let dragFrame=0;
+  let pendingDistance=0;
+  let snapTimer=0;
+  let suppressClickUntil=0;
 
-let monthPickerDrag=null;
+  const blockedTarget=target=>
+    target instanceof Element &&
+    Boolean(
+      target.closest(
+        'input,textarea,select,[contenteditable="true"]'
+      )
+    );
 
-monthPickerHandle.addEventListener("pointerdown",e=>{
-  if(
-    !e.isPrimary ||
-    !monthPickerElement.classList.contains("on")
-  ){
-    return;
-  }
+  const queueDistance=distance=>{
+    pendingDistance=distance;
 
-  monthPickerDrag={
-    id:e.pointerId,
-    startY:e.clientY,
-    distance:0,
-    started:performance.now()
+    if(dragFrame){
+      return;
+    }
+
+    dragFrame=requestAnimationFrame(()=>{
+      dragFrame=0;
+
+      element.style.setProperty(
+        dragProperty,
+        pendingDistance+"px"
+      );
+    });
   };
 
-  monthPickerElement.style.transition="none";
-  monthPickerHandle.setPointerCapture(e.pointerId);
-  e.preventDefault();
-});
+  const flushDistance=()=>{
+    if(!dragFrame){
+      return;
+    }
 
-monthPickerHandle.addEventListener("pointermove",e=>{
-  if(
-    !monthPickerDrag ||
-    e.pointerId!==monthPickerDrag.id
-  ){
-    return;
-  }
+    cancelAnimationFrame(dragFrame);
+    dragFrame=0;
 
-  const distance=Math.max(
-    0,
-    e.clientY-monthPickerDrag.startY
+    element.style.setProperty(
+      dragProperty,
+      pendingDistance+"px"
+    );
+  };
+
+  const beginDrag=()=>{
+    clearTimeout(snapTimer);
+
+    onBegin();
+
+    element.style.transition="none";
+  };
+
+  const snapBack=()=>{
+    element.style.transition=
+      "transform .24s cubic-bezier(.32,.72,0,1)";
+
+    requestAnimationFrame(()=>{
+      element.style.setProperty(
+        dragProperty,
+        "0px"
+      );
+    });
+
+    snapTimer=setTimeout(()=>{
+      if(
+        element.classList.contains("on")
+      ){
+        element.style.removeProperty(
+          "transition"
+        );
+
+        element.style.removeProperty(
+          dragProperty
+        );
+      }
+    },260);
+  };
+
+  const finishDrag=({
+    allowClose=true
+  }={})=>{
+    if(
+      !gesture ||
+      gesture.axis!=="y"
+    ){
+      gesture=null;
+      return;
+    }
+
+    flushDistance();
+
+    const distance=
+      gesture.distance;
+
+    const duration=Math.max(
+      1,
+      performance.now()-
+        gesture.started
+    );
+
+    const fastSwipe=
+      distance>=22 &&
+      distance/duration>=0.32;
+
+    const shouldClose=
+      allowClose &&
+      (
+        distance>=56 ||
+        fastSwipe
+      );
+
+    gesture=null;
+
+    suppressClickUntil=
+      performance.now()+650;
+
+    if(shouldClose){
+      element.style.removeProperty(
+        "transition"
+      );
+
+      close();
+      return;
+    }
+
+    snapBack();
+  };
+
+  const lockAxis=(
+    dx,
+    dy
+  )=>{
+    if(!gesture){
+      return false;
+    }
+
+    const absX=Math.abs(dx);
+    const absY=Math.abs(dy);
+
+    if(gesture.axis!==null){
+      return gesture.axis==="y";
+    }
+
+    if(
+      absX<8 &&
+      absY<8
+    ){
+      return false;
+    }
+
+    if(
+      absX>=10 &&
+      absX>absY*1.10
+    ){
+      gesture.axis="x";
+      return false;
+    }
+
+    if(
+      dy<0 &&
+      absY>=10 &&
+      absY>absX*1.10
+    ){
+      gesture.axis="scroll";
+      return false;
+    }
+
+    if(
+      dy>0 &&
+      absY>=10 &&
+      absY>absX*1.08
+    ){
+      if(!canStart(gesture.target)){
+        gesture.axis="scroll";
+        return false;
+      }
+
+      gesture.axis="y";
+      beginDrag();
+      return true;
+    }
+
+    return false;
+  };
+
+  element.addEventListener(
+    "touchstart",
+    event=>{
+      if(
+        event.touches.length!==1 ||
+        !element.classList.contains("on") ||
+        blockedTarget(event.target)
+      ){
+        gesture=null;
+        return;
+      }
+
+      const touch=
+        event.touches[0];
+
+      gesture={
+        kind:"touch",
+        id:touch.identifier,
+        target:event.target,
+        startX:touch.clientX,
+        startY:touch.clientY,
+        distance:0,
+        started:performance.now(),
+        axis:null
+      };
+    },
+    {passive:true}
   );
 
-  monthPickerDrag.distance=distance;
+  element.addEventListener(
+    "touchmove",
+    event=>{
+      if(
+        !gesture ||
+        gesture.kind!=="touch"
+      ){
+        return;
+      }
 
-  monthPickerElement.style.setProperty(
-    "--month-drag",
-    distance+"px"
+      const touch=
+        findTouch(
+          event.touches,
+          gesture.id
+        );
+
+      if(!touch){
+        return;
+      }
+
+      const dx=
+        touch.clientX-
+        gesture.startX;
+
+      const dy=
+        touch.clientY-
+        gesture.startY;
+
+      if(!lockAxis(dx,dy)){
+        return;
+      }
+
+      gesture.distance=
+        Math.max(0,dy);
+
+      queueDistance(
+        gesture.distance
+      );
+
+      if(event.cancelable){
+        event.preventDefault();
+      }
+    },
+    {passive:false}
   );
 
-  e.preventDefault();
-});
+  element.addEventListener(
+    "touchend",
+    event=>{
+      if(
+        !gesture ||
+        gesture.kind!=="touch"
+      ){
+        return;
+      }
 
-function finishMonthPickerDrag(e){
-  if(
-    !monthPickerDrag ||
-    e.pointerId!==monthPickerDrag.id
-  ){
-    return;
-  }
+      const touch=
+        findTouch(
+          event.changedTouches,
+          gesture.id
+        );
 
-  const {id,distance,started}=monthPickerDrag;
-  const duration=Math.max(1,performance.now()-started);
-  const fastSwipe=distance>=28 && distance/duration>=.45;
-  const shouldClose=distance>=80 || fastSwipe;
+      if(
+        touch &&
+        gesture.axis==="y"
+      ){
+        gesture.distance=
+          Math.max(
+            0,
+            touch.clientY-
+              gesture.startY
+          );
 
-  monthPickerDrag=null;
+        pendingDistance=
+          gesture.distance;
+      }
 
-  if(monthPickerHandle.hasPointerCapture(id)){
-    monthPickerHandle.releasePointerCapture(id);
-  }
+      finishDrag();
+    }
+  );
 
-  monthPickerElement.style.removeProperty("transition");
+  element.addEventListener(
+    "touchcancel",
+    ()=>{
+      if(
+        !gesture ||
+        gesture.kind!=="touch"
+      ){
+        return;
+      }
 
-  if(shouldClose){
-    closeMonthPicker();
-    return;
-  }
+      finishDrag({
+        allowClose:false
+      });
+    }
+  );
 
-  requestAnimationFrame(()=>{
-    monthPickerElement.style.removeProperty("--month-drag");
-  });
+  element.addEventListener(
+    "pointerdown",
+    event=>{
+      if(
+        event.pointerType==="touch" ||
+        !event.isPrimary ||
+        !element.classList.contains("on") ||
+        blockedTarget(event.target)
+      ){
+        return;
+      }
+
+      gesture={
+        kind:"pointer",
+        id:event.pointerId,
+        target:event.target,
+        startX:event.clientX,
+        startY:event.clientY,
+        distance:0,
+        started:performance.now(),
+        axis:null
+      };
+    }
+  );
+
+  element.addEventListener(
+    "pointermove",
+    event=>{
+      if(
+        !gesture ||
+        gesture.kind!=="pointer" ||
+        event.pointerId!==gesture.id
+      ){
+        return;
+      }
+
+      const dx=
+        event.clientX-
+        gesture.startX;
+
+      const dy=
+        event.clientY-
+        gesture.startY;
+
+      const wasDragging=
+        gesture.axis==="y";
+
+      if(!lockAxis(dx,dy)){
+        return;
+      }
+
+      if(!wasDragging){
+        try{
+          element.setPointerCapture(
+            event.pointerId
+          );
+        }catch{}
+      }
+
+      gesture.distance=
+        Math.max(0,dy);
+
+      queueDistance(
+        gesture.distance
+      );
+
+      event.preventDefault();
+    }
+  );
+
+  element.addEventListener(
+    "pointerup",
+    event=>{
+      if(
+        !gesture ||
+        gesture.kind!=="pointer" ||
+        event.pointerId!==gesture.id
+      ){
+        return;
+      }
+
+      if(gesture.axis==="y"){
+        gesture.distance=
+          Math.max(
+            0,
+            event.clientY-
+              gesture.startY
+          );
+
+        pendingDistance=
+          gesture.distance;
+      }
+
+      try{
+        if(
+          element.hasPointerCapture(
+            event.pointerId
+          )
+        ){
+          element.releasePointerCapture(
+            event.pointerId
+          );
+        }
+      }catch{}
+
+      finishDrag();
+    }
+  );
+
+  element.addEventListener(
+    "pointercancel",
+    event=>{
+      if(
+        !gesture ||
+        gesture.kind!=="pointer" ||
+        event.pointerId!==gesture.id
+      ){
+        return;
+      }
+
+      finishDrag({
+        allowClose:false
+      });
+    }
+  );
+
+  element.addEventListener(
+    "click",
+    event=>{
+      if(
+        performance.now()>
+        suppressClickUntil
+      ){
+        return;
+      }
+
+      suppressClickUntil=0;
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    },
+    true
+  );
 }
 
-monthPickerHandle.addEventListener(
-  "pointerup",
-  finishMonthPickerDrag
-);
-
-monthPickerHandle.addEventListener("pointercancel",e=>{
-  if(
-    !monthPickerDrag ||
-    e.pointerId!==monthPickerDrag.id
-  ){
-    return;
-  }
-
-  monthPickerDrag=null;
-  monthPickerElement.style.removeProperty("transition");
-
-  requestAnimationFrame(()=>{
-    monthPickerElement.style.removeProperty("--month-drag");
-  });
+bindBottomSheetDismiss({
+  element:monthPickerElement,
+  dragProperty:"--month-drag",
+  close:closeMonthPicker
 });
 
 let monthSwipe=null;
@@ -3246,153 +3616,11 @@ document.getElementById("dateJumpMonths").onclick=e=>{
 const datePickerElement=
   document.getElementById("datePicker");
 
-const datePickerHandle=
-  document.getElementById("datePickerHandle");
-
-let datePickerDrag=null;
-let datePickerDragFrame=0;
-
-datePickerHandle.addEventListener("pointerdown",e=>{
-  if(
-    !e.isPrimary ||
-    !datePickerElement.classList.contains("on")
-  ){
-    return;
-  }
-
-  closeDateJump();
-
-  datePickerDrag={
-    id:e.pointerId,
-    startY:e.clientY,
-    distance:0,
-    started:performance.now()
-  };
-
-  datePickerElement.style.transition="none";
-
-  datePickerHandle.setPointerCapture(e.pointerId);
-
-  e.preventDefault();
-});
-
-datePickerHandle.addEventListener("pointermove",e=>{
-  if(
-    !datePickerDrag ||
-    e.pointerId!==datePickerDrag.id
-  ){
-    return;
-  }
-
-  datePickerDrag.distance=Math.max(
-    0,
-    e.clientY-datePickerDrag.startY
-  );
-
-  if(!datePickerDragFrame){
-    datePickerDragFrame=
-      requestAnimationFrame(()=>{
-        datePickerDragFrame=0;
-
-        if(!datePickerDrag){
-          return;
-        }
-
-        datePickerElement.style.setProperty(
-          "--date-drag",
-          datePickerDrag.distance+"px"
-        );
-      });
-  }
-
-  e.preventDefault();
-});
-
-function finishDatePickerDrag(e){
-  if(
-    !datePickerDrag ||
-    e.pointerId!==datePickerDrag.id
-  ){
-    return;
-  }
-
-  if(datePickerDragFrame){
-    cancelAnimationFrame(
-      datePickerDragFrame
-    );
-
-    datePickerDragFrame=0;
-  }
-
-  const {
-    id,
-    distance,
-    started
-  }=datePickerDrag;
-
-  const duration=Math.max(
-    1,
-    performance.now()-started
-  );
-
-  const fastSwipe=
-    distance>=28 &&
-    distance/duration>=0.45;
-
-  const shouldClose=
-    distance>=80 ||
-    fastSwipe;
-
-  datePickerDrag=null;
-
-  if(datePickerHandle.hasPointerCapture(id)){
-    datePickerHandle.releasePointerCapture(id);
-  }
-
-  datePickerElement.style.removeProperty("transition");
-
-  if(shouldClose){
-    closeDatePicker();
-    return;
-  }
-
-  requestAnimationFrame(()=>{
-    datePickerElement.style.removeProperty("--date-drag");
-  });
-}
-
-datePickerHandle.addEventListener(
-  "pointerup",
-  finishDatePickerDrag
-);
-
-datePickerHandle.addEventListener("pointercancel",e=>{
-  if(
-    !datePickerDrag ||
-    e.pointerId!==datePickerDrag.id
-  ){
-    return;
-  }
-
-  if(datePickerDragFrame){
-    cancelAnimationFrame(
-      datePickerDragFrame
-    );
-
-    datePickerDragFrame=0;
-  }
-
-  datePickerDrag=null;
-
-  datePickerElement.style.removeProperty(
-    "transition"
-  );
-
-  requestAnimationFrame(()=>{
-    datePickerElement.style.removeProperty(
-      "--date-drag"
-    );
-  });
+bindBottomSheetDismiss({
+  element:datePickerElement,
+  dragProperty:"--date-drag",
+  close:closeDatePicker,
+  onBegin:closeDateJump
 });
 
 const dateGrid=document.getElementById("dateGrid");
@@ -3565,152 +3793,45 @@ document.getElementById("dateDone").onclick=()=>{
 const shiftSheet=
   document.getElementById("sheet");
 
-let sheetDrag=null;
+bindBottomSheetDismiss({
+  element:shiftSheet,
+  dragProperty:"--sheet-drag",
+  close:closeSheet,
 
-shiftSheet.addEventListener("pointerdown",event=>{
-  const dragArea=
-    event.target.closest(".grab,.shead");
+  canStart:target=>{
+    if(
+      target instanceof Element &&
+      target.closest(".grab,.shead")
+    ){
+      return true;
+    }
 
-  if(
-    !event.isPrimary ||
-    !dragArea ||
-    event.target.closest("button") ||
-    !shiftSheet.classList.contains("on")
-  ) return;
-
-  sheetDrag={
-    id:event.pointerId,
-    startY:event.clientY,
-    distance:0,
-    started:performance.now()
-  };
-
-  shiftSheet.style.transition="none";
-  shiftSheet.setPointerCapture(event.pointerId);
-  event.preventDefault();
+    return shiftSheet.scrollTop<=0;
+  }
 });
-
-shiftSheet.addEventListener("pointermove",event=>{
-  if(!sheetDrag || event.pointerId!==sheetDrag.id) return;
-  sheetDrag.distance=Math.max(0,event.clientY-sheetDrag.startY);
-  shiftSheet.style.setProperty("--sheet-drag",sheetDrag.distance+"px");
-  event.preventDefault();
-});
-
-function finishSheetDrag(event){
-  if(
-    !sheetDrag ||
-    event.pointerId!==sheetDrag.id
-  ){
-    return;
-  }
-
-  const {
-    id,
-    distance,
-    started
-  }=sheetDrag;
-
-  const duration=Math.max(
-    1,
-    performance.now()-started
-  );
-
-  const fastSwipe=
-    distance>=28 &&
-    distance/duration>=0.45;
-
-  const shouldClose=
-    distance>=80 ||
-    fastSwipe;
-
-  sheetDrag=null;
-
-  if(
-    shiftSheet.hasPointerCapture(id)
-  ){
-    shiftSheet.releasePointerCapture(id);
-  }
-
-  shiftSheet.style.transition=
-    "transform .28s cubic-bezier(.32,.72,0,1)";
-
-  if(shouldClose){
-    closeSheet();
-    return;
-  }
-
-  shiftSheet.style.setProperty(
-    "--sheet-drag",
-    "0px"
-  );
-
-  setTimeout(()=>{
-    shiftSheet.style.removeProperty(
-      "transition"
-    );
-
-    shiftSheet.style.removeProperty(
-      "--sheet-drag"
-    );
-  },300);
-}
-
-shiftSheet.addEventListener("pointerup",finishSheetDrag);
-shiftSheet.addEventListener("pointercancel",finishSheetDrag);
 
 const pointPicker=
   document.getElementById("pointPicker");
 
-const pointPickerHandle=
-  document.getElementById("pointPickerHandle");
+bindBottomSheetDismiss({
+  element:pointPicker,
+  dragProperty:"--point-drag",
+  close:closePointPicker,
 
-let pointDrag=null;
+  canStart:target=>{
+    if(!(target instanceof Element)){
+      return true;
+    }
 
-pointPickerHandle.addEventListener("pointerdown",event=>{
-  if(
-    !event.isPrimary ||
-    !pointPicker.classList.contains("on")
-  ){
-    return;
+    const list=
+      target.closest(".point-list");
+
+    return (
+      !list ||
+      list.scrollTop<=0
+    );
   }
-
-  pointDrag={
-    id:event.pointerId,
-    startY:event.clientY,
-    distance:0
-  };
-
-  pointPicker.style.transition="none";
-  pointPickerHandle.setPointerCapture(event.pointerId);
-  event.preventDefault();
 });
-
-pointPickerHandle.addEventListener("pointermove",event=>{
-  if(!pointDrag || event.pointerId!==pointDrag.id) return;
-  pointDrag.distance=Math.max(0,event.clientY-pointDrag.startY);
-  pointPicker.style.setProperty("--point-drag",pointDrag.distance+"px");
-  event.preventDefault();
-});
-
-function finishPointDrag(event){
-  if(!pointDrag || event.pointerId!==pointDrag.id) return;
-  const {id,distance}=pointDrag;
-  pointDrag=null;
-
-  if(pointPickerHandle.hasPointerCapture(id)) pointPickerHandle.releasePointerCapture(id);
-  pointPicker.style.removeProperty("transition");
-
-  if(distance>=80){
-    closePointPicker();
-  }else{
-    pointPicker.style.setProperty("--point-drag","0px");
-    setTimeout(()=>pointPicker.style.removeProperty("--point-drag"),300);
-  }
-}
-
-pointPickerHandle.addEventListener("pointerup",finishPointDrag);
-pointPickerHandle.addEventListener("pointercancel",finishPointDrag);
 
 document.getElementById("sheetSave").onclick=async()=>{
   const button=document.getElementById("sheetSave");
