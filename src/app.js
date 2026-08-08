@@ -3286,6 +3286,7 @@ document.getElementById("dateDone").onclick=()=>{
 
   selectDate(datePickerValue);
 };
+
 const shiftSheet=
   document.getElementById("sheet");
 
@@ -3382,6 +3383,7 @@ function finishSheetDrag(event){
 
 shiftSheet.addEventListener("pointerup",finishSheetDrag);
 shiftSheet.addEventListener("pointercancel",finishSheetDrag);
+
 const pointPicker=
   document.getElementById("pointPicker");
 
@@ -3434,6 +3436,7 @@ function finishPointDrag(event){
 
 pointPickerHandle.addEventListener("pointerup",finishPointDrag);
 pointPickerHandle.addEventListener("pointercancel",finishPointDrag);
+
 document.getElementById("sheetSave").onclick=async()=>{
   const button=document.getElementById("sheetSave");
 
