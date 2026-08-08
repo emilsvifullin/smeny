@@ -276,13 +276,9 @@ main{
 .hero .sub{
   margin-top:6px;
   font-size:13px;
+  line-height:1.4;
   color:var(--ink2);
-  white-space:nowrap;
-}
-
-.hero .sub.compact{
-  font-size:clamp(9px,2.4vw,12px);
-  letter-spacing:-.1px;
+  white-space:normal;
 }
 
 /* строки */
