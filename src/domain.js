@@ -718,22 +718,34 @@ export function payouts(ym,shifts,{today}={}){
           entry.recordedOn
         );
 
-      if(
+      const shiftYm=
+        shift.date.slice(0,7);
+
+      const shiftDay=
+        Number(
+          shift.date.slice(8,10)
+        );
+
+      const earliest=
         isAdvancePoint(
           shift.pointId ||
           shift.point
         )
-      ){
-        const earliest=
-          `${
-            nextMonthKey(
-              shift.date.slice(0,7)
-            )
-          }-10`;
+          ? `${
+              nextMonthKey(
+                shiftYm
+              )
+            }-10`
+          : shiftDay<=15
+            ? `${shiftYm}-25`
+            : `${
+                nextMonthKey(
+                  shiftYm
+                )
+              }-10`;
 
-        if(paymentDate<earliest){
-          paymentDate=earliest;
-        }
+      if(paymentDate<earliest){
+        paymentDate=earliest;
       }
 
       return paymentDate;
