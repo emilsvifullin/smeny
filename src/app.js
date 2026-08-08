@@ -348,7 +348,7 @@ async function load(){
     try{hasBackup=Boolean(store.getBackupRaw());}catch{hasBackup=false;}
   }
 
-    render();
+  render();
 
   const savedDraft=
     pendingUI.draft;
@@ -754,27 +754,37 @@ function openSheet(id,restoredDraft=null,restoredScrollTop=0){
   sheet.classList.add("on");
 
   if(restoring){
-    sheet.scrollTop=Math.max(0,restoredScrollTop);
-    void sheet.offsetHeight;
-    requestAnimationFrame(()=>{
-  sheet.style.removeProperty("transition");
-  veil.style.removeProperty("transition");
+    sheet.scrollTop=Math.max(
+      0,
+      restoredScrollTop
+    );
 
-  sheet.focus({
-    preventScroll:true
-  });
-});
+    void sheet.offsetHeight;
+
+    requestAnimationFrame(()=>{
+      sheet.style.removeProperty(
+        "transition"
+      );
+
+      veil.style.removeProperty(
+        "transition"
+      );
+
+      sheet.focus({
+        preventScroll:true
+      });
+    });
   }else{
     requestAnimationFrame(()=>{
-  sheet.scrollTop=Math.max(
-    0,
-    restoredScrollTop
-  );
+      sheet.scrollTop=Math.max(
+        0,
+        restoredScrollTop
+      );
 
-  sheet.focus({
-    preventScroll:true
-  });
-});
+      sheet.focus({
+        preventScroll:true
+      });
+    });
   }
 
   saveUIState();
@@ -1953,7 +1963,7 @@ function changeDateJumpYear(direction){
 
     direction,
 
-        apply:()=>{
+    apply:()=>{
       dateJumpYear=
         nextYear;
 
@@ -3200,27 +3210,27 @@ function finishDateSwipe(e){
     Math.abs(dx)>=35 &&
     Math.abs(dx)>Math.abs(dy)*1.15;
 
-if(accepted){
-  const direction=
-    dx<0
-      ? 1
-      : -1;
+  if(accepted){
+    const direction=
+      dx<0
+        ? 1
+        : -1;
 
-  const nextCursor=
-    shiftMonth(
-      dateCalendarCursor,
+    const nextCursor=
+      shiftMonth(
+        dateCalendarCursor,
+        direction
+      );
+
+    closeDateJump();
+
+    changeDateCalendarMonth(
+      nextCursor,
       direction
     );
 
-  closeDateJump();
-
-  changeDateCalendarMonth(
-    nextCursor,
-    direction
-  );
-
-  dateSwipeBlockClick=true;
-}
+    dateSwipeBlockClick=true;
+  }
 
   setTimeout(()=>{
     dateSwipeBlockClick=false;
@@ -3276,12 +3286,15 @@ document.getElementById("dateDone").onclick=()=>{
 
   selectDate(datePickerValue);
 };
-  const shiftSheet=document.getElementById("sheet");
+const shiftSheet=
+  document.getElementById("sheet");
 
 let sheetDrag=null;
 
 shiftSheet.addEventListener("pointerdown",event=>{
-  const dragArea=event.target.closest(".grab,.shead");
+  const dragArea=
+    event.target.closest(".grab,.shead");
+
   if(
     !event.isPrimary ||
     !dragArea ||
@@ -3290,11 +3303,12 @@ shiftSheet.addEventListener("pointerdown",event=>{
   ) return;
 
   sheetDrag={
-  id:event.pointerId,
-  startY:event.clientY,
-  distance:0,
-  started:performance.now()
-};
+    id:event.pointerId,
+    startY:event.clientY,
+    distance:0,
+    started:performance.now()
+  };
+
   shiftSheet.style.transition="none";
   shiftSheet.setPointerCapture(event.pointerId);
   event.preventDefault();
