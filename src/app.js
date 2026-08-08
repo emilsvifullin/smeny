@@ -1019,70 +1019,76 @@ function viewData(){
   let statusClass="";
 
   if(loadError){
-    title="Ошибка чтения данных";
-    detail="Сохранённая база не была изменена. Можно скачать исходные данные или восстановить последнюю исправную копию.";
+    title="Ошибка данных";
+    detail="Можно восстановить сохранённую копию или заменить данные.";
     statusClass="off";
   }else if(syncConflict){
     title="Конфликт изменений";
-    detail="Другая вкладка изменила базу. Обновите данные перед следующей записью.";
+    detail="Обновите данные перед следующей записью.";
     statusClass="off";
   }else if(store.mode==="memory"){
     title="Временное хранение";
-    detail=`Записей: ${shifts.length}. Браузер запретил постоянное хранилище; данные сохраняются только до закрытия этой страницы.`;
+    detail=`${shiftsWord(shifts.length)} · только до закрытия страницы`;
     statusClass="off";
   }else if(!storageOk){
     title="Ошибка сохранения";
-    detail="Последнее изменение не было принято. Существующая сохранённая база не заменена.";
+    detail="Последнее изменение не сохранено.";
     statusClass="off";
   }else{
-    title="Сохранено на этом устройстве";
-    detail=`Записей: ${shifts.length}. Для переноса на другое устройство используйте резервную копию JSON.`;
+    title="Данные сохранены";
+    detail=shiftsWord(shifts.length);
   }
 
   const recoveryActions=loadError
     ? `
       <button class="btn" id="doRawExport">Скачать исходные данные</button>
-      ${hasBackup?`<button class="btn gold" id="doRestoreBackup">Восстановить последнюю исправную копию</button>`:""}
-      <div class="ml">Замена из резервной копии</div>
-      <textarea id="dataImportInput" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="Вставьте исправный JSON сюда"></textarea>
-      <button class="btn gold" id="doImport">Заменить повреждённые данные</button>
-      <div class="note">Повреждённая исходная копия будет сохранена отдельно перед заменой.</div>
+      ${hasBackup?`<button class="btn gold" id="doRestoreBackup">Восстановить исправную копию</button>`:""}
+
+      <div class="ml">Резервная копия</div>
+      <textarea id="dataImportInput" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="Вставьте исправную копию сюда"></textarea>
+      <button class="btn gold" id="doImport">Заменить данные</button>
     `
     : syncConflict
       ? `<button class="btn gold" id="doReloadData">Обновить данные</button>`
       : "";
 
   const backupAction=hasBackup && !loadError
-    ? `<button class="btn" id="doRestoreBackup">Вернуть предыдущую сохранённую версию</button>`
+    ? `<button class="btn" id="doRestoreBackup">Восстановить предыдущую версию</button>`
     : "";
 
   return `
-    <div class="ml">Состояние</div>
+    <div class="ml">Хранилище</div>
     <div class="card">
       <div class="row">
         <div class="dot ${statusClass}"></div>
-        <div class="l"><div class="t">${esc(title)}</div><div class="s wrap">${esc(detail)}</div></div>
+        <div class="l">
+          <div class="t">${esc(title)}</div>
+          <div class="s wrap">${esc(detail)}</div>
+        </div>
       </div>
     </div>
+
     ${recoveryActions}
 
     ${loadError?"":`
       <div class="ml">Резервная копия</div>
-      <button class="btn gold" id="doExport">Скачать JSON</button>
-      <button class="btn" id="doCopyJson">Скопировать JSON</button>
+      <button class="btn gold" id="doExport">Скачать копию</button>
+      <button class="btn" id="doImportToggle">Загрузить копию</button>
+
+      <div id="dataImportPanel" hidden>
+        <textarea id="dataImportInput" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="Вставьте резервную копию сюда"></textarea>
+        <button class="btn gold" id="doImport">Загрузить</button>
+      </div>
+
       ${backupAction}
 
-      <div class="note">Резервная копия содержит версию схемы, версию правил и ревизию данных.</div>
-      <textarea id="dataImportInput" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="Вставьте JSON сюда"></textarea>
-      <button class="btn gold" id="doImport">Загрузить данные</button>
-      <div class="note">Перед заменой приложение автоматически сохранит предыдущую исправную версию.</div>
-
-      <div class="ml">Опасная зона</div>
       <button class="btn warn" id="doWipe">Удалить все смены</button>
-      <div class="note">После удаления предыдущую сохранённую версию можно восстановить из раздела «Данные».</div>
     `}
 
-    <div class="developer-credit">Shift Register ${APP_VERSION} · правила ${RULES_VERSION} · разработчик emilsvifullin</div>
+    <div class="developer-credit">
+      <div>Версия: Shift Register ${APP_VERSION}</div>
+      <div>Разработчик: emilsvifullin</div>
+    </div>
   `;
 }
 
@@ -4760,6 +4766,21 @@ app.addEventListener("click",async event=>{
     }catch(error){
       toast(error instanceof Error ? error.message : "Не удалось восстановить данные",4000);
     }
+    return;
+  }
+
+  if(button.id==="doImportToggle"){
+    const panel=document.getElementById("dataImportPanel");
+    if(!panel) return;
+
+    panel.hidden=!panel.hidden;
+
+    if(!panel.hidden){
+      requestAnimationFrame(()=>{
+        document.getElementById("dataImportInput")?.focus();
+      });
+    }
+
     return;
   }
 
