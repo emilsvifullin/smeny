@@ -530,7 +530,7 @@ function viewShifts(){
     const tags=[];
     if(shift.type==="extra") tags.push(`<span class="tag g">Доп</span>`);
     if(shift.partial) tags.push(`<span class="tag">${hoursWord(result.hours)}</span>`);
-    if(result.bonus>0) tags.push(`<span class="tag g">+${nf(result.bonus)}</span>`);
+    if(result.bonus>0) tags.push(`<span class="tag bonus">+${nf(result.bonus)}</span>`);
     if(result.fine>0) tags.push(`<span class="tag r">−${nf(result.fine)}</span>`);
     const shkLabel=result.fixed ? "Оклад" : `${shift.shk==="" ? "—" : nf(shift.shk)} ШК`;
 
