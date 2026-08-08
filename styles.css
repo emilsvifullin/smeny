@@ -1055,29 +1055,33 @@ body.date-picker-open .sheet{
   border-radius:17px;
   box-shadow:var(--shadow);
 
-  opacity:0;
   visibility:hidden;
   pointer-events:none;
 
   transform:
-    translate3d(0,-7px,0)
+    translate3d(0,-6px,0)
     scale(.985);
 
   transform-origin:
     50% 0;
 
+  clip-path:
+    inset(
+      0 0 100% 0
+      round 17px
+    );
+
   will-change:
     transform,
-    opacity;
+    clip-path;
 
   transition:
-    opacity .18s ease,
     transform .26s cubic-bezier(.22,.72,.22,1),
+    clip-path .24s cubic-bezier(.22,.72,.22,1),
     visibility 0s linear .26s;
 }
 
 .date-jump.on{
-  opacity:1;
   visibility:visible;
   pointer-events:auto;
 
@@ -1085,9 +1089,15 @@ body.date-picker-open .sheet{
     translate3d(0,0,0)
     scale(1);
 
+  clip-path:
+    inset(
+      0 0 0 0
+      round 17px
+    );
+
   transition:
-    opacity .20s ease,
     transform .26s cubic-bezier(.22,.72,.22,1),
+    clip-path .24s cubic-bezier(.22,.72,.22,1),
     visibility 0s;
 }
 
