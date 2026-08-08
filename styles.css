@@ -1679,9 +1679,11 @@ textarea::placeholder{color:var(--ink3)}
 .note{font-size:12px;color:var(--ink3);padding:9px 4px 0;line-height:1.5}
 .developer-credit{
   margin:34px 0 8px;
+
   text-align:center;
+
   font-size:11px;
-  letter-spacing:.08em;
+  line-height:1.6;
   color:var(--ink3);
 }
 
