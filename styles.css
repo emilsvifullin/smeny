@@ -135,10 +135,31 @@ button,input,select{font-family:inherit}
 
 /* шапка */
 header{
-  position:sticky;top:0;z-index:20;
-  padding:calc(14px + env(safe-area-inset-top)) 20px 12px;
-  background:linear-gradient(180deg,rgba(var(--hdr),.94) 62%,rgba(var(--hdr),0));
-  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  z-index:20;
+
+  padding:
+    calc(14px + env(safe-area-inset-top))
+    20px
+    12px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(var(--hdr),.94) 62%,
+      rgba(var(--hdr),0)
+    );
+
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+
+  transform:translateZ(0);
+  -webkit-transform:translateZ(0);
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
 }
 .nav{display:flex;align-items:center;justify-content:center;gap:6px}
 .nav button{
@@ -214,7 +235,11 @@ header{
 }
 
 main{
-  padding:6px 16px 0;
+  padding:
+    calc(76px + env(safe-area-inset-top))
+    16px
+    0;
+
   max-width:620px;
   margin:0 auto;
 
