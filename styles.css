@@ -246,6 +246,7 @@ main{
 
 .hero .n{
   margin-top:5px;
+  margin-left:-2px;
   font-size:40px;
   font-weight:500;
   line-height:1.05;
