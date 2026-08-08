@@ -382,12 +382,21 @@
     class="app-confirm-box"
     role="alertdialog"
     aria-modal="true"
-    aria-labelledby="appConfirmText"
+    aria-labelledby="appConfirmTitle"
+    aria-describedby="appConfirmDetail"
   >
-    <div
-      class="app-confirm-text"
-      id="appConfirmText"
-    ></div>
+    <div class="app-confirm-text">
+      <div
+        class="app-confirm-title"
+        id="appConfirmTitle"
+      ></div>
+
+      <div
+        class="app-confirm-detail"
+        id="appConfirmDetail"
+        hidden
+      ></div>
+    </div>
 
     <div class="app-confirm-actions">
       <button
