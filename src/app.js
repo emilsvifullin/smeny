@@ -191,6 +191,13 @@ function shiftsWord(n){
   return n+" смен";
 }
 
+function shiftsAccWord(n){
+  const last=n%10,lastTwo=n%100;
+  if(last===1 && lastTwo!==11) return n+" смену";
+  if(last>=2 && last<=4 && (lastTwo<10 || lastTwo>=20)) return n+" смены";
+  return n+" смен";
+}
+
 function partialShortWord(n){
   const last=n%10,lastTwo=n%100;
   if(last===1 && lastTwo!==11) return n+" неполная";
@@ -4472,7 +4479,7 @@ app.addEventListener("click",async event=>{
         ? `Заменить повреждённые данные исправной копией (${shiftsWord(imported.length)})?`
         : (shifts.length
             ? `Заменить все текущие смены данными из резервной копии (${shiftsWord(imported.length)})?`
-            : `Загрузить ${shiftsWord(imported.length)} из резервной копии?`),
+            : `Загрузить ${shiftsAccWord(imported.length)} из резервной копии?`),
       {okText:loadError || shifts.length ? "Заменить" : "Загрузить"}
     );
     if(!confirmed) return;
