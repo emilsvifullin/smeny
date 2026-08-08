@@ -736,7 +736,17 @@ function viewStats(){
           Начислено
         </div>
 
-        <div class="n">
+        <div class="n ${
+          String(
+            Math.abs(
+              Math.round(
+                aggregate.total
+              )
+            )
+          ).startsWith("1")
+            ? "starts-one"
+            : ""
+        }">
           ${nf(aggregate.total)}
           <small> ₽</small>
         </div>
