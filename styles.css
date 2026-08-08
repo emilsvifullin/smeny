@@ -254,6 +254,10 @@ main{
   color:var(--gold);
 }
 
+.hero .n.starts-one{
+  margin-left:-5px;
+}
+
 .hero .n small{
   margin-left:3px;
   font-size:22px;
