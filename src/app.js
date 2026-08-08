@@ -3652,8 +3652,8 @@ function changeTab(
   };
 
   if(
-    typeof document.startViewTransition!=="function" ||
-    prefersReducedMotion()
+    prefersReducedMotion() ||
+    typeof app.animate!=="function"
   ){
     apply();
     finish();
@@ -3662,36 +3662,46 @@ function changeTab(
 
   tabTransitionRunning=true;
 
-  document.documentElement.dataset.tabMotion=
-    resolvedDirection>0
-      ? "next"
-      : "prev";
+  apply();
 
-  let transition;
+  const startX=
+    resolvedDirection>0
+      ? 24
+      : -24;
+
+  let animation;
 
   try{
-    transition=
-      document.startViewTransition(
-        apply
-      );
+    animation=app.animate(
+      [
+        {
+          transform:
+            `translate3d(${startX}px,0,0)`
+        },
+        {
+          transform:
+            "translate3d(0,0,0)"
+        }
+      ],
+      {
+        duration:250,
+        easing:
+          "cubic-bezier(.22,.72,.22,1)",
+        fill:"both"
+      }
+    );
   }catch{
     tabTransitionRunning=false;
-
-    delete document.documentElement
-      .dataset.tabMotion;
-
-    apply();
     finish();
     return;
   }
 
-  transition.finished
+  animation.finished
     .catch(()=>{})
     .finally(()=>{
-      tabTransitionRunning=false;
+      animation.cancel();
 
-      delete document.documentElement
-        .dataset.tabMotion;
+      tabTransitionRunning=false;
 
       finish();
     });
