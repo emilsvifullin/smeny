@@ -73,7 +73,6 @@ export function resolvePointIdentity(record,index=null){
   const rawName=typeof record?.point==="string" ? record.point : "";
   const rawId=typeof record?.pointId==="string" ? record.pointId : "";
 
-
   if(rawId){
     if(!POINT_IDS.has(rawId)){
       throw new DataValidationError("неизвестный идентификатор ПВЗ",{recordIndex,code:"unknown_point"});
