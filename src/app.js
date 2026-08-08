@@ -1087,7 +1087,7 @@ function closeSheet(){
     sheet.style.removeProperty("transition");
     sheet.style.removeProperty("--sheet-drag");
     if(previousFocus && document.contains(previousFocus)) previousFocus.focus();
-  },400);
+  },500);
 }
 
 let datePickerHideTimer;
@@ -1513,7 +1513,7 @@ function closeDatePicker(){
     picker.style.removeProperty("--date-drag");
     picker.style.removeProperty("transition");
     if(previousFocus && document.contains(previousFocus)) previousFocus.focus();
-  },360);
+  },460);
 }
 
 function selectDate(ymd){
@@ -1600,7 +1600,7 @@ function closePointPicker(){
     if(!picker.classList.contains("on")) picker.style.display="none";
     picker.style.removeProperty("--point-drag");
     if(previousFocus && document.contains(previousFocus)) previousFocus.focus();
-  },360);
+  },460);
 }
 
 function previewCalc(value){
@@ -1862,7 +1862,7 @@ function closeMonthPicker(){
     picker.style.removeProperty("--month-drag");
     picker.style.removeProperty("transition");
     if(previousFocus && document.contains(previousFocus)) previousFocus.focus();
-  },320);
+  },460);
 }
 
 let monthTransitionRunning=false;
@@ -2610,7 +2610,7 @@ function bindBottomSheetDismiss({
 
   const snapBack=()=>{
     element.style.transition=
-      "transform .30s cubic-bezier(.32,.72,0,1)";
+      "transform .42s cubic-bezier(.4,0,.2,1)";
 
     requestAnimationFrame(()=>{
       element.style.setProperty(
@@ -2631,7 +2631,7 @@ function bindBottomSheetDismiss({
           dragProperty
         );
       }
-    },320);
+    },440);
   };
 
   const animateClose=distance=>{
@@ -2668,9 +2668,9 @@ function bindBottomSheetDismiss({
           }
         ],
         {
-          duration:300,
+          duration:420,
           easing:
-            "cubic-bezier(.32,.72,0,1)",
+            "cubic-bezier(.4,0,.2,1)",
           fill:"both"
         }
       );
