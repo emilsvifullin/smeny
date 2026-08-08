@@ -1856,6 +1856,42 @@ button:disabled{
   opacity:1;
   transform:translateX(-50%) translateY(0);
 }
+.data-status{
+  min-height:28px;
+  padding:2px 4px;
+
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.data-status-copy{
+  min-width:0;
+}
+
+.data-status-title{
+  color:var(--ink);
+
+  font-size:15px;
+  line-height:1.35;
+  letter-spacing:-.15px;
+}
+
+.data-status-count{
+  color:var(--gold);
+  font-weight:500;
+  white-space:nowrap;
+}
+
+.data-status-detail{
+  margin-top:3px;
+
+  color:var(--ink2);
+
+  font-size:12px;
+  line-height:1.4;
+}
+
 .dot{width:7px;height:7px;border-radius:4px;background:var(--gold);flex:none;box-shadow:0 0 0 3px var(--gold-soft)}
 .dot.off{background:var(--rust);box-shadow:0 0 0 3px var(--rust-line)}
 @media (hover:hover) and (pointer:fine){
