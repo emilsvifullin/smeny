@@ -2114,7 +2114,6 @@ html[data-tab-motion]::view-transition-new(month-period){
   }
 }
 
-
 #monthGrid,
 #dateJumpMonths{
   touch-action:pan-y;
