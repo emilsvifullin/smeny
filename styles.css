@@ -512,9 +512,14 @@ nav.tabs button{
   cursor:pointer;
   white-space:nowrap;
 
+  appearance:none;
+  -webkit-appearance:none;
+
   transition:
     background-color .20s ease,
-    color .20s ease;
+    color .20s ease,
+    transform .12s cubic-bezier(.32,.72,0,1),
+    opacity .12s ease;
 }
 nav.tabs button.on{
   background:var(--tint2);
@@ -1131,10 +1136,16 @@ body.date-picker-open .sheet{
   cursor:pointer;
 }
 
-button.touch-active,
-nav.tabs button.touch-active{
+button.touch-active{
   box-shadow:
     inset 0 0 0 999px var(--tint2) !important;
+}
+
+nav.tabs button.touch-active,
+.seg button.touch-active{
+  box-shadow:none !important;
+  transform:scale(.97);
+  opacity:.72;
 }
 
 .sh.touch-active{
@@ -1413,10 +1424,55 @@ body.month-picker-open{
   cursor:pointer;
 }
 
-.seg{display:flex;gap:3px;padding:3px;background:var(--tint);border-radius:13px}
-.seg button{flex:1;border:none;background:transparent;border-radius:11px;padding:9px 4px;cursor:pointer;color:var(--ink2);font-size:13px;letter-spacing:-.1px}
-.seg button.on{background:var(--surf);color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.14)}
-.segbox{padding:5px}
+.seg{
+  display:flex;
+  gap:3px;
+  padding:3px;
+  background:var(--tint);
+  border-radius:13px;
+}
+
+.seg button{
+  flex:1;
+  padding:9px 4px;
+
+  border:0;
+  border-radius:11px;
+  background:transparent;
+  color:var(--ink2);
+
+  font-size:13px;
+  letter-spacing:-.1px;
+  cursor:pointer;
+
+  appearance:none;
+  -webkit-appearance:none;
+
+  transition:
+    background-color .18s ease,
+    color .18s ease,
+    transform .12s cubic-bezier(.32,.72,0,1),
+    opacity .12s ease,
+    box-shadow .18s ease;
+}
+
+.seg button.on{
+  background:var(--surf);
+  color:var(--ink);
+  font-weight:600;
+  box-shadow:0 1px 3px rgba(0,0,0,.14);
+}
+
+.seg button.touch-active,
+.seg button.on.touch-active{
+  box-shadow:none !important;
+  transform:scale(.97);
+  opacity:.72;
+}
+
+.segbox{
+  padding:5px;
+}
 
 /* расчёт */
 .calc{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:15px 17px}
@@ -1582,13 +1638,26 @@ button:disabled{
 @media (hover:hover) and (pointer:fine){
 
   /*
-    Точно такой же эффект,
-    как button.touch-active на мобильном.
+    Обычные кнопки приложения.
   */
-  button:active,
-  nav.tabs button:active{
+  button:active{
     box-shadow:
       inset 0 0 0 999px var(--tint2) !important;
+  }
+
+  /*
+    Таббар и сегментированные
+    переключатели слегка прожимаются.
+  */
+  nav.tabs button:active,
+  .seg button:active{
+    box-shadow:none !important;
+    transform:scale(.97);
+    opacity:.72;
+  }
+
+  .seg button.on:active{
+    box-shadow:none !important;
   }
 
   /*
@@ -1765,6 +1834,14 @@ textarea:focus-visible,
 select:focus-visible{
   outline:2px solid var(--gold);
   outline-offset:2px;
+}
+
+nav.tabs button:focus,
+nav.tabs button:focus-visible,
+.seg button:focus,
+.seg button:focus-visible{
+  outline:none;
+  outline-offset:0;
 }
 
 /*
