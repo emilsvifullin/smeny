@@ -582,7 +582,7 @@ nav.tabs button.on{
   pointer-events:none;
 
   transition:
-    opacity .28s ease;
+    opacity .34s ease;
 }
 
 .veil.on{
@@ -624,9 +624,9 @@ nav.tabs button.on{
   pointer-events:none;
 
   transition:
-    transform .38s cubic-bezier(.22,.72,.22,1),
-    opacity .24s ease,
-    visibility 0s linear .38s;
+    transform .48s cubic-bezier(.4,0,.2,1),
+    opacity .30s ease,
+    visibility 0s linear .48s;
 
   padding-bottom:
     calc(28px + env(safe-area-inset-bottom));
@@ -644,8 +644,8 @@ nav.tabs button.on{
   pointer-events:auto;
 
   transition:
-    transform .38s cubic-bezier(.22,.72,.22,1),
-    opacity .24s ease,
+    transform .48s cubic-bezier(.4,0,.2,1),
+    opacity .30s ease,
     visibility 0s;
 }
 
@@ -758,7 +758,7 @@ select option{direction:ltr;background:var(--surf);color:var(--ink)}
   touch-action:none;
 
   transition:
-    opacity .26s ease;
+    opacity .32s ease;
 }
 
 .point-veil.on{
@@ -796,8 +796,8 @@ select option{direction:ltr;background:var(--surf);color:var(--ink)}
     opacity;
 
   transition:
-    transform .34s cubic-bezier(.22,.72,.22,1),
-    opacity .20s ease;
+    transform .42s cubic-bezier(.4,0,.2,1),
+    opacity .27s ease;
 }
 
 .point-picker.on{
@@ -908,7 +908,7 @@ body.point-picker-open .sheet{
   touch-action:none;
 
   transition:
-    opacity .26s ease;
+    opacity .32s ease;
 }
 
 .date-veil.on{
@@ -948,8 +948,8 @@ body.point-picker-open .sheet{
     opacity;
 
   transition:
-    transform .34s cubic-bezier(.22,.72,.22,1),
-    opacity .20s ease;
+    transform .42s cubic-bezier(.4,0,.2,1),
+    opacity .27s ease;
 }
 
 .date-picker.on{
@@ -1071,9 +1071,9 @@ body.date-picker-open .sheet{
     opacity;
 
   transition:
-    opacity .18s ease,
-    transform .26s cubic-bezier(.22,.72,.22,1),
-    visibility 0s linear .26s;
+    opacity .26s ease,
+    transform .34s cubic-bezier(.4,0,.2,1),
+    visibility 0s linear .34s;
 }
 
 .date-jump.on{
@@ -1086,23 +1086,9 @@ body.date-picker-open .sheet{
     scale(1);
 
   transition:
-    opacity .20s ease,
-    transform .26s cubic-bezier(.22,.72,.22,1),
+    opacity .28s ease,
+    transform .34s cubic-bezier(.4,0,.2,1),
     visibility 0s;
-}
-
-.date-jump.on::before{
-  opacity:1;
-
-  transition:
-    opacity .20s ease;
-}
-
-.date-jump.on > *{
-  opacity:1;
-
-  transition:
-    opacity .20s ease;
 }
 
 .date-jump-dismiss{
@@ -1283,7 +1269,7 @@ nav.tabs button.touch-active,
   background:var(--veil);
   opacity:0;
   pointer-events:none;
-  transition:.22s;
+  transition:opacity .32s ease;
 }
 
 .month-veil.on{
@@ -1313,7 +1299,7 @@ nav.tabs button.touch-active,
   will-change:transform;
 
   transition:
-    transform .3s cubic-bezier(.18,.70,.32,.92);
+    transform .42s cubic-bezier(.4,0,.2,1);
 
   padding:0 12px 14px;
 }
