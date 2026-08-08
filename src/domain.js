@@ -776,8 +776,11 @@ export function payouts(ym,shifts,{today}={}){
   let specialSecondHalfBase=0;
   let specialBonus=0;
 
-  let regularFirstGross=0;
-  let regularSecondGross=0;
+  let regularFirstBase=0;
+  let regularSecondBase=0;
+
+  let regularFirstBonus=0;
+  let regularSecondBonus=0;
 
   let hasAdvancePoints=false;
   let hasRegularPoints=false;
@@ -815,12 +818,16 @@ export function payouts(ym,shifts,{today}={}){
     hasRegularPoints=true;
 
     if(day<=15){
-      regularFirstGross+=
-        result.base+
+      regularFirstBase+=
+        result.base;
+
+      regularFirstBonus+=
         result.bonus;
     }else{
-      regularSecondGross+=
-        result.base+
+      regularSecondBase+=
+        result.base;
+
+      regularSecondBonus+=
         result.bonus;
     }
   }
@@ -838,6 +845,21 @@ export function payouts(ym,shifts,{today}={}){
       0
     );
 
+  const bonus25=
+    regularFirstBonus;
+
+  const bonus10=
+    specialBonus+
+    regularSecondBonus;
+
+  const regularFirstGross=
+    regularFirstBase+
+    regularFirstBonus;
+
+  const regularSecondGross=
+    regularSecondBase+
+    regularSecondBonus;
+
   const specialFinalGross=
     specialCarry+
     specialSecondHalfBase+
@@ -845,11 +867,14 @@ export function payouts(ym,shifts,{today}={}){
 
   const gross25=
     specialAdvance+
-    regularFirstGross;
+    regularFirstBase+
+    bonus25;
 
   const gross10=
-    specialFinalGross+
-    regularSecondGross;
+    specialCarry+
+    specialSecondHalfBase+
+    regularSecondBase+
+    bonus10;
 
   const fineByPayment=
     new Map();
@@ -959,6 +984,19 @@ export function payouts(ym,shifts,{today}={}){
     specialAdvance,
     specialCarry,
     specialFinalGross,
+
+    specialFirstHalfBase,
+    specialSecondHalfBase,
+    specialBonus,
+
+    regularFirstBase,
+    regularSecondBase,
+
+    regularFirstBonus,
+    regularSecondBonus,
+
+    bonus25,
+    bonus10,
 
     regularFirstGross,
     regularSecondGross,
