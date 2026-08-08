@@ -3669,18 +3669,22 @@ function changeTab(
       ? 24
       : -24;
 
+  app.style.left=
+    `${startX}px`;
+
+  void app.offsetWidth;
+
   let animation;
 
   try{
     animation=app.animate(
       [
         {
-          transform:
-            `translate3d(${startX}px,0,0)`
+          left:
+            `${startX}px`
         },
         {
-          transform:
-            "translate3d(0,0,0)"
+          left:"0px"
         }
       ],
       {
@@ -3690,8 +3694,15 @@ function changeTab(
         fill:"both"
       }
     );
+
+    app.style.left="0px";
   }catch{
+    app.style.removeProperty(
+      "left"
+    );
+
     tabTransitionRunning=false;
+
     finish();
     return;
   }
@@ -3700,6 +3711,10 @@ function changeTab(
     .catch(()=>{})
     .finally(()=>{
       animation.cancel();
+
+      app.style.removeProperty(
+        "left"
+      );
 
       tabTransitionRunning=false;
 
