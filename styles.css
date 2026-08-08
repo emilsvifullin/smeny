@@ -84,6 +84,13 @@ textarea:focus{
 
 html{
   background:var(--bg);
+
+  scrollbar-width:none;
+  -ms-overflow-style:none;
+}
+
+html::-webkit-scrollbar{
+  display:none;
 }
 body{
   margin:0;
