@@ -3637,8 +3637,8 @@ function changeTab(
 
   const apply=()=>{
     tab=nextTab;
-    render();
     window.scrollTo(0,0);
+    render();
   };
 
   const finish=()=>{
