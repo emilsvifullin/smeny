@@ -525,6 +525,7 @@ nav.tabs button.on{
   bottom:0;
   z-index:41;
 
+  height:93vh;
   max-height:93vh;
   overflow-y:auto;
   overscroll-behavior:contain;
