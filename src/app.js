@@ -4781,11 +4781,14 @@ app.addEventListener("click",async event=>{
 
     const confirmed=await appConfirm(
       loadError
-        ? `Заменить повреждённые данные исправной копией (${shiftsWord(imported.length)})?`
+        ? "Заменить повреждённые данные?"
         : (shifts.length
-            ? `Заменить все текущие смены данными из резервной копии (${shiftsWord(imported.length)})?`
-            : `Загрузить ${shiftsAccWord(imported.length)} из резервной копии?`),
-      {okText:loadError || shifts.length ? "Заменить" : "Загрузить"}
+            ? "Заменить все текущие смены?"
+            : "Загрузить резервную копию?"),
+      {
+        okText:loadError || shifts.length ? "Заменить" : "Загрузить",
+        detail:`Резервная копия содержит ${shiftsAccWord(imported.length)}.`
+      }
     );
     if(!confirmed) return;
 
