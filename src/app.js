@@ -585,10 +585,6 @@ function viewStats(){
     );
   }
 
-  summaryParts.push(
-    nf(aggregate.shk)+" ШК"
-  );
-
   const shiftsSummary=
     summaryParts.join(" · ");
 
