@@ -4736,8 +4736,13 @@ app.addEventListener("click",async event=>{
     const confirmed=await appConfirm(
       loadError
         ? "Восстановить последнюю исправную копию данных?"
-        : "Вернуть предыдущую сохранённую версию? Текущая версия будет сохранена отдельно.",
-      {okText:"Восстановить"}
+        : "Восстановить предыдущую версию?",
+      {
+        okText:"Восстановить",
+        detail:loadError
+          ? ""
+          : "Текущая версия будет сохранена отдельно."
+      }
     );
     if(!confirmed) return;
 
@@ -4811,8 +4816,12 @@ app.addEventListener("click",async event=>{
 
   if(button.id==="doWipe"){
     const confirmed=await appConfirm(
-      "Удалить все смены? Предыдущая сохранённая версия останется доступна для восстановления.",
-      {okText:"Удалить всё",danger:true}
+      "Удалить все смены?",
+      {
+        okText:"Удалить всё",
+        danger:true,
+        detail:"Предыдущую версию можно будет восстановить."
+      }
     );
     if(!confirmed) return;
 
