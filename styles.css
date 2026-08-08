@@ -78,15 +78,36 @@ html{
   background:var(--bg);
 }
 body{
-  margin:0;color:var(--ink);
-  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;
-  font-size:16px;line-height:1.35;font-variant-numeric:tabular-nums;
-  -webkit-font-smoothing:antialiased;
-  background:radial-gradient(130% 55% at 50% -10%, var(--glow) 0%, var(--glow0) 60%), var(--bg);
-  background-attachment:fixed;
-  padding-bottom:calc(120px + env(safe-area-inset-bottom));
+  margin:0;
   min-height:100vh;
-    touch-action:pan-y;
+  padding-bottom:
+    calc(120px + env(safe-area-inset-bottom));
+
+  color:var(--ink);
+
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "SF Pro Text",
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+
+  font-size:16px;
+  line-height:1.35;
+  font-variant-numeric:tabular-nums;
+  -webkit-font-smoothing:antialiased;
+
+  background:
+    radial-gradient(
+      130% 55% at 50% -10%,
+      var(--glow) 0%,
+      var(--glow0) 60%
+    ),
+    var(--bg);
+
+  background-attachment:fixed;
+  touch-action:pan-y;
 }
 
 body.app-booting > header,
