@@ -263,14 +263,17 @@ function closeAppConfirm(result){
   },100);
 }
 
-function appConfirm(message,{okText="Подтвердить",danger=false}={}){
+function appConfirm(message,{okText="Подтвердить",danger=false,detail=""}={}){
   const modal=document.getElementById("appConfirm");
-  const text=document.getElementById("appConfirmText");
+  const title=document.getElementById("appConfirmTitle");
+  const detailElement=document.getElementById("appConfirmDetail");
   const ok=document.getElementById("appConfirmOk");
   const cancel=document.getElementById("appConfirmCancel");
 
   appConfirmPreviousFocus=document.activeElement;
-  text.textContent=message;
+  title.textContent=message;
+  detailElement.textContent=detail;
+  detailElement.hidden=!detail;
   ok.textContent=okText;
   ok.classList.toggle("danger",danger);
   modal.classList.add("on");
