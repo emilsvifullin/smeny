@@ -2026,6 +2026,7 @@ textarea{
 }
 
 #app{
+  position:relative;
   view-transition-name:month-content;
 }
 
