@@ -32,6 +32,15 @@ export const FIXED_POINT_IDS = new Set([
   "kruzenshterna-9"
 ]);
 
+export const ADVANCE_POINT_IDS = new Set([
+  "volgogradskiy-73s1",
+  "yartsevskaya-6",
+  "yartsevskaya-25a",
+  "pyatnitskiy-2",
+  "bolshoy-ovchinnikovskiy-16",
+  "prokatnaya-2"
+]);
+
 export const TIERS = Object.freeze([
   {lim:350, rate:3000},
   {lim:450, rate:3500},
@@ -77,4 +86,15 @@ export function isFixedPoint(pointOrId){
     : pointIdForName(pointOrId);
 
   return Boolean(id && FIXED_POINT_IDS.has(id));
+}
+
+export function isAdvancePoint(pointOrId){
+  const id=POINT_IDS.has(pointOrId)
+    ? pointOrId
+    : pointIdForName(pointOrId);
+
+  return Boolean(
+    id &&
+    ADVANCE_POINT_IDS.has(id)
+  );
 }
