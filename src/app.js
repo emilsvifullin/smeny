@@ -575,35 +575,37 @@ function viewStats(){
   }
 
   const summaryParts=[
-    shiftsWord(aggregate.n)
+    shiftsWord(aggregate.n),
+    ...details
   ];
-
-  if(details.length){
-    summaryParts.push(
-      "из них "+
-      details.join(" и ")
-    );
-  }
-
-  if(payout.futureCount){
-    summaryParts.push(
-      "запланировано: "+
-      shiftsWord(
-        payout.futureCount
-      )
-    );
-  }
 
   const shiftsSummary=
     summaryParts.join(" · ");
 
+  let futureText="";
+
+  if(payout.futureCount){
+    if(
+      payout.futureCount===
+      aggregate.n
+    ){
+      futureText=
+        aggregate.n===1
+          ? "Смена запланирована и уже учтена в расчёте."
+          : `Все ${shiftsWord(aggregate.n)} запланированы и уже учтены в расчёте.`;
+    }else{
+      futureText=
+        payout.futureCount===1
+          ? "1 смена запланирована и уже учтена в расчёте."
+          : `${shiftsWord(payout.futureCount)} запланированы и уже учтены в расчёте.`;
+    }
+  }
+
   const futureNote=
-    payout.futureCount
+    futureText
       ? `
         <div class="note future-note">
-          ${shiftsWord(payout.futureCount)}
-          с будущей датой уже включены
-          в расчёт как запланированные.
+          ${futureText}
         </div>
       `
       : "";
