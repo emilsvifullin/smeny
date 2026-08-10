@@ -108,6 +108,71 @@ function normalizeWhole(value,index,label,{allowEmpty=true,max=Number.MAX_SAFE_I
   return number;
 }
 
+function moneyCents(value){
+  const number=Number(
+    typeof value==="string"
+      ? value.replace(",",".")
+      : value
+  );
+
+  if(!Number.isFinite(number)){
+    return null;
+  }
+
+  const cents=Math.round(number*100);
+
+  if(
+    Math.abs(
+      number*100-cents
+    )>1e-7
+  ){
+    return null;
+  }
+
+  return cents;
+}
+
+function normalizeMoney(
+  value,
+  index,
+  label,
+  {
+    allowEmpty=true,
+    max=MAX_MONEY
+  }={}
+){
+  if(
+    value==="" ||
+    value===null ||
+    value===undefined
+  ){
+    if(allowEmpty){
+      return "";
+    }
+
+    throw new DataValidationError(
+      `${label} не заполнено`,
+      {recordIndex:index}
+    );
+  }
+
+  const cents=
+    moneyCents(value);
+
+  if(
+    cents===null ||
+    cents<0 ||
+    cents>max*100
+  ){
+    throw new DataValidationError(
+      `${label} должно быть числом от 0 до ${max.toLocaleString("ru-RU")} с точностью до копеек`,
+      {recordIndex:index}
+    );
+  }
+
+  return cents/100;
+}
+
 function normalizeHours(value,index,partial){
   if(!partial) return FULL_HOURS;
   const hours=Number(value);
@@ -309,7 +374,7 @@ function migrateLegacy(record,index){
     : FULL_HOURS;
 
   const legacyTrainees=normalizeWhole(record.trainees,index,"Стажёры",{allowEmpty:true,max:1000});
-  const legacyBonusBase=normalizeWhole(record.bonus,index,"Премия",{allowEmpty:true,max:MAX_MONEY});
+  const legacyBonusBase=normalizeMoney(record.bonus,index,"Премия",{allowEmpty:true,max:MAX_MONEY});
   const legacyBonus=(legacyBonusBase==="" ? 0 : legacyBonusBase) +
     Math.round(
       (legacyTrainees==="" ? 0 : legacyTrainees)*
@@ -367,8 +432,8 @@ export function normalizeShiftRecord(source,index=0){
     : normalizeWhole(migrated.shk,index,"ШК",{allowEmpty:true,max:MAX_SHK});
 
   const hours=normalizeHours(migrated.hours,index,migrated.partial);
-  const bonus=normalizeWhole(migrated.bonus,index,"Премия",{allowEmpty:true,max:MAX_MONEY});
-  const fine=normalizeWhole(migrated.fine,index,"Штраф",{allowEmpty:true,max:MAX_MONEY});
+  const bonus=normalizeMoney(migrated.bonus,index,"Премия",{allowEmpty:true,max:MAX_MONEY});
+  const fine=normalizeMoney(migrated.fine,index,"Штраф",{allowEmpty:true,max:MAX_MONEY});
 
   const fineEntries=
     normalizeFineEntries(
@@ -527,8 +592,8 @@ export function normalizeDraftForSave(
   const fixed=isFixedPoint(identity.pointId);
   const shk=fixed ? 0 : normalizeWhole(value.shk,null,"ШК",{allowEmpty:true,max:MAX_SHK});
   const hours=normalizeHours(value.hours,null,value.partial);
-  const bonus=normalizeWhole(value.bonus,null,"Премия",{allowEmpty:true,max:MAX_MONEY});
-  const fine=normalizeWhole(value.fine,null,"Штраф",{allowEmpty:true,max:MAX_MONEY});
+  const bonus=normalizeMoney(value.bonus,null,"Премия",{allowEmpty:true,max:MAX_MONEY});
+  const fine=normalizeMoney(value.fine,null,"Штраф",{allowEmpty:true,max:MAX_MONEY});
 
   const currentFine=
     fine===""
