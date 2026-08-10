@@ -781,7 +781,7 @@ export function payouts(ym,shifts,{today}={}){
   let hasAdvancePoints=false;
   let hasRegularPoints=false;
 
-  for(const shift of earnedList){
+  for(const shift of list){
     const result=
       calc(shift);
 
