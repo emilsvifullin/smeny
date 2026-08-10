@@ -1982,9 +1982,27 @@ function validateDraft(value){
   }
 
   if(value.partial){
-    const hours=Number(value.hours);
-    if(!Number.isFinite(hours) || hours<.5 || hours>11.5 || !Number.isInteger(hours*2)){
-      return {message:"Укажите часы от 0,5 до 11,5 с шагом 0,5",fieldId:"f-hours"};
+    const hours=
+      Number(
+        typeof value.hours==="string"
+          ? value.hours.replace(",",".")
+          : value.hours
+      );
+
+    const maxPartialHours=
+      FULL_HOURS-0.5;
+
+    if(
+      !Number.isFinite(hours) ||
+      hours<0.5 ||
+      hours>maxPartialHours ||
+      !Number.isInteger(hours*2)
+    ){
+      return {
+        message:
+          `Укажите часы от 0,5 до ${String(maxPartialHours).replace(".",",")} с шагом 0,5`,
+        fieldId:"f-hours"
+      };
     }
   }
 
