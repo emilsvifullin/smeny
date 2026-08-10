@@ -1869,8 +1869,8 @@ function drawSheet(isEdit){
 
     <div class="ml">Премии и штрафы</div>
     <div class="card">
-      <label class="row"><div class="t">Премии</div><input type="number" inputmode="decimal" min="0" max="${MAX_MONEY}" step="0.01" id="f-bonus" value="${esc(draft.bonus)}" placeholder="0" aria-label="Премии"></label>
-      <label class="row"><div class="t">Штрафы</div><input type="number" inputmode="decimal" min="0" max="${MAX_MONEY}" step="0.01" id="f-fine" value="${esc(draft.fine)}" placeholder="0" aria-label="Штрафы"></label>
+      <label class="row"><div class="t">Премии</div><input type="text" inputmode="decimal" id="f-bonus" value="${esc(draft.bonus==="" ? "" : String(draft.bonus).replace(".",","))}" placeholder="0" aria-label="Премии"></label>
+      <label class="row"><div class="t">Штрафы</div><input type="text" inputmode="decimal" id="f-fine" value="${esc(draft.fine==="" ? "" : String(draft.fine).replace(".",","))}" placeholder="0" aria-label="Штрафы"></label>
     </div>
 
     <div class="ml">Расчёт</div>
@@ -1882,17 +1882,43 @@ function drawSheet(isEdit){
 function readForm(){
   const get=id=>document.getElementById(id);
 
-  if(get("f-shk")) draft.shk=get("f-shk").value;
+  if(get("f-shk")){
+    draft.shk=
+      get("f-shk").value;
+  }
 
   if(get("f-hours")){
     draft.hours=
       get("f-hours").value===""
         ? ""
-        : Number(get("f-hours").value);
+        : Number(
+            get("f-hours").value
+          );
   }
 
-  if(get("f-bonus")) draft.bonus=get("f-bonus").value;
-  if(get("f-fine")) draft.fine=get("f-fine").value;
+  if(get("f-bonus")){
+    const value=
+      get("f-bonus")
+        .value
+        .trim();
+
+    draft.bonus=
+      value===""
+        ? ""
+        : value.replace(",",".");
+  }
+
+  if(get("f-fine")){
+    const value=
+      get("f-fine")
+        .value
+        .trim();
+
+    draft.fine=
+      value===""
+        ? ""
+        : value.replace(",",".");
+  }
 }
 
 function validateWholeField(value,label,{allowEmpty=true,max=Number.MAX_SAFE_INTEGER}={}){
