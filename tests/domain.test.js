@@ -460,8 +460,8 @@ test("changing a pricing driver creates a new pricing snapshot on save",()=>{
   );
 });
 
-test("partial shifts use half-hour steps and per-shift rounding",()=>{
-  const item=
+test("partial shifts use a 13-hour workday with half-hour steps",()=>{
+  const halfHour=
     shift({
       partial:true,
       hours:0.5,
@@ -469,15 +469,53 @@ test("partial shifts use half-hour steps and per-shift rounding",()=>{
     });
 
   assert.equal(
-    calc(item).base,
-    146
+    halfHour.pricing.fullHours,
+    13
+  );
+
+  assert.equal(
+    calc(halfHour).base,
+    135
+  );
+
+  const halfDay=
+    shift({
+      partial:true,
+      hours:6.5,
+      shk:350
+    });
+
+  assert.equal(
+    calc(halfDay).base,
+    1750
+  );
+
+  const maxPartial=
+    shift({
+      partial:true,
+      hours:12.5,
+      shk:350
+    });
+
+  assert.equal(
+    maxPartial.hours,
+    12.5
   );
 
   assert.throws(
     ()=>
       shift({
         partial:true,
-        hours:0.25
+        hours:13
+      }),
+    DataValidationError
+  );
+
+  assert.throws(
+    ()=>
+      shift({
+        partial:true,
+        hours:6.25
       }),
     DataValidationError
   );
