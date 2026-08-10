@@ -1864,7 +1864,7 @@ function drawSheet(isEdit){
         <button type="button" data-part="0" class="${!draft.partial?"on":""}">Полная смена</button>
         <button type="button" data-part="1" class="${draft.partial?"on":""}">Неполная смена</button>
       </div></div>
-      ${draft.partial?`<label class="row"><div class="t">Часов</div><input type="number" inputmode="decimal" min="0.5" max="11.5" step="0.5" id="f-hours" value="${esc(draft.hours)}" placeholder="0" aria-label="Часов"></label>`:""}
+      ${draft.partial?`<label class="row"><div class="t">Часов</div><input type="text" inputmode="decimal" id="f-hours" value="${esc(draft.hours==="" ? "" : String(draft.hours).replace(".",","))}" placeholder="0" aria-label="Часов"></label>`:""}
     </div>
 
     <div class="ml">Премии и штрафы</div>
@@ -1888,11 +1888,16 @@ function readForm(){
   }
 
   if(get("f-hours")){
+    const value=
+      get("f-hours")
+        .value
+        .trim();
+
     draft.hours=
-      get("f-hours").value===""
+      value===""
         ? ""
         : Number(
-            get("f-hours").value
+            value.replace(",",".")
           );
   }
 
@@ -4706,6 +4711,32 @@ document
   };
 
 document.getElementById("sheetBody").addEventListener("input",e=>{
+  if(e.target.id==="f-hours"){
+    let value=
+      e.target.value
+        .replace(/\./g,",")
+        .replace(/[^\d,]/g,"");
+
+    const commaIndex=
+      value.indexOf(",");
+
+    if(commaIndex>=0){
+      value=
+        value.slice(
+          0,
+          commaIndex+1
+        )+
+        value
+          .slice(
+            commaIndex+1
+          )
+          .replace(/,/g,"")
+          .slice(0,1);
+    }
+
+    e.target.value=value;
+  }
+
   if(
     ["f-bonus","f-fine"]
       .includes(e.target.id)
