@@ -4706,13 +4706,53 @@ document
   };
 
 document.getElementById("sheetBody").addEventListener("input",e=>{
-  if(["f-shk","f-hours","f-bonus","f-fine"].includes(e.target.id)){
+  if(
+    ["f-bonus","f-fine"]
+      .includes(e.target.id)
+  ){
+    let value=
+      e.target.value
+        .replace(/\./g,",")
+        .replace(/[^\d,]/g,"");
+
+    const commaIndex=
+      value.indexOf(",");
+
+    if(commaIndex>=0){
+      value=
+        value.slice(
+          0,
+          commaIndex+1
+        )+
+        value
+          .slice(
+            commaIndex+1
+          )
+          .replace(/,/g,"")
+          .slice(0,2);
+    }
+
+    e.target.value=value;
+  }
+
+  if(
+    [
+      "f-shk",
+      "f-hours",
+      "f-bonus",
+      "f-fine"
+    ].includes(e.target.id)
+  ){
     readForm();
 
-    const box=document.getElementById("calcBox");
+    const box=
+      document.getElementById(
+        "calcBox"
+      );
 
     if(box){
-      box.innerHTML=calcHTML();
+      box.innerHTML=
+        calcHTML();
     }
 
     saveUIState();
