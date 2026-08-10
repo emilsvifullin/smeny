@@ -211,16 +211,33 @@ function normalizeFineEntries(
       ? 0
       : Number(fine);
 
+  const fineCents=
+    moneyCents(
+      fineAmount
+    );
+
+  if(
+    fineCents===null ||
+    fineCents<0 ||
+    fineCents>MAX_MONEY*100
+  ){
+    throw new DataValidationError(
+      "некорректная сумма штрафа",
+      {recordIndex:index}
+    );
+  }
+
   if(
     value===undefined ||
     value===null
   ){
-    if(fineAmount===0){
+    if(fineCents===0){
       return [];
     }
 
     return [{
-      amount:fineAmount,
+      amount:
+        fineCents/100,
       recordedOn:
         legacyFineRecordedOn(
           shiftDate
@@ -244,16 +261,18 @@ function normalizeFineEntries(
         );
       }
 
-      const amount=
-        Number(entry.amount);
+      const amountCents=
+        moneyCents(
+          entry.amount
+        );
 
       const recordedOn=
         entry.recordedOn;
 
       if(
-        !Number.isSafeInteger(amount) ||
-        amount===0 ||
-        Math.abs(amount)>MAX_MONEY
+        amountCents===null ||
+        amountCents===0 ||
+        Math.abs(amountCents)>MAX_MONEY*100
       ){
         throw new DataValidationError(
           "некорректная сумма в истории штрафов",
@@ -273,19 +292,26 @@ function normalizeFineEntries(
       }
 
       return {
-        amount,
+        amount:
+          amountCents/100,
         recordedOn
       };
     });
 
-  const total=
+  const totalCents=
     entries.reduce(
       (sum,entry)=>
-        sum+entry.amount,
+        sum+
+        Math.round(
+          entry.amount*100
+        ),
       0
     );
 
-  if(total!==fineAmount){
+  if(
+    totalCents!==
+    fineCents
+  ){
     throw new DataValidationError(
       "история штрафов не соответствует итоговой сумме",
       {recordIndex:index}
@@ -595,17 +621,23 @@ export function normalizeDraftForSave(
   const bonus=normalizeMoney(value.bonus,null,"Премия",{allowEmpty:true,max:MAX_MONEY});
   const fine=normalizeMoney(value.fine,null,"Штраф",{allowEmpty:true,max:MAX_MONEY});
 
-  const currentFine=
-    fine===""
-      ? 0
-      : Number(fine);
+  const currentFineCents=
+    Math.round(
+      (
+        fine===""
+          ? 0
+          : Number(fine)
+      )*100
+    );
 
-  const previousFine=
+  const previousFineCents=
     existingShift
-      ? (
-          existingShift.fine===""
-            ? 0
-            : Number(existingShift.fine)
+      ? Math.round(
+          (
+            existingShift.fine===""
+              ? 0
+              : Number(existingShift.fine)
+          )*100
         )
       : 0;
 
@@ -619,10 +651,11 @@ export function normalizeDraftForSave(
         )
       : [];
 
-  const fineDelta=
-    currentFine-previousFine;
+  const fineDeltaCents=
+    currentFineCents-
+    previousFineCents;
 
-  if(fineDelta!==0){
+  if(fineDeltaCents!==0){
     const entryDate=
       recordedOn ||
       new Date()
@@ -641,7 +674,8 @@ export function normalizeDraftForSave(
     fineEntries=[
       ...fineEntries,
       {
-        amount:fineDelta,
+        amount:
+          fineDeltaCents/100,
         recordedOn:entryDate
       }
     ];
