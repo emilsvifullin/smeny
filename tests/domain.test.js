@@ -243,70 +243,24 @@ test("regular PVZ pay first-half bonuses and registry fines on the 25th",()=>{
   );
 });
 
-test("fine entered after the 3rd misses the 10th and moves to the 25th",()=>{
+test("advance PVZ historical fines stay in the final settlement for the shift month",()=>{
   const item=
     shift(
       {
-        date:"2026-07-20",
+        date:"2026-07-17",
+        point:"Волгоградский Проспект 73с1",
         shk:650,
-        fine:500
+        fine:943.35
       },
-      "2026-08-04"
+      "2026-08-11"
     );
 
-  const july=
+  const result=
     payouts(
       "2026-07",
       [item],
       {
         today:"2026-08-25"
-      }
-    );
-
-  assert.equal(
-    july.payment10,
-    6500
-  );
-
-  assert.deepEqual(
-    july.otherFinePayments,
-    [{
-      date:"2026-08-25",
-      amount:500
-    }]
-  );
-
-  const august=
-    payouts(
-      "2026-08",
-      [item],
-      {
-        today:"2026-08-25"
-      }
-    );
-
-  assert.equal(
-    august.payment25,
-    -500
-  );
-});
-
-test("fine entered on the 18th moves to the next 10th",()=>{
-  const item=
-    shift(
-      {
-        date:"2026-08-07",
-        fine:700
-      },
-      "2026-08-18"
-    );
-
-  const result=
-    payouts(
-      "2026-08",
-      [item],
-      {
-        today:"2026-09-10"
       }
     );
 
@@ -317,11 +271,98 @@ test("fine entered on the 18th moves to the next 10th",()=>{
 
   assert.equal(
     result.fine10,
-    700
+    943.35
+  );
+
+  assert.deepEqual(
+    result.otherFinePayments,
+    []
   );
 });
 
-test("fine history keeps changes made on opposite sides of a registry cutoff separate",()=>{
+test("regular first-half historical fine stays in the 25th payment",()=>{
+  const item=
+    shift(
+      {
+        date:"2026-07-01",
+        shk:650,
+        fine:500
+      },
+      "2026-08-11"
+    );
+
+  const result=
+    payouts(
+      "2026-07",
+      [item],
+      {
+        today:"2026-08-25"
+      }
+    );
+
+  assert.equal(
+    result.fine25,
+    500
+  );
+
+  assert.equal(
+    result.payment25,
+    6000
+  );
+
+  assert.equal(
+    result.fine10,
+    0
+  );
+
+  assert.deepEqual(
+    result.otherFinePayments,
+    []
+  );
+});
+
+test("regular second-half historical fine stays in the next 10th payment",()=>{
+  const item=
+    shift(
+      {
+        date:"2026-07-20",
+        shk:650,
+        fine:500
+      },
+      "2026-08-11"
+    );
+
+  const result=
+    payouts(
+      "2026-07",
+      [item],
+      {
+        today:"2026-08-25"
+      }
+    );
+
+  assert.equal(
+    result.fine25,
+    0
+  );
+
+  assert.equal(
+    result.fine10,
+    500
+  );
+
+  assert.equal(
+    result.payment10,
+    6000
+  );
+
+  assert.deepEqual(
+    result.otherFinePayments,
+    []
+  );
+});
+
+test("editing a historical fine recalculates its original settlement without a future correction",()=>{
   const original=
     shift(
       {
@@ -340,7 +381,7 @@ test("fine history keeps changes made on opposite sides of a registry cutoff sep
       },
       original,
       {
-        recordedOn:"2026-08-04"
+        recordedOn:"2026-08-11"
       }
     );
 
@@ -348,12 +389,8 @@ test("fine history keeps changes made on opposite sides of a registry cutoff sep
     updated.fineEntries,
     [
       {
-        amount:1000,
-        recordedOn:"2026-08-02"
-      },
-      {
-        amount:500,
-        recordedOn:"2026-08-04"
+        amount:1500,
+        recordedOn:"2026-07-18"
       }
     ]
   );
@@ -369,20 +406,17 @@ test("fine history keeps changes made on opposite sides of a registry cutoff sep
 
   assert.equal(
     result.fine10,
-    1000
+    1500
   );
 
   assert.equal(
     result.payment10,
-    5500
+    5000
   );
 
   assert.deepEqual(
     result.otherFinePayments,
-    [{
-      date:"2026-08-25",
-      amount:500
-    }]
+    []
   );
 });
 
@@ -449,7 +483,7 @@ test("partial shifts use half-hour steps and per-shift rounding",()=>{
   );
 });
 
-test("future shifts do not enter accrued payouts",()=>{
+test("future shifts do not enter any payout amount",()=>{
   const past=
     shift({
       id:"s-test-past0001",
@@ -461,7 +495,9 @@ test("future shifts do not enter accrued payouts",()=>{
     shift({
       id:"s-test-future01",
       date:"2026-08-25",
-      shk:650
+      shk:650,
+      bonus:1000,
+      fine:500
     });
 
   const result=
@@ -484,8 +520,28 @@ test("future shifts do not enter accrued payouts",()=>{
   );
 
   assert.equal(
+    result.enteredCount,
+    2
+  );
+
+  assert.equal(
     result.gross25,
     calc(past).base
+  );
+
+  assert.equal(
+    result.gross10,
+    0
+  );
+
+  assert.equal(
+    result.fine10,
+    0
+  );
+
+  assert.equal(
+    result.payment10,
+    0
   );
 });
 
