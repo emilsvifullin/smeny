@@ -1,6 +1,6 @@
 export const APP_VERSION = "6.0.5";
 export const SCHEMA_VERSION = 3;
-export const RULES_VERSION = "2026-08-07-v1";
+export const RULES_VERSION = "2026-08-11-v2";
 
 export const POINT_DEFINITIONS = Object.freeze([
   {id:"kommunalnaya-10", name:"Коммунальная Улица 10"},
@@ -50,7 +50,7 @@ export const TIERS = Object.freeze([
 ]);
 
 export const FIXED_RATE = 3000;
-export const FULL_HOURS = 12;
+export const FULL_HOURS = 13;
 export const ADVANCE_CAP = 20000;
 
 export const MIN_YEAR = 2024;
