@@ -174,16 +174,30 @@ function normalizeMoney(
 }
 
 function normalizeHours(value,index,partial){
-  if(!partial) return FULL_HOURS;
-  const hours=Number(value);
+  if(!partial){
+    return FULL_HOURS;
+  }
+
+  const hours=
+    Number(
+      typeof value==="string"
+        ? value.replace(",",".")
+        : value
+    );
+
+  const maxPartialHours=
+    FULL_HOURS-0.5;
 
   if(
     !Number.isFinite(hours) ||
     hours<0.5 ||
-    hours>11.5 ||
+    hours>maxPartialHours ||
     !Number.isInteger(hours*2)
   ){
-    throw new DataValidationError("часы должны быть от 0,5 до 11,5 с шагом 0,5",{recordIndex:index});
+    throw new DataValidationError(
+      `часы должны быть от 0,5 до ${String(maxPartialHours).replace(".",",")} с шагом 0,5`,
+      {recordIndex:index}
+    );
   }
 
   return hours;
@@ -345,14 +359,26 @@ function normalizePricing(value,index,shift){
   }
 
   if(!isPlainObject(value)){
-    throw new DataValidationError("некорректный снимок тарифа",{recordIndex:index});
+    throw new DataValidationError(
+      "некорректный снимок тарифа",
+      {recordIndex:index}
+    );
   }
 
-  const version=Number(value.version);
-  const rate=Number(value.rate);
-  const fullHours=Number(value.fullHours);
-  const fixed=value.fixed;
-  const rulesVersion=value.rulesVersion;
+  const version=
+    Number(value.version);
+
+  const rate=
+    Number(value.rate);
+
+  const fullHours=
+    Number(value.fullHours);
+
+  const fixed=
+    value.fixed;
+
+  const rulesVersion=
+    value.rulesVersion;
 
   if(
     version!==1 ||
@@ -366,10 +392,32 @@ function normalizePricing(value,index,shift){
     fullHours<=0 ||
     fullHours>24
   ){
-    throw new DataValidationError("некорректный снимок тарифа",{recordIndex:index});
+    throw new DataValidationError(
+      "некорректный снимок тарифа",
+      {recordIndex:index}
+    );
   }
 
-  return {version:1,rulesVersion,fixed,rate,fullHours};
+  if(
+    rulesVersion==="2026-08-07-v1" &&
+    fullHours===12
+  ){
+    return {
+      version:1,
+      rulesVersion:RULES_VERSION,
+      fixed,
+      rate,
+      fullHours:FULL_HOURS
+    };
+  }
+
+  return {
+    version:1,
+    rulesVersion,
+    fixed,
+    rate,
+    fullHours
+  };
 }
 
 function migrateLegacy(record,index){
