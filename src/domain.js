@@ -621,65 +621,23 @@ export function normalizeDraftForSave(
   const bonus=normalizeMoney(value.bonus,null,"Премия",{allowEmpty:true,max:MAX_MONEY});
   const fine=normalizeMoney(value.fine,null,"Штраф",{allowEmpty:true,max:MAX_MONEY});
 
-  const currentFineCents=
-    Math.round(
-      (
-        fine===""
-          ? 0
-          : Number(fine)
-      )*100
-    );
+  const fineAmount=
+    fine===""
+      ? 0
+      : Number(fine);
 
-  const previousFineCents=
-    existingShift
-      ? Math.round(
-          (
-            existingShift.fine===""
-              ? 0
-              : Number(existingShift.fine)
-          )*100
-        )
-      : 0;
-
-  let fineEntries=
-    existingShift
-      ? normalizeFineEntries(
-          existingShift.fineEntries,
-          null,
-          existingShift.fine,
-          existingShift.date
-        )
-      : [];
-
-  const fineDeltaCents=
-    currentFineCents-
-    previousFineCents;
-
-  if(fineDeltaCents!==0){
-    const entryDate=
-      recordedOn ||
-      new Date()
-        .toLocaleDateString("sv-SE");
-
-    if(
-      !isValidDateString(
-        entryDate
-      )
-    ){
-      throw new DataValidationError(
-        "некорректная дата внесения штрафа"
-      );
-    }
-
-    fineEntries=[
-      ...fineEntries,
-      {
-        amount:
-          fineDeltaCents/100,
-        recordedOn:entryDate
-      }
-    ];
-  }
+  const fineEntries=
+    fineAmount===0
+      ? []
+      : [
+          {
+            amount:fineAmount,
+            recordedOn:
+              legacyFineRecordedOn(
+                value.date
+              )
+          }
+        ];
 
   const base={
     v:SCHEMA_VERSION,
@@ -787,93 +745,29 @@ export function payouts(ym,shifts,{today}={}){
     );
   };
 
-  const registryPaymentDate=
-    recordedOn=>{
-      const paymentYm=
-        recordedOn.slice(0,7);
-
-      const day=
-        Number(
-          recordedOn.slice(8,10)
-        );
-
-      if(day<3){
-        return `${paymentYm}-10`;
-      }
-
-      if(day<18){
-        return `${paymentYm}-25`;
-      }
-
-      return (
-        `${nextMonthKey(paymentYm)}-10`
-      );
-    };
-
-  const finePaymentDate=
-    (shift,entry)=>{
-      let paymentDate=
-        registryPaymentDate(
-          entry.recordedOn
-        );
-
-      const shiftYm=
-        shift.date.slice(0,7);
-
-      const shiftDay=
-        Number(
-          shift.date.slice(8,10)
-        );
-
-      const earliest=
-        isAdvancePoint(
-          shift.pointId ||
-          shift.point
-        )
-          ? `${
-              nextMonthKey(
-                shiftYm
-              )
-            }-10`
-          : shiftDay<=15
-            ? `${shiftYm}-25`
-            : `${
-                nextMonthKey(
-                  shiftYm
-                )
-              }-10`;
-
-      if(paymentDate<earliest){
-        paymentDate=earliest;
-      }
-
-      return paymentDate;
-    };
-
   const list=
     inMonth(shifts,ym);
 
-  const futureCount=
+  const earnedList=
     list.filter(
       shift=>
-        shift.date>currentDay
-    ).length;
+        shift.date<=currentDay
+    );
+
+  const futureCount=
+    list.length-
+    earnedList.length;
 
   const earnedCount=
-    list.length-futureCount;
+    earnedList.length;
 
   const nextYm=
     nextMonthKey(ym);
 
-  const payment25Date=
-    `${ym}-25`;
-
-  const payment10Date=
-    `${nextYm}-10`;
-
   let specialFirstHalfBase=0;
   let specialSecondHalfBase=0;
   let specialBonus=0;
+  let specialFine=0;
 
   let regularFirstBase=0;
   let regularSecondBase=0;
@@ -881,11 +775,15 @@ export function payouts(ym,shifts,{today}={}){
   let regularFirstBonus=0;
   let regularSecondBonus=0;
 
+  let regularFirstFine=0;
+  let regularSecondFine=0;
+
   let hasAdvancePoints=false;
   let hasRegularPoints=false;
 
-  for(const shift of list){
-    const result=calc(shift);
+  for(const shift of earnedList){
+    const result=
+      calc(shift);
 
     const day=
       Number(
@@ -911,6 +809,9 @@ export function payouts(ym,shifts,{today}={}){
       specialBonus+=
         result.bonus;
 
+      specialFine+=
+        result.fine;
+
       continue;
     }
 
@@ -922,12 +823,18 @@ export function payouts(ym,shifts,{today}={}){
 
       regularFirstBonus+=
         result.bonus;
+
+      regularFirstFine+=
+        result.fine;
     }else{
       regularSecondBase+=
         result.base;
 
       regularSecondBonus+=
         result.bonus;
+
+      regularSecondFine+=
+        result.fine;
     }
   }
 
@@ -950,6 +857,13 @@ export function payouts(ym,shifts,{today}={}){
   const bonus10=
     specialBonus+
     regularSecondBonus;
+
+  const fine25=
+    regularFirstFine;
+
+  const fine10=
+    specialFine+
+    regularSecondFine;
 
   const regularFirstGross=
     regularFirstBase+
@@ -974,93 +888,6 @@ export function payouts(ym,shifts,{today}={}){
     specialSecondHalfBase+
     regularSecondBase+
     bonus10;
-
-  const fineByPayment=
-    new Map();
-
-  const selectedFineByPayment=
-    new Map();
-
-  for(const shift of shifts){
-    const entries=
-      normalizeFineEntries(
-        shift.fineEntries,
-        null,
-        shift.fine,
-        shift.date
-      );
-
-    for(const entry of entries){
-      if(
-        entry.recordedOn>
-        currentDay
-      ){
-        continue;
-      }
-
-      const paymentDate=
-        finePaymentDate(
-          shift,
-          entry
-        );
-
-      fineByPayment.set(
-        paymentDate,
-        (
-          fineByPayment.get(
-            paymentDate
-          ) || 0
-        )+
-        entry.amount
-      );
-
-      if(
-        shift.date.slice(0,7)===
-        ym
-      ){
-        selectedFineByPayment.set(
-          paymentDate,
-          (
-            selectedFineByPayment.get(
-              paymentDate
-            ) || 0
-          )+
-          entry.amount
-        );
-      }
-    }
-  }
-
-  const fine25=
-    fineByPayment.get(
-      payment25Date
-    ) || 0;
-
-  const fine10=
-    fineByPayment.get(
-      payment10Date
-    ) || 0;
-
-  const otherFinePayments=
-    Array.from(
-      selectedFineByPayment,
-      ([date,amount])=>({
-        date,
-        amount
-      })
-    )
-      .filter(
-        item=>
-          item.amount!==0 &&
-          item.date!==payment25Date &&
-          item.date!==payment10Date
-      )
-      .sort(
-        (a,b)=>
-          a.date.localeCompare(
-            b.date
-          )
-      );
 
   const all=
     sumUp(list);
@@ -1103,7 +930,7 @@ export function payouts(ym,shifts,{today}={}){
     hasAdvancePoints,
     hasRegularPoints,
 
-    otherFinePayments,
+    otherFinePayments:[],
 
     futureCount,
     earnedCount,
