@@ -483,7 +483,7 @@ test("partial shifts use half-hour steps and per-shift rounding",()=>{
   );
 });
 
-test("future shifts do not enter any payout amount",()=>{
+test("future shifts enter projected payouts but remain marked as planned",()=>{
   const past=
     shift({
       id:"s-test-past0001",
@@ -531,17 +531,17 @@ test("future shifts do not enter any payout amount",()=>{
 
   assert.equal(
     result.gross10,
-    0
+    calc(future).base+1000
   );
 
   assert.equal(
     result.fine10,
-    0
+    500
   );
 
   assert.equal(
     result.payment10,
-    0
+    calc(future).base+500
   );
 });
 
