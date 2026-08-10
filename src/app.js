@@ -171,7 +171,32 @@ function nf(number){
     .replace(/\s/g,"\u00A0");
 }
 
-function money(number){return nf(number)+"\u00A0₽";}
+function nfMoney(number){
+  const cents=
+    Math.round(
+      Number(number)*100
+    );
+
+  const value=
+    cents/100;
+
+  return value
+    .toLocaleString(
+      "ru-RU",
+      {
+        minimumFractionDigits:
+          Math.abs(cents)%100===0
+            ? 0
+            : 2,
+        maximumFractionDigits:2
+      }
+    )
+    .replace(/\s/g,"\u00A0");
+}
+
+function money(number){
+  return nfMoney(number)+"\u00A0₽";
+}
 function esc(value){
   return String(value??"").replace(/[&<>\"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
 }
@@ -556,8 +581,8 @@ function viewShifts(){
     const tags=[];
     if(shift.type==="extra") tags.push(`<span class="tag g">Доп</span>`);
     if(shift.partial) tags.push(`<span class="tag">${hoursWord(result.hours)}</span>`);
-    if(result.bonus>0) tags.push(`<span class="tag bonus">+${nf(result.bonus)}</span>`);
-    if(result.fine>0) tags.push(`<span class="tag r">−${nf(result.fine)}</span>`);
+    if(result.bonus>0) tags.push(`<span class="tag bonus">+${nfMoney(result.bonus)}</span>`);
+    if(result.fine>0) tags.push(`<span class="tag r">−${nfMoney(result.fine)}</span>`);
     const shkLabel=result.fixed ? "Оклад" : `${shift.shk==="" ? "—" : nf(shift.shk)} ШК`;
 
     html+=`
@@ -877,7 +902,7 @@ function viewStats(){
             ? "starts-one"
             : ""
         }">
-          ${nf(aggregate.total)}
+          ${nfMoney(aggregate.total)}
           <small> ₽</small>
         </div>
 
@@ -1844,8 +1869,8 @@ function drawSheet(isEdit){
 
     <div class="ml">Премии и штрафы</div>
     <div class="card">
-      <label class="row"><div class="t">Премии</div><input type="number" inputmode="numeric" min="0" max="${MAX_MONEY}" step="1" id="f-bonus" value="${esc(draft.bonus)}" placeholder="0" aria-label="Премии"></label>
-      <label class="row"><div class="t">Штрафы</div><input type="number" inputmode="numeric" min="0" max="${MAX_MONEY}" step="1" id="f-fine" value="${esc(draft.fine)}" placeholder="0" aria-label="Штрафы"></label>
+      <label class="row"><div class="t">Премии</div><input type="number" inputmode="decimal" min="0" max="${MAX_MONEY}" step="0.01" id="f-bonus" value="${esc(draft.bonus)}" placeholder="0" aria-label="Премии"></label>
+      <label class="row"><div class="t">Штрафы</div><input type="number" inputmode="decimal" min="0" max="${MAX_MONEY}" step="0.01" id="f-fine" value="${esc(draft.fine)}" placeholder="0" aria-label="Штрафы"></label>
     </div>
 
     <div class="ml">Расчёт</div>
@@ -1882,6 +1907,40 @@ function validateWholeField(value,label,{allowEmpty=true,max=Number.MAX_SAFE_INT
   return null;
 }
 
+function validateMoneyField(value,label,{allowEmpty=true,max=MAX_MONEY}={}){
+  if(value==="" || value===null || value===undefined){
+    return allowEmpty ? null : `${label} не заполнено`;
+  }
+
+  const number=
+    Number(
+      typeof value==="string"
+        ? value.replace(",",".")
+        : value
+    );
+
+  if(!Number.isFinite(number)){
+    return `${label} должно быть числом`;
+  }
+
+  const cents=
+    Math.round(
+      number*100
+    );
+
+  if(
+    number<0 ||
+    number>max ||
+    Math.abs(
+      number*100-cents
+    )>1e-7
+  ){
+    return `${label} должно быть от 0 до ${nf(max)} ₽, не более 2 знаков после запятой`;
+  }
+
+  return null;
+}
+
 function validateDraft(value){
   if(!isValidDateString(value.date)) return {message:`Выберите дату с ${MIN_YEAR} по ${MAX_YEAR} год`,fieldId:"f-date-open"};
   if(!POINTS.includes(value.point)) return {message:"Выберите пункт",fieldId:"f-point-open"};
@@ -1898,9 +1957,9 @@ function validateDraft(value){
     }
   }
 
-  const bonusError=validateWholeField(value.bonus,"Премия",{max:MAX_MONEY});
+  const bonusError=validateMoneyField(value.bonus,"Премия",{max:MAX_MONEY});
   if(bonusError) return {message:bonusError,fieldId:"f-bonus"};
-  const fineError=validateWholeField(value.fine,"Штраф",{max:MAX_MONEY});
+  const fineError=validateMoneyField(value.fine,"Штраф",{max:MAX_MONEY});
   if(fineError) return {message:fineError,fieldId:"f-fine"};
 
   try{
