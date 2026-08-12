@@ -399,8 +399,14 @@ function normalizePricing(value,index,shift){
   }
 
   if(
-    rulesVersion==="2026-08-07-v1" &&
-    fullHours===12
+    (
+      rulesVersion==="2026-08-07-v1" &&
+      fullHours===12
+    ) ||
+    (
+      rulesVersion==="2026-08-11-v2" &&
+      fullHours===13
+    )
   ){
     return {
       version:1,
