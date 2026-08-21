@@ -71,6 +71,30 @@ function safeSessionRemove(key){
   try{sessionStorage.removeItem(key);}catch{}
 }
 
+function pageScrollTop(){
+  const scroller=
+    document.getElementById("app");
+
+  return scroller
+    ? scroller.scrollTop
+    : 0;
+}
+
+function setPageScrollTop(value){
+  const scroller=
+    document.getElementById("app");
+
+  if(!scroller){
+    return;
+  }
+
+  scroller.scrollTop=
+    Math.max(
+      0,
+      Number(value) || 0
+    );
+}
+
 function validMonthCursor(value){
   if(typeof value!=="string" || !/^\d{4}-\d{2}$/.test(value)) return false;
   const [year,month]=value.split("-").map(Number);
@@ -108,7 +132,7 @@ function saveUIState(){
     safeSessionSet(UI_KEY,JSON.stringify({
       tab,
       cursor,
-      scrollY:window.scrollY,
+      scrollY:pageScrollTop(),
       sheetOpen,
       sheetScrollTop:sheetOpen && sheet ? sheet.scrollTop : 0,
       draft:sheetOpen ? draft : null
@@ -404,8 +428,7 @@ async function load(){
   }
 
   requestAnimationFrame(()=>{
-    window.scrollTo(
-      0,
+    setPageScrollTop(
       pendingUI.scrollY || 0
     );
 
@@ -2209,6 +2232,17 @@ function makeMonthTransitionGhost(
     ghost
   );
 
+  if(
+    element instanceof HTMLElement &&
+    ghost instanceof HTMLElement
+  ){
+    ghost.scrollTop=
+      element.scrollTop;
+
+    ghost.scrollLeft=
+      element.scrollLeft;
+  }
+
   return ghost;
 }
 
@@ -2240,10 +2274,7 @@ function changeMonth(
       отдельным fixed-слепком.
     */
     if(scrollTop){
-      window.scrollTo(
-        0,
-        0
-      );
+      setPageScrollTop(0);
     }
 
     render();
@@ -3983,7 +4014,7 @@ function changeTab(
   }
 
   if(nextTab===tab){
-    window.scrollTo(0,0);
+    setPageScrollTop(0);
 
     if(focus){
       document
@@ -4019,7 +4050,7 @@ function changeTab(
 
   const apply=()=>{
     tab=nextTab;
-    window.scrollTo(0,0);
+    setPageScrollTop(0);
     render();
   };
 
@@ -5033,7 +5064,7 @@ app.addEventListener("click",async event=>{
 });
 
 let scrollTimer;
-window.addEventListener("scroll",()=>{
+document.getElementById("app").addEventListener("scroll",()=>{
   clearTimeout(scrollTimer);
   scrollTimer=setTimeout(saveUIState,150);
 },{passive:true});
@@ -5049,7 +5080,10 @@ document.addEventListener("freeze",saveUIState);
 
 window.addEventListener("pageshow",()=>{
   const ui=loadUIState();
-  window.scrollTo(0,ui.scrollY || 0);
+
+  setPageScrollTop(
+    ui.scrollY || 0
+  );
 });
 
 if("serviceWorker" in navigator){
