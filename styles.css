@@ -266,6 +266,36 @@ main{
   overscroll-behavior-y:contain;
 }
 
+main.shifts-layout{
+  padding-bottom:
+    calc(78px + env(safe-area-inset-bottom));
+
+  overflow:hidden;
+
+  display:flex;
+  flex-direction:column;
+}
+
+.shift-window{
+  flex:1;
+  min-height:0;
+
+  overflow:hidden;
+}
+
+.shift-scroll{
+  width:100%;
+  height:100%;
+
+  overflow-x:hidden;
+  overflow-y:auto;
+
+  -webkit-overflow-scrolling:touch;
+
+  touch-action:pan-y;
+  overscroll-behavior:contain;
+}
+
 /* типографика */
 .ml{font-size:10px;font-weight:700;letter-spacing:.19em;text-transform:uppercase;color:var(--ink3);margin:22px 4px 9px}
 .ml:first-child{margin-top:6px}
