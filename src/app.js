@@ -71,9 +71,18 @@ function safeSessionRemove(key){
   try{sessionStorage.removeItem(key);}catch{}
 }
 
+function pageScroller(){
+  return (
+    document.querySelector(
+      "#app .shift-scroll"
+    ) ||
+    document.getElementById("app")
+  );
+}
+
 function pageScrollTop(){
   const scroller=
-    document.getElementById("app");
+    pageScroller();
 
   return scroller
     ? scroller.scrollTop
@@ -82,7 +91,7 @@ function pageScrollTop(){
 
 function setPageScrollTop(value){
   const scroller=
-    document.getElementById("app");
+    pageScroller();
 
   if(!scroller){
     return;
@@ -571,6 +580,11 @@ function render(){
     button.tabIndex=selected ? 0 : -1;
   });
 
+  app.classList.toggle(
+    "shifts-layout",
+    tab==="shifts"
+  );
+
   app.innerHTML=
     tab==="shifts"
       ? viewShifts()
@@ -581,6 +595,7 @@ function render(){
 
 function viewShifts(){
   const list=inMonth(cursor);
+
   if(!list.length){
     return `
       <div class="ml">${shiftsWord(0)}</div>
@@ -596,33 +611,80 @@ function viewShifts(){
     `;
   }
 
-  let html=`<div class="ml">${shiftsWord(list.length)}</div><div class="card">`;
+  let html=`
+    <div class="ml">${shiftsWord(list.length)}</div>
+
+    <div class="card shift-window">
+      <div
+        class="shift-scroll"
+        aria-label="Список смен"
+      >
+  `;
 
   for(const shift of list){
     const result=calc(shift);
     const parts=shift.date.split("-");
     const tags=[];
-    if(shift.type==="extra") tags.push(`<span class="tag g">Доп</span>`);
-    if(shift.partial) tags.push(`<span class="tag">${hoursWord(result.hours)}</span>`);
-    if(result.bonus>0) tags.push(`<span class="tag bonus">+${nfMoney(result.bonus)}</span>`);
-    if(result.fine>0) tags.push(`<span class="tag r">−${nfMoney(result.fine)}</span>`);
-    const shkLabel=result.fixed ? "Оклад" : `${shift.shk==="" ? "—" : nf(shift.shk)} ШК`;
+
+    if(shift.type==="extra"){
+      tags.push(
+        `<span class="tag g">Доп</span>`
+      );
+    }
+
+    if(shift.partial){
+      tags.push(
+        `<span class="tag">${hoursWord(result.hours)}</span>`
+      );
+    }
+
+    if(result.bonus>0){
+      tags.push(
+        `<span class="tag bonus">+${nfMoney(result.bonus)}</span>`
+      );
+    }
+
+    if(result.fine>0){
+      tags.push(
+        `<span class="tag r">−${nfMoney(result.fine)}</span>`
+      );
+    }
+
+    const shkLabel=
+      result.fixed
+        ? "Оклад"
+        : `${shift.shk==="" ? "—" : nf(shift.shk)} ШК`;
 
     html+=`
-      <button type="button" class="sh" data-edit="${esc(shift.id)}" aria-label="${esc(dateLabel(shift.date))}, ${esc(shift.point)}, ${money(result.total)}">
-        <span class="day"><span class="d">${Number(parts[2])}</span><span class="w">${WD[new Date(shift.date+"T12:00:00").getDay()]}</span></span>
+      <button
+        type="button"
+        class="sh"
+        data-edit="${esc(shift.id)}"
+        aria-label="${esc(dateLabel(shift.date))}, ${esc(shift.point)}, ${money(result.total)}"
+      >
+        <span class="day">
+          <span class="d">${Number(parts[2])}</span>
+          <span class="w">${WD[new Date(shift.date+"T12:00:00").getDay()]}</span>
+        </span>
+
         <span class="mid">
           <span class="p">${esc(shift.point)}</span>
+
           <span class="meta">
             <span>${shkLabel} · ${nf(result.rate)} ₽</span>
             ${tags.join("")}
           </span>
         </span>
+
         <span class="amt">${money(result.total)}</span>
-      </button>`;
+      </button>
+    `;
   }
 
-  return html+`</div>`;
+  return html+`
+      </div>
+    </div>
+  `;
 }
 
 function viewStats(){
@@ -2241,6 +2303,27 @@ function makeMonthTransitionGhost(
 
     ghost.scrollLeft=
       element.scrollLeft;
+
+    const sourceShiftScroll=
+      element.querySelector(
+        ".shift-scroll"
+      );
+
+    const ghostShiftScroll=
+      ghost.querySelector(
+        ".shift-scroll"
+      );
+
+    if(
+      sourceShiftScroll instanceof HTMLElement &&
+      ghostShiftScroll instanceof HTMLElement
+    ){
+      ghostShiftScroll.scrollTop=
+        sourceShiftScroll.scrollTop;
+
+      ghostShiftScroll.scrollLeft=
+        sourceShiftScroll.scrollLeft;
+    }
   }
 
   return ghost;
@@ -5067,7 +5150,10 @@ let scrollTimer;
 document.getElementById("app").addEventListener("scroll",()=>{
   clearTimeout(scrollTimer);
   scrollTimer=setTimeout(saveUIState,150);
-},{passive:true});
+},{
+  passive:true,
+  capture:true
+});
 
 let sheetScrollTimer;
 document.getElementById("sheet").addEventListener("scroll",()=>{
