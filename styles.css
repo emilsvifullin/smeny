@@ -274,6 +274,11 @@ main.shifts-layout{
 
   display:flex;
   flex-direction:column;
+  justify-content:center;
+}
+
+main.shifts-layout > .ml:first-child{
+  margin-top:0;
 }
 
 .shift-window{
