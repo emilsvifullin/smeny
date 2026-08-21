@@ -216,6 +216,7 @@ header{
   -webkit-appearance:none;
 
   text-align:center;
+  text-indent:.095em;
   font-size:12px;
   font-weight:600;
   letter-spacing:.19em;
