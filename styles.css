@@ -378,7 +378,7 @@ main.shifts-layout{
   display:flex;
   align-items:center;
   gap:14px;
-  padding:12px 16px;
+  padding:10px 16px;
   border-top:1px solid var(--line);
   cursor:pointer;
   user-select:none;
