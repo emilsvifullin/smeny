@@ -591,6 +591,110 @@ function render(){
       : tab==="stats"
         ? viewStats()
         : viewData();
+
+  requestAnimationFrame(
+    fitShiftWindow
+  );
+}
+
+function fitShiftWindow(){
+  if(tab!=="shifts"){
+    return;
+  }
+
+  const frame=
+    app.querySelector(
+      ".shift-window"
+    );
+
+  const scroller=
+    app.querySelector(
+      ".shift-scroll"
+    );
+
+  if(
+    !(frame instanceof HTMLElement) ||
+    !(scroller instanceof HTMLElement)
+  ){
+    return;
+  }
+
+  frame.style.removeProperty(
+    "flex"
+  );
+
+  frame.style.removeProperty(
+    "height"
+  );
+
+  const available=
+    scroller.clientHeight;
+
+  const rows=
+    Array.from(
+      scroller.querySelectorAll(
+        ".sh"
+      )
+    );
+
+  if(
+    !rows.length ||
+    available<=0
+  ){
+    return;
+  }
+
+  let fittedHeight=0;
+
+  for(const row of rows){
+    const rowHeight=
+      row.getBoundingClientRect()
+        .height;
+
+    if(
+      fittedHeight+
+      rowHeight>
+      available+0.5
+    ){
+      break;
+    }
+
+    fittedHeight+=
+      rowHeight;
+  }
+
+  if(fittedHeight<=0){
+    return;
+  }
+
+  const frameStyle=
+    getComputedStyle(frame);
+
+  const borderHeight=
+    (
+      parseFloat(
+        frameStyle.borderTopWidth
+      ) || 0
+    )+
+    (
+      parseFloat(
+        frameStyle.borderBottomWidth
+      ) || 0
+    );
+
+  const targetHeight=
+    Math.min(
+      frame.getBoundingClientRect()
+        .height,
+      fittedHeight+
+        borderHeight
+    );
+
+  frame.style.flex=
+    `0 0 ${targetHeight}px`;
+
+  frame.style.height=
+    `${targetHeight}px`;
 }
 
 function viewShifts(){
